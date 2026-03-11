@@ -93,36 +93,31 @@ O projeto foi desenvolvido utilizando:
 
 ---
 
-# Estrutura do Projeto
+## Estrutura principal
 
-O projeto utiliza uma organização baseada em **features**, facilitando a escalabilidade do código conforme novas funcionalidades são adicionadas.
-
-### Estrutura principal:
-
+```text
 lib/
-app/
-app.dart
-router.dart
+  app/
+    app.dart
+    router.dart
 
-core/
-constants/
-errors/
-utils/
-widgets/
+  core/
+    constants/
+    errors/
+    utils/
+    widgets/
 
-features/
-goals/
-data/
-domain/
-presentation/
+  features/
+    goals/
+      data/
+      domain/
+      presentation/
 
-dashboard/
-  presentation/
+    dashboard/
+      presentation/
 
-onboarding/
-  presentation/
-
-Essa abordagem mantém cada funcionalidade isolada e organizada.
+    onboarding/
+      presentation/
 
 ---
 
@@ -244,3 +239,4 @@ O projeto também funciona como um laboratório de aprendizado prático em desen
 # Autor
 
 Projeto desenvolvido por **Kaique Klock**
+
