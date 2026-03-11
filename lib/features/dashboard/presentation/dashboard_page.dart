@@ -1,35 +1,62 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:quebrando_metas/app/router.dart';
+import 'package:quebrando_metas/features/goals/domain/goal.dart';
+import 'package:quebrando_metas/features/goals/presentation/goals_controller.dart';
 
-class DashboardPage extends StatelessWidget {
+class DashboardPage extends ConsumerWidget {
   const DashboardPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final List<HomeGoalViewData> goals = _mockGoals;
-    final double averageProgress = _averageProgress(goals);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final AsyncValue<List<Goal>> goalsAsync = ref.watch(goalsControllerProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Quebrando Metas'),
       ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
-        children: [
-          _HeaderSummary(
-            activeGoalsCount: goals.length,
-            averageProgress: averageProgress,
+      body: goalsAsync.when(
+        data: (goals) => _DashboardContent(goals: goals),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (_, __) => Center(
+          child: FilledButton(
+            onPressed: () => ref.read(goalsControllerProvider.notifier).reload(),
+            child: const Text('Tentar novamente'),
           ),
-          const SizedBox(height: 16),
-          if (goals.isNotEmpty) _ContinueCard(goal: goals.first),
-          const SizedBox(height: 20),
-          _GoalsSection(goals: goals),
-        ],
+        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {},
+        onPressed: () => context.push(AppRoutes.createGoal),
         icon: const Icon(Icons.add),
         label: const Text('Nova Meta'),
       ),
+    );
+  }
+}
+
+class _DashboardContent extends StatelessWidget {
+  const _DashboardContent({required this.goals});
+
+  final List<Goal> goals;
+
+  @override
+  Widget build(BuildContext context) {
+    final double averageProgress = _averageProgress(goals);
+    final Goal? highlightedGoal = goals.isEmpty ? null : goals.first;
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
+      children: [
+        _HeaderSummary(
+          activeGoalsCount: goals.length,
+          averageProgress: averageProgress,
+        ),
+        const SizedBox(height: 16),
+        if (highlightedGoal != null) _ContinueCard(goal: highlightedGoal),
+        const SizedBox(height: 20),
+        _GoalsSection(goals: goals),
+      ],
     );
   }
 }
@@ -69,7 +96,7 @@ class _HeaderSummary extends StatelessWidget {
 class _ContinueCard extends StatelessWidget {
   const _ContinueCard({required this.goal});
 
-  final HomeGoalViewData goal;
+  final Goal goal;
 
   @override
   Widget build(BuildContext context) {
@@ -85,11 +112,11 @@ class _ContinueCard extends StatelessWidget {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 12),
-            Text('Meta: ${goal.name}'),
+            Text('Meta: ${goal.title}'),
             const SizedBox(height: 4),
             Text('Progresso: ${(goal.progress * 100).toStringAsFixed(0)}%'),
             const SizedBox(height: 4),
-            Text('Proxima acao: ${goal.nextAction}'),
+            const Text('Proxima acao: Defina sua primeira acao'),
             const SizedBox(height: 12),
             FilledButton(
               onPressed: () {},
@@ -105,7 +132,7 @@ class _ContinueCard extends StatelessWidget {
 class _GoalsSection extends StatelessWidget {
   const _GoalsSection({required this.goals});
 
-  final List<HomeGoalViewData> goals;
+  final List<Goal> goals;
 
   @override
   Widget build(BuildContext context) {
@@ -135,13 +162,13 @@ class _GoalsSection extends StatelessWidget {
   }
 }
 
-class _GoalCard extends StatelessWidget {
+class _GoalCard extends ConsumerWidget {
   const _GoalCard({required this.goal});
 
-  final HomeGoalViewData goal;
+  final Goal goal;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
@@ -149,9 +176,39 @@ class _GoalCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              goal.name,
-              style: Theme.of(context).textTheme.titleMedium,
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    goal.title,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                PopupMenuButton<String>(
+                  onSelected: (value) async {
+                    if (value == 'edit') {
+                      context.pushNamed('edit-goal', extra: goal);
+                      return;
+                    }
+
+                    if (value == 'delete') {
+                      await ref
+                          .read(goalsControllerProvider.notifier)
+                          .deleteGoal(goal.id);
+                    }
+                  },
+                  itemBuilder: (context) => const [
+                    PopupMenuItem<String>(
+                      value: 'edit',
+                      child: Text('Editar'),
+                    ),
+                    PopupMenuItem<String>(
+                      value: 'delete',
+                      child: Text('Excluir'),
+                    ),
+                  ],
+                ),
+              ],
             ),
             const SizedBox(height: 8),
             LinearProgressIndicator(value: goal.progress),
@@ -160,7 +217,7 @@ class _GoalCard extends StatelessWidget {
             const SizedBox(height: 4),
             Text('${goal.completedActions} de ${goal.totalActions} acoes concluidas'),
             const SizedBox(height: 4),
-            Text('Proxima acao: ${goal.nextAction}'),
+            const Text('Proxima acao: Defina sua primeira acao'),
           ],
         ),
       ),
@@ -168,22 +225,7 @@ class _GoalCard extends StatelessWidget {
   }
 }
 
-class HomeGoalViewData {
-  const HomeGoalViewData({
-    required this.name,
-    required this.completedActions,
-    required this.totalActions,
-    required this.nextAction,
-  }) : progress = totalActions == 0 ? 0 : completedActions / totalActions;
-
-  final String name;
-  final int completedActions;
-  final int totalActions;
-  final String nextAction;
-  final double progress;
-}
-
-double _averageProgress(List<HomeGoalViewData> goals) {
+double _averageProgress(List<Goal> goals) {
   if (goals.isEmpty) return 0;
 
   final double sum = goals.fold<double>(
@@ -193,30 +235,3 @@ double _averageProgress(List<HomeGoalViewData> goals) {
 
   return sum / goals.length;
 }
-
-const List<HomeGoalViewData> _mockGoals = [
-  HomeGoalViewData(
-    name: 'Emagrecer',
-    completedActions: 2,
-    totalActions: 6,
-    nextAction: 'Treinar 3x essa semana',
-  ),
-  HomeGoalViewData(
-    name: 'Estudar Flutter',
-    completedActions: 4,
-    totalActions: 8,
-    nextAction: 'Revisar estado com Riverpod',
-  ),
-  HomeGoalViewData(
-    name: 'Ler mais livros',
-    completedActions: 1,
-    totalActions: 5,
-    nextAction: 'Ler 20 paginas hoje',
-  ),
-  HomeGoalViewData(
-    name: 'Organizar financas',
-    completedActions: 3,
-    totalActions: 5,
-    nextAction: 'Categorizar gastos da semana',
-  ),
-];

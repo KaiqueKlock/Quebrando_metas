@@ -134,7 +134,10 @@ Campos:
 - `title`
 - `description`
 - `createdAt`
-- `progress`
+- `updatedAt`
+- `completedActions`
+- `totalActions`
+- `progress` (derivado)
 
 ### Action (Ação)
 
@@ -144,10 +147,13 @@ Campos:
 - `title`
 - `isCompleted`
 - `createdAt`
+- `updatedAt`
+- `order`
+- `completedAt` (opcional)
 
 ### Regra de Progresso
 
-Progresso da meta:
+Progresso da meta (derivado):
 
 ```text
 progress = acoes_concluidas / total_de_acoes
@@ -351,7 +357,7 @@ Branches de feature:
 - `feature/goal-actions`
 - `feature/goal-progress`
 
-## 18. Convenção de Commits
+## 18. Convenção de Commits - pode ser em portugues
 
 - `feat: add goal creation flow`
 - `feat: implement goal actions`
@@ -375,9 +381,12 @@ Entregas registradas:
 - Home MVP inicial implementada (topo, destaque, lista e CTA principal)
 
 ### Sprint 1 - Metas
-- Lista de metas
-- Criar meta
-- Persistência local
+- Status: Concluído em 11/03/2026
+- Lista de metas ✅
+- Criar meta ✅ (fluxo inicial)
+- Persistência local ✅ (metas com Hive)
+- Editar meta ✅ (adiantado do Sprint 4)
+- Excluir meta ✅ (adiantado do Sprint 4)
 
 ### Sprint 2 - Ações
 - Adicionar ações
@@ -390,8 +399,8 @@ Entregas registradas:
 - Exibir progresso
 
 ### Sprint 4 - Polimento
-- Editar metas
-- Excluir metas
+- Editar metas - ✅ Feito no Sprint 1
+- Excluir metas - ✅ Feito no Sprint 1
 - Melhorar UX
 
 ### Sprint 5 - Release MVP
