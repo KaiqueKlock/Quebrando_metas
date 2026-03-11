@@ -1,16 +1,244 @@
-# quebrando_metas
+# Quebrando Metas
 
-A new Flutter project.
+Quebrando Metas é um aplicativo mobile desenvolvido em Flutter que ajuda pessoas a transformar objetivos grandes em pequenas ações executáveis.
 
-## Getting Started
+A proposta do aplicativo é tornar o progresso visível e ajudar o usuário a manter clareza sobre qual é o próximo passo para alcançar uma meta.
 
-This project is a starting point for a Flutter application.
+Em vez de lidar com objetivos abstratos, o usuário divide suas metas em pequenas ações e acompanha sua evolução ao longo do tempo.
 
-A few resources to get you started if this is your first Flutter project:
+---
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+# Ideia do Projeto
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Muitas pessoas definem metas importantes como:
+
+- emagrecer
+- aprender um novo idioma
+- estudar programação
+- melhorar hábitos
+
+No entanto, essas metas frequentemente acabam sendo abandonadas.
+
+Um dos principais motivos é que objetivos grandes costumam ser difíceis de executar no dia a dia. Quando uma meta não possui ações claras e mensuráveis, o progresso se torna invisível e a motivação diminui.
+
+O aplicativo **Quebrando Metas** foi criado para resolver esse problema.
+
+A proposta é permitir que qualquer meta seja dividida em pequenas ações que podem ser executadas individualmente, facilitando a construção de progresso ao longo do tempo.
+
+---
+
+# Exemplo de Uso
+
+**Meta**
+Emagrecer
+
+**Ações da meta**
+- Treinar 3 vezes por semana
+- Melhorar alimentação
+- Dormir melhor
+- Reduzir açúcar
+
+À medida que as ações são concluídas, o aplicativo calcula automaticamente o progresso da meta.
+
+**Exemplo de progresso**
+
+4 ações
+2 concluídas
+Progresso: 50%
+
+Essa visualização simples ajuda o usuário a perceber evolução e manter consistência.
+
+---
+
+# Objetivo do Projeto
+
+Este projeto foi desenvolvido com dois objetivos principais:
+
+- Explorar a construção de um aplicativo de produtividade simples e orientado a ações
+- Evoluir habilidades práticas em desenvolvimento mobile utilizando Flutter
+
+O projeto segue a filosofia de **aprender através da construção**, buscando desenvolver um produto funcional enquanto práticas de arquitetura e organização de código são aplicadas progressivamente.
+
+---
+
+# Funcionalidades do MVP
+
+O MVP do aplicativo inclui as seguintes funcionalidades:
+
+- Criar uma nova meta
+- Editar metas existentes
+- Excluir metas
+- Adicionar ações dentro de uma meta
+- Editar ações
+- Excluir ações
+- Marcar ações como concluídas
+- Visualizar progresso da meta
+- Visualizar lista de metas ativas
+
+O aplicativo funciona inicialmente de forma **local-first**, sem backend ou sincronização em nuvem.
+
+---
+
+# Stack Tecnológica
+
+O projeto foi desenvolvido utilizando:
+
+- Flutter
+- Dart
+- Riverpod (gerenciamento de estado)
+- GoRouter (navegação)
+- Hive ou Isar (persistência local)
+- flutter_test
+- integration_test
+
+---
+
+## Estrutura principal
+
+```text
+lib/
+  app/
+    app.dart
+    router.dart
+
+  core/
+    constants/
+    errors/
+    utils/
+    widgets/
+
+  features/
+    goals/
+      data/
+      domain/
+      presentation/
+
+    dashboard/
+      presentation/
+
+    onboarding/
+      presentation/
+``` 
+---
+
+# Arquitetura e Princípios
+
+O projeto segue alguns princípios principais.
+
+### Simplicidade
+
+O MVP prioriza clareza e simplicidade, evitando abstrações desnecessárias.
+
+### Separação de responsabilidades
+
+Lógica de negócio não deve estar diretamente nos widgets.
+
+### Feature-first
+
+A organização do projeto é orientada por funcionalidades em vez de camadas globais.
+
+### Componentização
+
+A interface é construída utilizando widgets pequenos e reutilizáveis.
+
+---
+# Testes
+
+O projeto utiliza três níveis de testes.
+
+### Unit Tests
+
+Validação de regras de negócio, como cálculo de progresso das metas.
+
+### Widget Tests
+
+Testes de interface e renderização de componentes.
+
+### Integration Tests
+
+Validação do fluxo principal do usuário.
+
+Fluxo mínimo testado:
+
+- Criar meta
+- Adicionar ações
+- Concluir ação
+- Ver progresso atualizado
+
+---
+
+# Roadmap do Projeto
+
+O desenvolvimento do MVP segue as seguintes etapas.
+
+### Sprint 0 — Fundação
+
+- Estrutura inicial do projeto
+- Configuração do router
+- Criação da Home inicial
+
+### Sprint 1 — Metas
+
+- Lista de metas
+- Criação de metas
+- Persistência local
+
+### Sprint 2 — Ações
+
+- Adicionar ações às metas
+- Listar ações
+- Editar ações
+
+### Sprint 3 — Progresso
+
+- Concluir ações
+- Calcular progresso
+- Exibir progresso
+
+### Sprint 4 — Polimento
+
+- Edição de metas
+- Exclusão de metas
+- Melhorias de UX
+
+### Sprint 5 — Release MVP
+
+---
+
+# Evoluções Futuras
+
+Possíveis evoluções após o MVP:
+
+- Sincronização em nuvem
+- Conta de usuário
+- Metas compartilhadas
+- Gamificação
+- Sugestões inteligentes de ações
+- Análise de hábitos
+
+---
+
+# Filosofia do Projeto
+
+O desenvolvimento do aplicativo segue três ideias principais.
+
+### Entregar valor rapidamente
+
+Pequenas funcionalidades completas são priorizadas em vez de grandes implementações complexas.
+
+### Simplicidade acima de complexidade
+
+O foco do MVP é resolver o problema central com o menor nível de complexidade possível.
+
+### Aprender construindo
+
+O projeto também funciona como um laboratório de aprendizado prático em desenvolvimento mobile.
+
+---
+
+# Autor
+
+Projeto desenvolvido por **Kaique Klock**
+
+
+
