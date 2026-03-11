@@ -118,7 +118,7 @@ lib/
 
     onboarding/
       presentation/
-
+     ``` 
 ---
 
 # Arquitetura e Princípios
@@ -239,4 +239,5 @@ O projeto também funciona como um laboratório de aprendizado prático em desen
 # Autor
 
 Projeto desenvolvido por **Kaique Klock**
+
 
