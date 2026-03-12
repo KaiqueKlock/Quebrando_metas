@@ -1,38 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:quebrando_metas/features/goals/domain/goal.dart';
+import 'package:quebrando_metas/features/goals/domain/title_validator.dart';
 import 'package:quebrando_metas/features/goals/presentation/goals_controller.dart';
 
 class CreateGoalPage extends ConsumerStatefulWidget {
   const CreateGoalPage({
     super.key,
-    this.goal,
+    this.goalId,
   });
 
-  final Goal? goal;
+  final String? goalId;
 
-  bool get isEditMode => goal != null;
+  bool get isEditMode => goalId != null;
 
   @override
   ConsumerState<CreateGoalPage> createState() => _CreateGoalPageState();
 }
 
 class _CreateGoalPageState extends ConsumerState<CreateGoalPage> {
+  static const int _descriptionMaxLength = 240;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   bool _isSaving = false;
-
-  @override
-  void initState() {
-    super.initState();
-    final Goal? goal = widget.goal;
-    if (goal != null) {
-      _titleController.text = goal.title;
-      _descriptionController.text = goal.description ?? '';
-    }
-  }
+  bool _prefilledFromGoal = false;
 
   @override
   void dispose() {
@@ -49,9 +43,17 @@ class _CreateGoalPageState extends ConsumerState<CreateGoalPage> {
     });
 
     try {
+      final Goal? currentGoal = widget.isEditMode
+          ? ref.read(goalByIdProvider(widget.goalId!))
+          : null;
+
       if (widget.isEditMode) {
+        if (currentGoal == null) {
+          _showError('Meta nao encontrada para edicao.');
+          return;
+        }
         await ref.read(goalsControllerProvider.notifier).updateGoal(
-              goal: widget.goal!,
+              goal: currentGoal,
               title: _titleController.text,
               description: _descriptionController.text,
             );
@@ -63,6 +65,10 @@ class _CreateGoalPageState extends ConsumerState<CreateGoalPage> {
       }
       if (!mounted) return;
       context.pop();
+    } on FormatException catch (error) {
+      _showError(error.message);
+    } catch (_) {
+      _showError('Nao foi possivel salvar a meta.');
     } finally {
       if (mounted) {
         setState(() {
@@ -75,48 +81,76 @@ class _CreateGoalPageState extends ConsumerState<CreateGoalPage> {
   @override
   Widget build(BuildContext context) {
     final bool isEditMode = widget.isEditMode;
+    final AsyncValue<List<Goal>> goalsAsync = ref.watch(goalsControllerProvider);
+    final Goal? editingGoal = isEditMode ? ref.watch(goalByIdProvider(widget.goalId!)) : null;
+
+    if (isEditMode && !_prefilledFromGoal && editingGoal != null) {
+      _titleController.text = editingGoal.title;
+      _descriptionController.text = editingGoal.description ?? '';
+      _prefilledFromGoal = true;
+    }
 
     return Scaffold(
       appBar: AppBar(title: Text(isEditMode ? 'Editar Meta' : 'Nova Meta')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              TextFormField(
-                controller: _titleController,
-                decoration: const InputDecoration(
-                  labelText: 'Titulo',
+      body: isEditMode && goalsAsync.isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : isEditMode && editingGoal == null
+              ? const Center(child: Text('Meta nao encontrada.'))
+          : Padding(
+              padding: const EdgeInsets.all(16),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    TextFormField(
+                      controller: _titleController,
+                      decoration: const InputDecoration(
+                        labelText: 'Titulo',
+                      ),
+                      maxLength: TitleValidator.maxLength,
+                      inputFormatters: [
+                        LengthLimitingTextInputFormatter(TitleValidator.maxLength),
+                      ],
+                      validator: (value) {
+                        try {
+                          TitleValidator.validate(value ?? '');
+                          return null;
+                        } on FormatException catch (error) {
+                          return error.message;
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _descriptionController,
+                      decoration: const InputDecoration(
+                        labelText: 'Descricao (opcional)',
+                      ),
+                      maxLength: _descriptionMaxLength,
+                      inputFormatters: [
+                        LengthLimitingTextInputFormatter(_descriptionMaxLength),
+                      ],
+                      maxLines: 3,
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton(
+                        onPressed: _isSaving ? null : _onSave,
+                        child: Text(_isSaving ? 'Salvando...' : 'Salvar'),
+                      ),
+                    ),
+                  ],
                 ),
-                maxLength: 80,
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Informe um titulo';
-                  }
-                  return null;
-                },
               ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _descriptionController,
-                decoration: const InputDecoration(
-                  labelText: 'Descricao (opcional)',
-                ),
-                maxLines: 3,
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: _isSaving ? null : _onSave,
-                  child: Text(_isSaving ? 'Salvando...' : 'Salvar'),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+            ),
+    );
+  }
+
+  void _showError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
     );
   }
 }

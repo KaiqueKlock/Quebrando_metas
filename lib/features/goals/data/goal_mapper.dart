@@ -15,7 +15,7 @@ class GoalMapper {
     };
   }
 
-  static Goal fromMap(Map<dynamic, dynamic> map) {
+  static Goal fromMap(Map<String, dynamic> map) {
     return Goal(
       id: map['id'] as String,
       title: map['title'] as String,

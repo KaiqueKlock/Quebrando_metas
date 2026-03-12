@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
+import 'package:quebrando_metas/app/onboarding_status.dart';
 import 'package:quebrando_metas/features/dashboard/presentation/dashboard_page.dart';
-import 'package:quebrando_metas/features/goals/domain/goal.dart';
+import 'package:quebrando_metas/features/goals/presentation/goal_actions_page.dart';
 import 'package:quebrando_metas/features/goals/presentation/create_goal_page.dart';
 import 'package:quebrando_metas/features/onboarding/presentation/onboarding_page.dart';
 
@@ -10,24 +11,25 @@ class AppRoutes {
   static const String dashboard = '/';
   static const String onboarding = '/onboarding';
   static const String createGoal = '/goals/new';
-  static const String editGoal = '/goals/edit';
+  static const String editGoal = '/goals/:goalId/edit';
+  static const String goalActions = '/goals/:goalId/actions';
 }
 
 class AppRouter {
   const AppRouter._();
 
-  static bool hasCompletedOnboarding = true;
-
   static final GoRouter router = GoRouter(
     initialLocation: AppRoutes.dashboard,
+    refreshListenable: OnboardingStatus.instance,
     redirect: (context, state) {
+      final OnboardingStatus onboardingStatus = OnboardingStatus.instance;
       final bool isOnboardingRoute = state.matchedLocation == AppRoutes.onboarding;
 
-      if (!hasCompletedOnboarding && !isOnboardingRoute) {
+      if (!onboardingStatus.hasCompletedOnboarding && !isOnboardingRoute) {
         return AppRoutes.onboarding;
       }
 
-      if (hasCompletedOnboarding && isOnboardingRoute) {
+      if (onboardingStatus.hasCompletedOnboarding && isOnboardingRoute) {
         return AppRoutes.dashboard;
       }
 
@@ -52,7 +54,16 @@ class AppRouter {
       GoRoute(
         path: AppRoutes.editGoal,
         name: 'edit-goal',
-        builder: (context, state) => CreateGoalPage(goal: state.extra as Goal),
+        builder: (context, state) => CreateGoalPage(
+          goalId: state.pathParameters['goalId'],
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.goalActions,
+        name: 'goal-actions',
+        builder: (context, state) => GoalActionsPage(
+          goalId: state.pathParameters['goalId'] ?? '',
+        ),
       ),
     ],
   );

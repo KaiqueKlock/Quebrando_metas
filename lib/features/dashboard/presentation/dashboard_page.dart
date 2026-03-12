@@ -42,20 +42,25 @@ class _DashboardContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final double averageProgress = _averageProgress(goals);
-    final Goal? highlightedGoal = goals.isEmpty ? null : goals.first;
+    final List<Goal> activeGoals = goals.where((goal) => goal.progress < 1).toList();
+    final double averageProgress = _averageProgress(activeGoals);
+    final Goal? highlightedGoal = activeGoals.isEmpty ? null : activeGoals.first;
+    final List<Goal> orderedGoals = [
+      ...activeGoals,
+      ...goals.where((goal) => goal.progress >= 1),
+    ];
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
       children: [
         _HeaderSummary(
-          activeGoalsCount: goals.length,
+          activeGoalsCount: activeGoals.length,
           averageProgress: averageProgress,
         ),
         const SizedBox(height: 16),
         if (highlightedGoal != null) _ContinueCard(goal: highlightedGoal),
         const SizedBox(height: 20),
-        _GoalsSection(goals: goals),
+        _GoalsSection(goals: orderedGoals),
       ],
     );
   }
@@ -119,7 +124,10 @@ class _ContinueCard extends StatelessWidget {
             const Text('Proxima acao: Defina sua primeira acao'),
             const SizedBox(height: 12),
             FilledButton(
-              onPressed: () {},
+              onPressed: () => context.pushNamed(
+                'goal-actions',
+                pathParameters: {'goalId': goal.id},
+              ),
               child: const Text('Continuar'),
             ),
           ],
@@ -171,67 +179,77 @@ class _GoalCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    goal.title,
-                    style: Theme.of(context).textTheme.titleMedium,
+      child: InkWell(
+        onTap: () => context.pushNamed(
+          'goal-actions',
+          pathParameters: {'goalId': goal.id},
+        ),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      goal.title,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
                   ),
-                ),
-                PopupMenuButton<String>(
-                  onSelected: (value) async {
-                    if (value == 'edit') {
-                      context.pushNamed('edit-goal', extra: goal);
-                      return;
-                    }
+                  PopupMenuButton<String>(
+                    onSelected: (value) async {
+                      if (value == 'edit') {
+                        context.pushNamed(
+                          'edit-goal',
+                          pathParameters: {'goalId': goal.id},
+                        );
+                        return;
+                      }
 
-                    if (value == 'delete') {
-                      await ref
-                          .read(goalsControllerProvider.notifier)
-                          .deleteGoal(goal.id);
-                    }
-                  },
-                  itemBuilder: (context) => const [
-                    PopupMenuItem<String>(
-                      value: 'edit',
-                      child: Text('Editar'),
-                    ),
-                    PopupMenuItem<String>(
-                      value: 'delete',
-                      child: Text('Excluir'),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            LinearProgressIndicator(value: goal.progress),
-            const SizedBox(height: 8),
-            Text('${(goal.progress * 100).toStringAsFixed(0)}%'),
-            const SizedBox(height: 4),
-            Text('${goal.completedActions} de ${goal.totalActions} acoes concluidas'),
-            const SizedBox(height: 4),
-            const Text('Proxima acao: Defina sua primeira acao'),
-          ],
+                      if (value == 'delete') {
+                        await ref
+                            .read(goalsControllerProvider.notifier)
+                            .deleteGoal(goal.id);
+                      }
+                    },
+                    itemBuilder: (context) => const [
+                      PopupMenuItem<String>(
+                        value: 'edit',
+                        child: Text('Editar'),
+                      ),
+                      PopupMenuItem<String>(
+                        value: 'delete',
+                        child: Text('Excluir'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              LinearProgressIndicator(value: goal.progress),
+              const SizedBox(height: 8),
+              Text('${(goal.progress * 100).toStringAsFixed(0)}%'),
+              const SizedBox(height: 4),
+              Text('${goal.completedActions} de ${goal.totalActions} acoes concluidas'),
+              const SizedBox(height: 4),
+              const Text('Toque para gerenciar ações'),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-double _averageProgress(List<Goal> goals) {
-  if (goals.isEmpty) return 0;
+double _averageProgress(List<Goal> activeGoals) {
+  if (activeGoals.isEmpty) return 0;
 
-  final double sum = goals.fold<double>(
+  final double sum = activeGoals.fold<double>(
     0,
     (previousValue, goal) => previousValue + goal.progress,
   );
 
-  return sum / goals.length;
+  return sum / activeGoals.length;
 }

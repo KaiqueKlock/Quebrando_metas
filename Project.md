@@ -384,30 +384,51 @@ Entregas registradas:
 - Status: Concluído em 11/03/2026
 - Lista de metas ✅
 - Criar meta ✅ (fluxo inicial)
+- Editar meta ✅
+- Excluir meta ✅ 
 - Persistência local ✅ (metas com Hive)
-- Editar meta ✅ (adiantado do Sprint 4)
-- Excluir meta ✅ (adiantado do Sprint 4)
 
 ### Sprint 2 - Ações
-- Adicionar ações
-- Listar ações
-- Editar ações
+- Status: Concluído em 11/03/2026
+- Adicionar ações ✅
+- Listar ações ✅
+- Editar ações ✅
+- Excluir ações ✅
+
 
 ### Sprint 3 - Progresso
-- Concluir ações
-- Calcular progresso
-- Exibir progresso
+- Status: Concluído em 12/03/2026
+- Concluir ações ✅
+- Calcular progresso ✅
+- Exibir progresso ✅
+- Metas -> retorno da tela de meta sem estado "Tentar novamente" ✅ (teste com 10 ciclos de ida e volta)
+- Ações e Metas -> input extremo tratado com `inputFormatter` + `validator` + feedback visual ✅
 
 ### Sprint 4 - Polimento
-- Editar metas - ✅ Feito no Sprint 1
-- Excluir metas - ✅ Feito no Sprint 1
 - Melhorar UX
+- Trazer novos cenários para testes
+- Refinar UI
 
 ### Sprint 5 - Release MVP
 - Testes finais
 - Revisão
 - Build release
 - Roadmap V2
+
+## Decisões técnicas (12/03/2026)
+
+- Navegação de edição/ações de metas refatorada para `goalId` em path params, removendo dependência de `state.extra`.
+- Estado de onboarding movido para storage local com Hive + `ChangeNotifier` (`refreshListenable` no `GoRouter`).
+- Persistência local tipada com `Map<String, dynamic>` em mappers e repositório.
+- Home ajustada para considerar apenas metas ativas no topo e no progresso médio.
+- Fluxo de ações estabilizado com atualização explícita da Home após mutações.
+- Validação centralizada por `TitleValidator` com limite de caracteres também no input (`LengthLimitingTextInputFormatter`).
+- Tratamento de erro de UI padronizado com `SnackBar` em criação/edição de metas e ações.
+- Cobertura de testes ampliada para:
+- usuário com histórico longo (10 metas concluídas + 5 ativas),
+- CRUD de ações,
+- input extremo (título e descrição longos),
+- estabilidade no retorno da tela de ações (10 ciclos sem estado de retry).
 
 ## 20. Visão de Evolução (Pós-MVP)
 

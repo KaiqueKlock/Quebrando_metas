@@ -13,6 +13,21 @@ final Provider<GoalsRepository> goalsRepositoryProvider =
 final AsyncNotifierProvider<GoalsController, List<Goal>> goalsControllerProvider =
     AsyncNotifierProvider<GoalsController, List<Goal>>(GoalsController.new);
 
+final ProviderFamily<Goal?, String> goalByIdProvider = Provider.family<Goal?, String>(
+  (ref, goalId) {
+    final AsyncValue<List<Goal>> goalsAsync = ref.watch(goalsControllerProvider);
+    return goalsAsync.maybeWhen(
+      data: (goals) {
+        for (final Goal goal in goals) {
+          if (goal.id == goalId) return goal;
+        }
+        return null;
+      },
+      orElse: () => null,
+    );
+  },
+);
+
 class GoalsController extends AsyncNotifier<List<Goal>> {
   late final GoalsRepository _repository;
 
@@ -35,8 +50,7 @@ class GoalsController extends AsyncNotifier<List<Goal>> {
       title: title,
       description: description,
     );
-    final List<Goal> goals = await _repository.listGoals();
-    state = AsyncData(goals);
+    await _refreshGoals();
   }
 
   Future<void> updateGoal({
@@ -50,12 +64,15 @@ class GoalsController extends AsyncNotifier<List<Goal>> {
       updatedAt: DateTime.now(),
     );
     await _repository.updateGoal(updatedGoal);
-    final List<Goal> goals = await _repository.listGoals();
-    state = AsyncData(goals);
+    await _refreshGoals();
   }
 
   Future<void> deleteGoal(String goalId) async {
     await _repository.deleteGoal(goalId);
+    await _refreshGoals();
+  }
+
+  Future<void> _refreshGoals() async {
     final List<Goal> goals = await _repository.listGoals();
     state = AsyncData(goals);
   }
