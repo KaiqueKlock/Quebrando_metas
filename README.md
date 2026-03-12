@@ -142,6 +142,20 @@ A organização do projeto é orientada por funcionalidades em vez de camadas gl
 A interface é construída utilizando widgets pequenos e reutilizáveis.
 
 ---
+# Decisões Técnicas
+
+Decisões atuais de arquitetura e implementação (alinhadas ao `Project.md`):
+
+- Navegação de metas e ações por `goalId` em path params, sem depender de `state.extra`.
+- Estado de onboarding persistido localmente com Hive e aplicado no redirect via `refreshListenable` do GoRouter.
+- Persistência local tipada com `Map<String, dynamic>` na camada de dados.
+- Progresso de meta derivado de ações concluídas (`completedActions / totalActions`), sem edição manual de progresso.
+- Home com foco em metas ativas (contagem e progresso médio considerando apenas metas não concluídas).
+- Validação centralizada de título com `TitleValidator`, incluindo bloqueio de entrada com `LengthLimitingTextInputFormatter`.
+- Tratamento de erros de UI com feedback visual (`SnackBar`) em criação/edição/exclusão.
+- Cobertura de testes ampliada para cenários de uso real (histórico longo, CRUD de ações, input extremo e estabilidade de navegação).
+
+---
 # Testes
 
 O projeto utiliza três níveis de testes.
