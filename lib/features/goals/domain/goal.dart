@@ -48,6 +48,7 @@ class Goal {
     String? id,
     String? title,
     String? description,
+    bool clearDescription = false,
     DateTime? createdAt,
     DateTime? updatedAt,
     int? completedActions,
@@ -56,7 +57,7 @@ class Goal {
     return Goal(
       id: id ?? this.id,
       title: title == null ? this.title : TitleValidator.validate(title),
-      description: description ?? this.description,
+      description: clearDescription ? null : description ?? this.description,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       completedActions: completedActions ?? this.completedActions,

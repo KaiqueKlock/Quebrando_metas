@@ -55,7 +55,7 @@ class ActionItem {
     return copyWith(
       isCompleted: false,
       updatedAt: now ?? DateTime.now(),
-      completedAt: null,
+      clearCompletedAt: true,
     );
   }
 

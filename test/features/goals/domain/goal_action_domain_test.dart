@@ -21,6 +21,19 @@ void main() {
 
       expect(goal.description, isNull);
     });
+
+    test('copyWith should clear description when requested', () {
+      final Goal goal = Goal.create(
+        title: 'Study',
+        description: 'Initial description',
+      );
+
+      final Goal updated = goal.copyWith(
+        clearDescription: true,
+      );
+
+      expect(updated.description, isNull);
+    });
   });
 
   group('ActionItem', () {
@@ -47,6 +60,19 @@ void main() {
 
       expect(completed.isCompleted, isTrue);
       expect(completed.completedAt, isNotNull);
+    });
+
+    test('markPending should clear completed metadata', () {
+      final ActionItem action = ActionItem.create(
+        goalId: 'goal-1',
+        title: 'Read 10 pages',
+        order: 0,
+      ).markCompleted();
+
+      final ActionItem pending = action.markPending();
+
+      expect(pending.isCompleted, isFalse);
+      expect(pending.completedAt, isNull);
     });
   });
 }

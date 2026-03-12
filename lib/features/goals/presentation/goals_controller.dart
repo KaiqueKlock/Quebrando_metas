@@ -58,9 +58,14 @@ class GoalsController extends AsyncNotifier<List<Goal>> {
     required String title,
     String? description,
   }) async {
+    final String? trimmedDescription = description?.trim();
+    final bool shouldClearDescription =
+        description != null && trimmedDescription!.isEmpty;
+
     final Goal updatedGoal = goal.copyWith(
       title: title,
-      description: description?.trim().isEmpty == true ? null : description?.trim(),
+      description: shouldClearDescription ? null : trimmedDescription,
+      clearDescription: shouldClearDescription,
       updatedAt: DateTime.now(),
     );
     await _repository.updateGoal(updatedGoal);
