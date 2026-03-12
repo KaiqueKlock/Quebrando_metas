@@ -167,44 +167,6 @@ Fluxo mínimo testado:
 
 ---
 
-# Roadmap do Projeto
-
-O desenvolvimento do MVP segue as seguintes etapas.
-
-### Sprint 0 — Fundação
-
-- Estrutura inicial do projeto
-- Configuração do router
-- Criação da Home inicial
-
-### Sprint 1 — Metas
-
-- Lista de metas
-- Criação de metas
-- Persistência local
-
-### Sprint 2 — Ações
-
-- Adicionar ações às metas
-- Listar ações
-- Editar ações
-
-### Sprint 3 — Progresso
-
-- Concluir ações
-- Calcular progresso
-- Exibir progresso
-
-### Sprint 4 — Polimento
-
-- Edição de metas
-- Exclusão de metas
-- Melhorias de UX
-
-### Sprint 5 — Release MVP
-
----
-
 # Evoluções Futuras
 
 Possíveis evoluções após o MVP:
@@ -239,6 +201,7 @@ O projeto também funciona como um laboratório de aprendizado prático em desen
 # Autor
 
 Projeto desenvolvido por **Kaique Klock**
+
 
 
 
