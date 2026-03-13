@@ -19,12 +19,7 @@ class DashboardPage extends ConsumerWidget {
       body: goalsAsync.when(
         data: (goals) => _DashboardContent(goals: goals),
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, __) => Center(
-          child: FilledButton(
-            onPressed: () => ref.read(goalsControllerProvider.notifier).reload(),
-            child: const Text('Tentar novamente'),
-          ),
-        ),
+        error: (_, __) => const _DashboardContent(goals: <Goal>[]),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push(AppRoutes.createGoal),
@@ -42,6 +37,7 @@ class _DashboardContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final int completedGoalsCount = goals.where((goal) => goal.progress >= 1).length;
     final List<Goal> activeGoals = goals.where((goal) => goal.progress < 1).toList();
     final double averageProgress = _averageProgress(activeGoals);
     final Goal? highlightedGoal = activeGoals.isEmpty ? null : activeGoals.first;
@@ -54,6 +50,7 @@ class _DashboardContent extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
       children: [
         _HeaderSummary(
+          completedGoalsCount: completedGoalsCount,
           activeGoalsCount: activeGoals.length,
           averageProgress: averageProgress,
         ),
@@ -68,10 +65,12 @@ class _DashboardContent extends StatelessWidget {
 
 class _HeaderSummary extends StatelessWidget {
   const _HeaderSummary({
+    required this.completedGoalsCount,
     required this.activeGoalsCount,
     required this.averageProgress,
   });
 
+  final int completedGoalsCount;
   final int activeGoalsCount;
   final double averageProgress;
 
@@ -88,6 +87,8 @@ class _HeaderSummary extends StatelessWidget {
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             const SizedBox(height: 8),
+            Text('Metas concluidas: $completedGoalsCount'),
+            const SizedBox(height: 4),
             Text('Voce tem $activeGoalsCount metas ativas'),
             const SizedBox(height: 4),
             Text('Progresso medio: ${(averageProgress * 100).toStringAsFixed(0)}%'),

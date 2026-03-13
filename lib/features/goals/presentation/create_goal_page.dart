@@ -14,7 +14,7 @@ class CreateGoalPage extends ConsumerStatefulWidget {
 
   final String? goalId;
 
-  bool get isEditMode => goalId != null;
+  bool get isEditMode => goalId?.isNotEmpty == true;
 
   @override
   ConsumerState<CreateGoalPage> createState() => _CreateGoalPageState();

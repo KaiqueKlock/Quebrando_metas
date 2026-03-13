@@ -56,6 +56,11 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Meta original'), findsOneWidget);
 
+    await tester.drag(find.byType(ListView).first, const Offset(0, -160));
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.byIcon(Icons.more_vert).first);
+    await tester.ensureVisible(find.byIcon(Icons.more_vert).first);
     await tester.tap(find.byIcon(Icons.more_vert).first);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Editar'));
@@ -66,6 +71,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Meta editada'), findsOneWidget);
 
+    await tester.ensureVisible(find.byIcon(Icons.more_vert).first);
+    await tester.ensureVisible(find.byIcon(Icons.more_vert).first);
     await tester.tap(find.byIcon(Icons.more_vert).first);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Excluir'));
@@ -91,6 +98,8 @@ void main() {
     await tester.tap(find.text('Continuar').first);
     await tester.pumpAndSettle();
     expect(find.textContaining('Ações: Meta com acoes'), findsOneWidget);
+    expect(find.text('Descricao da meta'), findsOneWidget);
+    expect(find.text('Sem descricao para esta meta.'), findsOneWidget);
 
     await tester.tap(find.text('Nova Ação'));
     await tester.pumpAndSettle();
@@ -205,10 +214,32 @@ void main() {
       );
       await tester.pumpAndSettle();
 
+      expect(find.text('Metas concluidas: 10'), findsOneWidget);
       expect(find.text('Voce tem 5 metas ativas'), findsOneWidget);
       expect(find.text('Progresso medio: 50%'), findsOneWidget);
     },
   );
+
+  testWidgets('Shows goal description section on actions page', (WidgetTester tester) async {
+    await _pumpApp(
+      tester,
+      repository: FakeInMemoryGoalsRepository(),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Nova Meta'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextFormField).at(0), 'Meta com descricao');
+    await tester.enterText(find.byType(TextFormField).at(1), 'Descricao de teste');
+    await tester.tap(find.text('Salvar'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Continuar').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Descricao da meta'), findsOneWidget);
+    expect(find.text('Descricao de teste'), findsOneWidget);
+  });
 
   testWidgets('Handles very large title/description input without crashing', (
     WidgetTester tester,

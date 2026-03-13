@@ -17,16 +17,46 @@ class ActionMapper {
   }
 
   static ActionItem fromMap(Map<String, dynamic> map) {
+    final DateTime createdAt = _parseDateTime(map['createdAt']) ?? DateTime.now();
+    final DateTime updatedAt = _parseDateTime(map['updatedAt']) ?? createdAt;
+    final DateTime? completedAt = _parseDateTime(map['completedAt']);
+
     return ActionItem(
-      id: map['id'] as String,
-      goalId: map['goalId'] as String,
-      title: map['title'] as String,
-      isCompleted: map['isCompleted'] as bool,
-      createdAt: DateTime.parse(map['createdAt'] as String),
-      updatedAt: DateTime.parse(map['updatedAt'] as String),
-      order: map['order'] as int,
-      completedAt:
-          map['completedAt'] == null ? null : DateTime.parse(map['completedAt'] as String),
+      id: (map['id'] ?? '').toString(),
+      goalId: (map['goalId'] ?? '').toString(),
+      title: (map['title'] ?? '').toString(),
+      isCompleted: _parseBool(map['isCompleted']) ?? false,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      order: _parseInt(map['order']) ?? 0,
+      completedAt: completedAt,
     );
+  }
+
+  static int? _parseInt(Object? value) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    if (value is String) return int.tryParse(value);
+    return null;
+  }
+
+  static bool? _parseBool(Object? value) {
+    if (value is bool) return value;
+    if (value is num) return value != 0;
+    if (value is String) {
+      final String normalized = value.trim().toLowerCase();
+      if (normalized == 'true') return true;
+      if (normalized == 'false') return false;
+    }
+    return null;
+  }
+
+  static DateTime? _parseDateTime(Object? value) {
+    if (value is DateTime) return value;
+    if (value is String) return DateTime.tryParse(value);
+    if (value is int) {
+      return DateTime.fromMillisecondsSinceEpoch(value);
+    }
+    return null;
   }
 }

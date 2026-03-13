@@ -44,22 +44,26 @@ class GoalActionsPage extends ConsumerWidget {
       ),
       body: actionsAsync.when(
         data: (actions) {
-          if (actions.isEmpty) {
-            return const Center(
-              child: Text('Nenhuma ação cadastrada para esta meta.'),
-            );
-          }
-
-          return ListView.builder(
-            itemCount: actions.length,
-            itemBuilder: (context, index) {
-              final ActionItem action = actions[index];
-              return CheckboxListTile(
-                title: Text(action.title),
-                value: action.isCompleted,
-                onChanged: (value) async {
-                  if (value == null) return;
-                  try {
+          return ListView(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
+            children: [
+              _GoalDescriptionSection(description: goal.description),
+              const SizedBox(height: 12),
+              if (actions.isEmpty)
+                const Card(
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Text('Nenhuma ação cadastrada para esta meta.'),
+                  ),
+                )
+              else
+                ...actions.map(
+                  (action) => CheckboxListTile(
+                    title: Text(action.title),
+                    value: action.isCompleted,
+                    onChanged: (value) async {
+                      if (value == null) return;
+                      try {
                         await ref
                             .read(goalActionsControllerProvider(goalId).notifier)
                             .toggleAction(
@@ -67,59 +71,60 @@ class GoalActionsPage extends ConsumerWidget {
                               action: action,
                               isCompleted: value,
                             );
-                  } catch (_) {
-                    _showError(context, 'Nao foi possivel atualizar a acao.');
-                  }
-                },
-                secondary: PopupMenuButton<String>(
-                  onSelected: (choice) async {
-                    if (choice == 'edit') {
-                      final String? updatedTitle = await _showActionDialog(
-                        context,
-                        title: 'Editar ação',
-                        initialValue: action.title,
-                      );
-                      if (updatedTitle == null) return;
-
-                      try {
-                        await ref
-                            .read(goalActionsControllerProvider(goalId).notifier)
-                            .updateAction(
-                              goalId: goalId,
-                              action: action,
-                              title: updatedTitle,
-                            );
                       } catch (_) {
-                        _showError(context, 'Nao foi possivel editar a acao.');
+                        _showError(context, 'Nao foi possivel atualizar a ação.');
                       }
-                    }
+                    },
+                    secondary: PopupMenuButton<String>(
+                      onSelected: (choice) async {
+                        if (choice == 'edit') {
+                          final String? updatedTitle = await _showActionDialog(
+                            context,
+                            title: 'Editar ação',
+                            initialValue: action.title,
+                          );
+                          if (updatedTitle == null) return;
 
-                    if (choice == 'delete') {
-                      try {
-                        await ref
-                            .read(goalActionsControllerProvider(goalId).notifier)
-                            .deleteAction(
-                              goalId: goalId,
-                              actionId: action.id,
-                            );
-                      } catch (_) {
-                        _showError(context, 'Nao foi possivel excluir a acao.');
-                      }
-                    }
-                  },
-                  itemBuilder: (context) => const [
-                    PopupMenuItem<String>(
-                      value: 'edit',
-                      child: Text('Editar'),
+                          try {
+                            await ref
+                                .read(goalActionsControllerProvider(goalId).notifier)
+                                .updateAction(
+                                  goalId: goalId,
+                                  action: action,
+                                  title: updatedTitle,
+                                );
+                          } catch (_) {
+                            _showError(context, 'Nao foi possivel editar a ação.');
+                          }
+                        }
+
+                        if (choice == 'delete') {
+                          try {
+                            await ref
+                                .read(goalActionsControllerProvider(goalId).notifier)
+                                .deleteAction(
+                                  goalId: goalId,
+                                  actionId: action.id,
+                                );
+                          } catch (_) {
+                            _showError(context, 'Nao foi possivel excluir a ação.');
+                          }
+                        }
+                      },
+                      itemBuilder: (context) => const [
+                        PopupMenuItem<String>(
+                          value: 'edit',
+                          child: Text('Editar'),
+                        ),
+                        PopupMenuItem<String>(
+                          value: 'delete',
+                          child: Text('Excluir'),
+                        ),
+                      ],
                     ),
-                    PopupMenuItem<String>(
-                      value: 'delete',
-                      child: Text('Excluir'),
-                    ),
-                  ],
+                  ),
                 ),
-              );
-            },
+            ],
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -139,7 +144,7 @@ class GoalActionsPage extends ConsumerWidget {
                   title: title,
                 );
           } catch (_) {
-            _showError(context, 'Não foi possível criar a ação.');
+            _showError(context, 'Nao foi possivel criar a ação.');
           }
         },
         icon: const Icon(Icons.add),
@@ -171,7 +176,7 @@ class GoalActionsPage extends ConsumerWidget {
                   LengthLimitingTextInputFormatter(TitleValidator.maxLength),
                 ],
                 decoration: InputDecoration(
-                  labelText: 'Titulo da acao',
+                  labelText: 'Titulo da ação',
                   errorText: errorText,
                 ),
               ),
@@ -204,6 +209,37 @@ class GoalActionsPage extends ConsumerWidget {
   void _showError(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
+    );
+  }
+}
+
+class _GoalDescriptionSection extends StatelessWidget {
+  const _GoalDescriptionSection({required this.description});
+
+  final String? description;
+
+  @override
+  Widget build(BuildContext context) {
+    final String descriptionText =
+        (description == null || description!.trim().isEmpty)
+            ? 'Sem descricao para esta meta.'
+            : description!.trim();
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Descricao da meta',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            Text(descriptionText),
+          ],
+        ),
+      ),
     );
   }
 }

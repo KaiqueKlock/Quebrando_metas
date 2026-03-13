@@ -12,26 +12,37 @@ class LocalGoalsRepository implements GoalsRepository {
   static const String _goalsBoxName = 'goals_box';
   static const String _actionsBoxName = 'actions_box';
 
-  late final Future<Box<Map<String, dynamic>>> _goalsBoxFuture = _openBox(_goalsBoxName);
-  late final Future<Box<Map<String, dynamic>>> _actionsBoxFuture = _openBox(_actionsBoxName);
+  late final Future<Box<dynamic>> _goalsBoxFuture = _openBox(_goalsBoxName);
+  late final Future<Box<dynamic>> _actionsBoxFuture = _openBox(_actionsBoxName);
 
-  Future<Box<Map<String, dynamic>>> _openBox(String boxName) async {
+  Future<Box<dynamic>> _openBox(String boxName) async {
     if (Hive.isBoxOpen(boxName)) {
-      return Hive.box<Map<String, dynamic>>(boxName);
+      return Hive.box<dynamic>(boxName);
     }
 
-    return Hive.openBox<Map<String, dynamic>>(boxName);
+    return Hive.openBox<dynamic>(boxName);
   }
 
   @override
   Future<List<Goal>> listGoals() async {
-    final Box<Map<String, dynamic>> box = await _goalsBoxFuture;
-    final List<Goal> goals = box.values
-        .map((goalMap) => GoalMapper.fromMap(goalMap))
-        .toList(growable: false);
+    final Box<dynamic> box = await _goalsBoxFuture;
+    final List<Goal> goals = <Goal>[];
+    for (final dynamic rawGoal in box.values) {
+      final Map<String, dynamic>? goalMap = _coerceMap(rawGoal);
+      if (goalMap == null) continue;
+      try {
+        final Goal goal = GoalMapper.fromMap(goalMap);
+        if (goal.id.isEmpty || goal.title.isEmpty) {
+          continue;
+        }
+        goals.add(goal);
+      } catch (_) {
+        continue;
+      }
+    }
 
     goals.sort((a, b) => a.createdAt.compareTo(b.createdAt));
-    return goals;
+    return List<Goal>.unmodifiable(goals);
   }
 
   @override
@@ -39,7 +50,7 @@ class LocalGoalsRepository implements GoalsRepository {
     required String title,
     String? description,
   }) async {
-    final Box<Map<String, dynamic>> box = await _goalsBoxFuture;
+    final Box<dynamic> box = await _goalsBoxFuture;
     final Goal goal = Goal.create(
       title: title,
       description: description,
@@ -51,7 +62,7 @@ class LocalGoalsRepository implements GoalsRepository {
 
   @override
   Future<Goal> updateGoal(Goal goal) async {
-    final Box<Map<String, dynamic>> box = await _goalsBoxFuture;
+    final Box<dynamic> box = await _goalsBoxFuture;
     if (!box.containsKey(goal.id)) {
       throw AppException('Goal not found: ${goal.id}');
     }
@@ -62,13 +73,19 @@ class LocalGoalsRepository implements GoalsRepository {
 
   @override
   Future<void> deleteGoal(String goalId) async {
-    final Box<Map<String, dynamic>> goalsBox = await _goalsBoxFuture;
-    final Box<Map<String, dynamic>> actionsBox = await _actionsBoxFuture;
+    final Box<dynamic> goalsBox = await _goalsBoxFuture;
+    final Box<dynamic> actionsBox = await _actionsBoxFuture;
+    final List<String> actionIds = <String>[];
+    for (final dynamic rawAction in actionsBox.values) {
+      final Map<String, dynamic>? actionMap = _coerceMap(rawAction);
+      if (actionMap == null) continue;
+      if (actionMap['goalId'] != goalId) continue;
 
-    final List<String> actionIds = actionsBox.values
-        .where((map) => map['goalId'] == goalId)
-        .map((map) => map['id'] as String)
-        .toList(growable: false);
+      final String actionId = (actionMap['id'] ?? '').toString();
+      if (actionId.isNotEmpty) {
+        actionIds.add(actionId);
+      }
+    }
 
     for (final String actionId in actionIds) {
       await actionsBox.delete(actionId);
@@ -79,14 +96,24 @@ class LocalGoalsRepository implements GoalsRepository {
 
   @override
   Future<List<ActionItem>> listActions(String goalId) async {
-    final Box<Map<String, dynamic>> actionsBox = await _actionsBoxFuture;
-    final List<ActionItem> actions = actionsBox.values
-        .where((actionMap) => actionMap['goalId'] == goalId)
-        .map((actionMap) => ActionMapper.fromMap(actionMap))
-        .toList(growable: false);
+    final Box<dynamic> actionsBox = await _actionsBoxFuture;
+    final List<ActionItem> actions = <ActionItem>[];
+    for (final dynamic rawAction in actionsBox.values) {
+      final Map<String, dynamic>? actionMap = _coerceMap(rawAction);
+      if (actionMap == null) continue;
+      try {
+        final ActionItem action = ActionMapper.fromMap(actionMap);
+        if (action.id.isEmpty || action.goalId != goalId) {
+          continue;
+        }
+        actions.add(action);
+      } catch (_) {
+        continue;
+      }
+    }
 
     actions.sort((a, b) => a.order.compareTo(b.order));
-    return actions;
+    return List<ActionItem>.unmodifiable(actions);
   }
 
   @override
@@ -94,7 +121,7 @@ class LocalGoalsRepository implements GoalsRepository {
     required String goalId,
     required String title,
   }) async {
-    final Box<Map<String, dynamic>> actionsBox = await _actionsBoxFuture;
+    final Box<dynamic> actionsBox = await _actionsBoxFuture;
     final List<ActionItem> currentActions = await listActions(goalId);
     final ActionItem action = ActionItem.create(
       goalId: goalId,
@@ -109,7 +136,7 @@ class LocalGoalsRepository implements GoalsRepository {
 
   @override
   Future<ActionItem> updateAction(ActionItem action) async {
-    final Box<Map<String, dynamic>> actionsBox = await _actionsBoxFuture;
+    final Box<dynamic> actionsBox = await _actionsBoxFuture;
     if (!actionsBox.containsKey(action.id)) {
       throw AppException('Action not found: ${action.id}');
     }
@@ -124,14 +151,14 @@ class LocalGoalsRepository implements GoalsRepository {
     required String goalId,
     required String actionId,
   }) async {
-    final Box<Map<String, dynamic>> actionsBox = await _actionsBoxFuture;
+    final Box<dynamic> actionsBox = await _actionsBoxFuture;
     await actionsBox.delete(actionId);
     await _normalizeOrder(goalId);
     await _recalculateGoalCounters(goalId);
   }
 
   Future<void> _normalizeOrder(String goalId) async {
-    final Box<Map<String, dynamic>> actionsBox = await _actionsBoxFuture;
+    final Box<dynamic> actionsBox = await _actionsBoxFuture;
     final List<ActionItem> actions = await listActions(goalId);
 
     for (int i = 0; i < actions.length; i++) {
@@ -147,8 +174,8 @@ class LocalGoalsRepository implements GoalsRepository {
   }
 
   Future<void> _recalculateGoalCounters(String goalId) async {
-    final Box<Map<String, dynamic>> goalsBox = await _goalsBoxFuture;
-    final Map<String, dynamic>? goalMap = goalsBox.get(goalId);
+    final Box<dynamic> goalsBox = await _goalsBoxFuture;
+    final Map<String, dynamic>? goalMap = _coerceMap(goalsBox.get(goalId));
     if (goalMap == null) return;
 
     final Goal goal = GoalMapper.fromMap(goalMap);
@@ -163,5 +190,12 @@ class LocalGoalsRepository implements GoalsRepository {
     );
 
     await goalsBox.put(goalId, GoalMapper.toMap(updatedGoal));
+  }
+
+  Map<String, dynamic>? _coerceMap(dynamic raw) {
+    if (raw is! Map) return null;
+    return raw.map(
+      (key, value) => MapEntry(key.toString(), value),
+    );
   }
 }
