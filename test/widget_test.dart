@@ -18,11 +18,11 @@ void main() {
 
     expect(find.text('Quebrando Metas'), findsOneWidget);
     expect(find.text('Ola!'), findsOneWidget);
-    expect(find.textContaining('Nenhuma meta ativa'), findsOneWidget);
+    expect(find.textContaining('nao tem metas ativas'), findsOneWidget);
     expect(find.text('Nova Meta'), findsOneWidget);
   });
 
-  testWidgets('Creates a goal from home form flow', (WidgetTester tester) async {
+  testWidgets('Creates a goal and shows it in Suas Metas page', (WidgetTester tester) async {
     await _pumpApp(
       tester,
       repository: FakeInMemoryGoalsRepository(),
@@ -39,10 +39,15 @@ void main() {
     await tester.tap(find.text('Salvar'));
     await tester.pumpAndSettle();
 
+    await tester.tap(find.text('Suas Metas'));
+    await tester.pumpAndSettle();
+
     expect(find.text('Meta de teste'), findsOneWidget);
   });
 
-  testWidgets('Edits and deletes a goal from home card menu', (WidgetTester tester) async {
+  testWidgets('Edits and deletes a goal from Suas Metas card menu', (
+    WidgetTester tester,
+  ) async {
     await _pumpApp(
       tester,
       repository: FakeInMemoryGoalsRepository(),
@@ -54,12 +59,11 @@ void main() {
     await tester.enterText(find.byType(TextFormField).first, 'Meta original');
     await tester.tap(find.text('Salvar'));
     await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Suas Metas'));
+    await tester.pumpAndSettle();
     expect(find.text('Meta original'), findsOneWidget);
 
-    await tester.drag(find.byType(ListView).first, const Offset(0, -160));
-    await tester.pumpAndSettle();
-
-    await tester.ensureVisible(find.byIcon(Icons.more_vert).first);
     await tester.ensureVisible(find.byIcon(Icons.more_vert).first);
     await tester.tap(find.byIcon(Icons.more_vert).first);
     await tester.pumpAndSettle();
@@ -72,14 +76,13 @@ void main() {
     expect(find.text('Meta editada'), findsOneWidget);
 
     await tester.ensureVisible(find.byIcon(Icons.more_vert).first);
-    await tester.ensureVisible(find.byIcon(Icons.more_vert).first);
     await tester.tap(find.byIcon(Icons.more_vert).first);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Excluir'));
     await tester.pumpAndSettle();
 
     expect(find.text('Meta editada'), findsNothing);
-    expect(find.textContaining('Nenhuma meta ativa'), findsOneWidget);
+    expect(find.textContaining('Nenhuma meta criada ainda'), findsOneWidget);
   });
 
   testWidgets('Creates, edits and deletes actions for a goal', (WidgetTester tester) async {
@@ -97,11 +100,12 @@ void main() {
 
     await tester.tap(find.text('Continuar').first);
     await tester.pumpAndSettle();
-    expect(find.textContaining('Ações: Meta com acoes'), findsOneWidget);
+
+    expect(find.textContaining('Meta com acoes'), findsOneWidget);
     expect(find.text('Descricao da meta'), findsOneWidget);
     expect(find.text('Sem descricao para esta meta.'), findsOneWidget);
 
-    await tester.tap(find.text('Nova Ação'));
+    await tester.tap(find.byIcon(Icons.add).last);
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).first, 'Primeira acao');
     await tester.tap(find.text('Salvar'));
@@ -264,12 +268,14 @@ void main() {
     await tester.tap(find.text('Salvar'));
     await tester.pumpAndSettle();
 
+    await tester.tap(find.text('Suas Metas'));
+    await tester.pumpAndSettle();
     expect(find.text(truncatedTitle), findsOneWidget);
 
-    await tester.tap(find.text('Continuar').first);
+    await tester.tap(find.text(truncatedTitle).first);
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Nova Ação'));
+    await tester.tap(find.byIcon(Icons.add).last);
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).first, hugeActionTitle);
     await tester.tap(find.text('Salvar'));
@@ -300,7 +306,7 @@ void main() {
       await tester.pageBack();
       await tester.pumpAndSettle();
       expect(find.text('Tentar novamente'), findsNothing);
-      expect(find.text('Meta estabilidade'), findsOneWidget);
+      expect(find.text('Continuar'), findsOneWidget);
     }
   });
 }
