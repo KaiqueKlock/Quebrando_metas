@@ -9,6 +9,8 @@ import 'package:quebrando_metas/features/goals/presentation/goals_controller.dar
 class DashboardPage extends ConsumerWidget {
   const DashboardPage({super.key});
 
+  static const Key createGoalFabKey = Key('create-goal-fab');
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final AsyncValue<List<Goal>> goalsAsync = ref.watch(
@@ -22,11 +24,12 @@ class DashboardPage extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (_, __) => const _DashboardContent(goals: <Goal>[]),
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton(
+        key: createGoalFabKey,
         onPressed: () => context.push(AppRoutes.createGoal),
-        icon: const Icon(Icons.add),
-        label: const Text('Nova Meta'),
+        child: const Icon(Icons.add),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       bottomNavigationBar: const MainBottomNav(currentIndex: 0),
     );
   }

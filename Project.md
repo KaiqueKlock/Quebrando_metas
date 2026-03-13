@@ -419,7 +419,7 @@ Entregas registradas:
   - [x] Usuario adiciona acao em meta concluida
 
 - Refinar UI
-  - [ ] Centralizar botao `Nova Meta` no navigator, removendo o texto do botao
+  - [x] Centralizar botao `Nova Meta` no navigator, removendo o texto do botao
 
 ### Sprint 5 - Release MVP
 - Testes finais
@@ -481,6 +481,7 @@ Evoluir como desenvolvedor enquanto constrói um produto real.
 ## 22. Regra Final do Projeto
 
 Se uma decisão aumentar muito a complexidade do projeto sem aumentar o valor para o usuário, ela deve ser evitada.
+
 
 
 

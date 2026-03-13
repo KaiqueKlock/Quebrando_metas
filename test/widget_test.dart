@@ -17,7 +17,39 @@ void main() {
     expect(find.text('Ola!'), findsOneWidget);
     expect(find.text('Voce tem 0 metas ativas'), findsOneWidget);
     expect(find.text('Defina uma meta como prioridade.'), findsOneWidget);
+    expect(find.byKey(const Key('create-goal-fab')), findsOneWidget);
+  });
+
+  testWidgets('Shows centered create button above navigation bar', (
+    WidgetTester tester,
+  ) async {
+    await _pumpApp(tester, repository: FakeInMemoryGoalsRepository());
+    await tester.pumpAndSettle();
+
+    final Finder fabFinder = find.byKey(const Key('create-goal-fab'));
+    final Finder navFinder = find.byType(NavigationBar);
+
+    final Offset fabCenter = tester.getCenter(fabFinder);
+    final double navTop = tester.getTopLeft(navFinder).dy;
+    final double screenCenterX =
+        tester.getSize(find.byType(MaterialApp).first).width / 2;
+
+    expect((fabCenter.dx - screenCenterX).abs(), lessThanOrEqualTo(2.0));
+    expect(fabCenter.dy, lessThan(navTop - 4));
+  });
+
+  testWidgets('Create button opens goal form from Suas Metas tab', (
+    WidgetTester tester,
+  ) async {
+    await _pumpApp(tester, repository: FakeInMemoryGoalsRepository());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Suas Metas'));
+    await tester.pumpAndSettle();
+    await _tapCreateGoalFab(tester);
+
     expect(find.text('Nova Meta'), findsOneWidget);
+    expect(find.text('Salvar'), findsOneWidget);
   });
 
   testWidgets('Creates a goal and shows it in Suas Metas page', (
@@ -26,8 +58,7 @@ void main() {
     await _pumpApp(tester, repository: FakeInMemoryGoalsRepository());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Nova Meta'));
-    await tester.pumpAndSettle();
+    await _tapCreateGoalFab(tester);
 
     expect(find.text('Nova Meta'), findsOneWidget);
     expect(find.text('Salvar'), findsOneWidget);
@@ -48,8 +79,7 @@ void main() {
     await _pumpApp(tester, repository: FakeInMemoryGoalsRepository());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Nova Meta'));
-    await tester.pumpAndSettle();
+    await _tapCreateGoalFab(tester);
     await tester.enterText(find.byType(TextFormField).first, 'Meta original');
     await tester.tap(find.text('Salvar'));
     await tester.pumpAndSettle();
@@ -85,8 +115,7 @@ void main() {
     await _pumpApp(tester, repository: FakeInMemoryGoalsRepository());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Nova Meta'));
-    await tester.pumpAndSettle();
+    await _tapCreateGoalFab(tester);
     await tester.enterText(find.byType(TextFormField).first, 'Meta com acoes');
     await tester.tap(find.text('Salvar'));
     await tester.pumpAndSettle();
@@ -225,8 +254,7 @@ void main() {
     await _pumpApp(tester, repository: FakeInMemoryGoalsRepository());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Nova Meta'));
-    await tester.pumpAndSettle();
+    await _tapCreateGoalFab(tester);
     await tester.enterText(
       find.byType(TextFormField).at(0),
       'Meta com descricao',
@@ -253,8 +281,7 @@ void main() {
     await _pumpApp(tester, repository: FakeInMemoryGoalsRepository());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Nova Meta'));
-    await tester.pumpAndSettle();
+    await _tapCreateGoalFab(tester);
     await tester.enterText(find.byType(TextFormField).first, 'Meta prioridade');
     await tester.tap(find.text('Salvar'));
     await tester.pumpAndSettle();
@@ -279,8 +306,7 @@ void main() {
       await _pumpApp(tester, repository: FakeInMemoryGoalsRepository());
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Nova Meta'));
-      await tester.pumpAndSettle();
+      await _tapCreateGoalFab(tester);
 
       await tester.enterText(find.byType(TextFormField).at(0), 'Meta rotacao');
       await tester.enterText(
@@ -319,8 +345,7 @@ void main() {
     await _pumpApp(tester, repository: FakeInMemoryGoalsRepository());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Nova Meta'));
-    await tester.pumpAndSettle();
+    await _tapCreateGoalFab(tester);
     await tester.enterText(
       find.byType(TextFormField).first,
       'Meta prioridade duplicada',
@@ -350,8 +375,7 @@ void main() {
     await _pumpApp(tester, repository: FakeInMemoryGoalsRepository());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Nova Meta'));
-    await tester.pumpAndSettle();
+    await _tapCreateGoalFab(tester);
     await tester.enterText(
       find.byType(TextFormField).first,
       'Meta prioritaria concluida',
@@ -391,8 +415,7 @@ void main() {
     await _pumpApp(tester, repository: FakeInMemoryGoalsRepository());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Nova Meta'));
-    await tester.pumpAndSettle();
+    await _tapCreateGoalFab(tester);
     await tester.enterText(find.byType(TextFormField).first, 'Meta reaberta');
     await tester.tap(find.text('Salvar'));
     await tester.pumpAndSettle();
@@ -445,8 +468,7 @@ void main() {
     await _pumpApp(tester, repository: FakeInMemoryGoalsRepository());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Nova Meta'));
-    await tester.pumpAndSettle();
+    await _tapCreateGoalFab(tester);
 
     await tester.enterText(find.byType(TextFormField).at(0), hugeTitle);
     await tester.enterText(find.byType(TextFormField).at(1), hugeDescription);
@@ -475,8 +497,7 @@ void main() {
       await _pumpApp(tester, repository: FakeInMemoryGoalsRepository());
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Nova Meta'));
-      await tester.pumpAndSettle();
+      await _tapCreateGoalFab(tester);
       await tester.enterText(
         find.byType(TextFormField).first,
         'Meta estabilidade',
@@ -501,6 +522,11 @@ void main() {
 
 String _repeat(String value, int count) =>
     List<String>.filled(count, value).join();
+
+Future<void> _tapCreateGoalFab(WidgetTester tester) async {
+  await tester.tap(find.byKey(const Key('create-goal-fab')));
+  await tester.pumpAndSettle();
+}
 
 Future<void> _pumpApp(
   WidgetTester tester, {
