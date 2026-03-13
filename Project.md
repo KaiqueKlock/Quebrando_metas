@@ -405,9 +405,14 @@ Entregas registradas:
 - Ações e Metas -> input extremo tratado com `inputFormatter` + `validator` + feedback visual ✅
 
 ### Sprint 4 - Polimento
-- Melhorar UX
+- Melhorar UX - 
+  1 Separação de Pages (DashBoard / Suas Metas) ✅
+  2 Metas Prioritárias ✅
 - Trazer novos cenários para testes
+  1 Usuário rotaciona tela ao inserir texto em Title e em Description(teclado aberto). 
+  2 - Usuário define etapa prioriária ja existente. 
 - Refinar UI
+ 1 Centralizar botão Nova Meta ao centro do navigator
 
 ### Sprint 5 - Release MVP
 - Testes finais

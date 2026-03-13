@@ -7,26 +7,36 @@ final LocalGoalsRepository _localGoalsRepository = LocalGoalsRepository();
 
 final Provider<GoalsRepository> goalsRepositoryProvider =
     Provider<GoalsRepository>((ref) {
-  return _localGoalsRepository;
-});
+      return _localGoalsRepository;
+    });
 
-final AsyncNotifierProvider<GoalsController, List<Goal>> goalsControllerProvider =
-    AsyncNotifierProvider<GoalsController, List<Goal>>(GoalsController.new);
-
-final ProviderFamily<Goal?, String> goalByIdProvider = Provider.family<Goal?, String>(
-  (ref, goalId) {
-    final AsyncValue<List<Goal>> goalsAsync = ref.watch(goalsControllerProvider);
-    return goalsAsync.maybeWhen(
-      data: (goals) {
-        for (final Goal goal in goals) {
-          if (goal.id == goalId) return goal;
-        }
-        return null;
-      },
-      orElse: () => null,
-    );
-  },
+final AsyncNotifierProvider<GoalsController, List<Goal>>
+goalsControllerProvider = AsyncNotifierProvider<GoalsController, List<Goal>>(
+  GoalsController.new,
 );
+
+final ProviderFamily<Goal?, String> goalByIdProvider =
+    Provider.family<Goal?, String>((ref, goalId) {
+      final AsyncValue<List<Goal>> goalsAsync = ref.watch(
+        goalsControllerProvider,
+      );
+      return goalsAsync.maybeWhen(
+        data: (goals) {
+          for (final Goal goal in goals) {
+            if (goal.id == goalId) return goal;
+          }
+          return null;
+        },
+        orElse: () => null,
+      );
+    });
+
+enum GoalPriorityResult {
+  prioritized,
+  unprioritized,
+  limitReached,
+  completedGoalNotAllowed,
+}
 
 class GoalsController extends AsyncNotifier<List<Goal>> {
   late final GoalsRepository _repository;
@@ -34,7 +44,12 @@ class GoalsController extends AsyncNotifier<List<Goal>> {
   @override
   Future<List<Goal>> build() async {
     _repository = ref.read(goalsRepositoryProvider);
-    return _repository.listGoals();
+    List<Goal> goals = await _repository.listGoals();
+    final bool hadNormalizationChanges = await _normalizePriorityRanks(goals);
+    if (hadNormalizationChanges) {
+      goals = await _repository.listGoals();
+    }
+    return goals;
   }
 
   Future<void> reload() async {
@@ -42,14 +57,8 @@ class GoalsController extends AsyncNotifier<List<Goal>> {
     state = await AsyncValue.guard(_repository.listGoals);
   }
 
-  Future<void> createGoal({
-    required String title,
-    String? description,
-  }) async {
-    await _repository.createGoal(
-      title: title,
-      description: description,
-    );
+  Future<void> createGoal({required String title, String? description}) async {
+    await _repository.createGoal(title: title, description: description);
     await _refreshGoals();
   }
 
@@ -77,8 +86,73 @@ class GoalsController extends AsyncNotifier<List<Goal>> {
     await _refreshGoals();
   }
 
-  Future<void> _refreshGoals() async {
+  Future<GoalPriorityResult> togglePriority(Goal goal) async {
     final List<Goal> goals = await _repository.listGoals();
+    final Goal target = goals.firstWhere(
+      (item) => item.id == goal.id,
+      orElse: () => goal,
+    );
+    final DateTime now = DateTime.now();
+
+    if (target.priorityRank != null) {
+      await _repository.updateGoal(
+        target.copyWith(clearPriority: true, updatedAt: now),
+      );
+      await _refreshGoals();
+      return GoalPriorityResult.unprioritized;
+    }
+
+    if (target.progress >= 1) {
+      return GoalPriorityResult.completedGoalNotAllowed;
+    }
+
+    final List<Goal> prioritized = goals
+        .where((item) => item.priorityRank != null)
+        .toList(growable: false);
+    if (prioritized.length >= 3) {
+      return GoalPriorityResult.limitReached;
+    }
+
+    final int nextRank = prioritized.length + 1;
+    await _repository.updateGoal(
+      target.copyWith(priorityRank: nextRank, updatedAt: now),
+    );
+    await _refreshGoals();
+    return GoalPriorityResult.prioritized;
+  }
+
+  Future<void> _refreshGoals() async {
+    List<Goal> goals = await _repository.listGoals();
+    final bool hadNormalizationChanges = await _normalizePriorityRanks(goals);
+    if (hadNormalizationChanges) {
+      goals = await _repository.listGoals();
+    }
     state = AsyncData(goals);
+  }
+
+  Future<bool> _normalizePriorityRanks(List<Goal> goals) async {
+    final List<Goal> prioritized =
+        goals.where((goal) => goal.priorityRank != null).toList()..sort((a, b) {
+          final int byRank = a.priorityRank!.compareTo(b.priorityRank!);
+          if (byRank != 0) return byRank;
+          return a.createdAt.compareTo(b.createdAt);
+        });
+
+    bool changed = false;
+    for (int i = 0; i < prioritized.length; i++) {
+      final Goal goal = prioritized[i];
+      final int? expectedRank = i < 3 ? i + 1 : null;
+      if (goal.priorityRank == expectedRank) continue;
+
+      final Goal normalized = goal.copyWith(
+        priorityRank: expectedRank,
+        clearPriority: expectedRank == null,
+        updatedAt: DateTime.now(),
+      );
+      await _repository.updateGoal(normalized);
+      changed = true;
+    }
+
+    return changed;
   }
 }

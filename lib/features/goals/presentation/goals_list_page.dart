@@ -11,12 +11,12 @@ class GoalsListPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final AsyncValue<List<Goal>> goalsAsync = ref.watch(goalsControllerProvider);
+    final AsyncValue<List<Goal>> goalsAsync = ref.watch(
+      goalsControllerProvider,
+    );
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Suas Metas'),
-      ),
+      appBar: AppBar(title: const Text('Suas Metas')),
       body: goalsAsync.when(
         data: (goals) => _GoalsListContent(goals: goals),
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -39,9 +39,23 @@ class _GoalsListContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<Goal> activeGoals = goals.where((goal) => goal.progress < 1).toList();
-    final List<Goal> completedGoals = goals.where((goal) => goal.progress >= 1).toList();
-    final List<Goal> orderedGoals = [...activeGoals, ...completedGoals];
+    final List<Goal> activeGoals = goals
+        .where((goal) => goal.progress < 1)
+        .toList();
+    final List<Goal> prioritizedActiveGoals =
+        activeGoals.where((goal) => goal.priorityRank != null).toList()
+          ..sort((a, b) => a.priorityRank!.compareTo(b.priorityRank!));
+    final List<Goal> regularActiveGoals = activeGoals
+        .where((goal) => goal.priorityRank == null)
+        .toList();
+    final List<Goal> completedGoals = goals
+        .where((goal) => goal.progress >= 1)
+        .toList();
+    final List<Goal> orderedGoals = [
+      ...prioritizedActiveGoals,
+      ...regularActiveGoals,
+      ...completedGoals,
+    ];
 
     if (orderedGoals.isEmpty) {
       return const Center(
@@ -57,9 +71,7 @@ class _GoalsListContent extends StatelessWidget {
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
-      children: [
-        ...orderedGoals.map((goal) => _GoalCard(goal: goal)),
-      ],
+      children: [...orderedGoals.map((goal) => _GoalCard(goal: goal))],
     );
   }
 }
@@ -92,6 +104,44 @@ class _GoalCard extends ConsumerWidget {
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                   ),
+                  IconButton(
+                    onPressed: () async {
+                      final GoalPriorityResult result = await ref
+                          .read(goalsControllerProvider.notifier)
+                          .togglePriority(goal);
+                      if (!context.mounted) return;
+                      final String message;
+                      switch (result) {
+                        case GoalPriorityResult.prioritized:
+                          message = 'Meta adicionada as prioridades.';
+                          break;
+                        case GoalPriorityResult.unprioritized:
+                          message = 'Meta removida das prioridades.';
+                          break;
+                        case GoalPriorityResult.limitReached:
+                          message = 'Voce pode priorizar no maximo 3 metas.';
+                          break;
+                        case GoalPriorityResult.completedGoalNotAllowed:
+                          message =
+                              'Apenas metas ativas podem ser priorizadas.';
+                          break;
+                      }
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(SnackBar(content: Text(message)));
+                    },
+                    icon: Icon(
+                      goal.priorityRank == null
+                          ? Icons.star_border
+                          : Icons.star,
+                      color: goal.priorityRank == null
+                          ? null
+                          : Theme.of(context).colorScheme.primary,
+                    ),
+                    tooltip: goal.priorityRank == null
+                        ? 'Definir prioridade'
+                        : 'Remover prioridade',
+                  ),
                   PopupMenuButton<String>(
                     onSelected: (value) async {
                       if (value == 'edit') {
@@ -103,7 +153,9 @@ class _GoalCard extends ConsumerWidget {
                       }
 
                       if (value == 'delete') {
-                        await ref.read(goalsControllerProvider.notifier).deleteGoal(goal.id);
+                        await ref
+                            .read(goalsControllerProvider.notifier)
+                            .deleteGoal(goal.id);
                       }
                     },
                     itemBuilder: (context) => const [
@@ -120,11 +172,22 @@ class _GoalCard extends ConsumerWidget {
                 ],
               ),
               const SizedBox(height: 8),
+              if (goal.priorityRank != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Text(
+                    'Prioridade ${goal.priorityRank}',
+                    style: Theme.of(context).textTheme.labelMedium,
+                  ),
+                ),
+              const SizedBox(height: 2),
               LinearProgressIndicator(value: goal.progress),
               const SizedBox(height: 8),
               Text('${(goal.progress * 100).toStringAsFixed(0)}%'),
               const SizedBox(height: 4),
-              Text('${goal.completedActions} de ${goal.totalActions} acoes concluidas'),
+              Text(
+                '${goal.completedActions} de ${goal.totalActions} acoes concluidas',
+              ),
               const SizedBox(height: 4),
               const Text('Toque para gerenciar acoes'),
             ],

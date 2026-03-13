@@ -12,6 +12,8 @@ class QuebrandoMetasApp extends StatelessWidget {
       title: AppConstants.appName,
       theme: AppTheme.light(),
       routerConfig: AppRouter.router,
+      debugShowCheckedModeBanner: false,
+      
     );
   }
 }

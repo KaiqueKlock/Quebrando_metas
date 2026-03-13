@@ -10,23 +10,20 @@ import 'fakes/fake_in_memory_goals_repository.dart';
 
 void main() {
   testWidgets('Shows empty home state on startup', (WidgetTester tester) async {
-    await _pumpApp(
-      tester,
-      repository: FakeInMemoryGoalsRepository(),
-    );
+    await _pumpApp(tester, repository: FakeInMemoryGoalsRepository());
     await tester.pumpAndSettle();
 
     expect(find.text('Quebrando Metas'), findsOneWidget);
     expect(find.text('Ola!'), findsOneWidget);
-    expect(find.textContaining('nao tem metas ativas'), findsOneWidget);
+    expect(find.text('Voce tem 0 metas ativas'), findsOneWidget);
+    expect(find.text('Defina uma meta como prioridade.'), findsOneWidget);
     expect(find.text('Nova Meta'), findsOneWidget);
   });
 
-  testWidgets('Creates a goal and shows it in Suas Metas page', (WidgetTester tester) async {
-    await _pumpApp(
-      tester,
-      repository: FakeInMemoryGoalsRepository(),
-    );
+  testWidgets('Creates a goal and shows it in Suas Metas page', (
+    WidgetTester tester,
+  ) async {
+    await _pumpApp(tester, repository: FakeInMemoryGoalsRepository());
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Nova Meta'));
@@ -48,10 +45,7 @@ void main() {
   testWidgets('Edits and deletes a goal from Suas Metas card menu', (
     WidgetTester tester,
   ) async {
-    await _pumpApp(
-      tester,
-      repository: FakeInMemoryGoalsRepository(),
-    );
+    await _pumpApp(tester, repository: FakeInMemoryGoalsRepository());
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Nova Meta'));
@@ -85,11 +79,10 @@ void main() {
     expect(find.textContaining('Nenhuma meta criada ainda'), findsOneWidget);
   });
 
-  testWidgets('Creates, edits and deletes actions for a goal', (WidgetTester tester) async {
-    await _pumpApp(
-      tester,
-      repository: FakeInMemoryGoalsRepository(),
-    );
+  testWidgets('Creates, edits and deletes actions for a goal', (
+    WidgetTester tester,
+  ) async {
+    await _pumpApp(tester, repository: FakeInMemoryGoalsRepository());
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Nova Meta'));
@@ -98,7 +91,9 @@ void main() {
     await tester.tap(find.text('Salvar'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Continuar').first);
+    await tester.tap(find.text('Suas Metas'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Meta com acoes').first);
     await tester.pumpAndSettle();
 
     expect(find.textContaining('Meta com acoes'), findsOneWidget);
@@ -224,25 +219,58 @@ void main() {
     },
   );
 
-  testWidgets('Shows goal description section on actions page', (WidgetTester tester) async {
-    await _pumpApp(
-      tester,
-      repository: FakeInMemoryGoalsRepository(),
-    );
+  testWidgets('Shows goal description section on actions page', (
+    WidgetTester tester,
+  ) async {
+    await _pumpApp(tester, repository: FakeInMemoryGoalsRepository());
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Nova Meta'));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextFormField).at(0), 'Meta com descricao');
-    await tester.enterText(find.byType(TextFormField).at(1), 'Descricao de teste');
+    await tester.enterText(
+      find.byType(TextFormField).at(0),
+      'Meta com descricao',
+    );
+    await tester.enterText(
+      find.byType(TextFormField).at(1),
+      'Descricao de teste',
+    );
     await tester.tap(find.text('Salvar'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Continuar').first);
+    await tester.tap(find.text('Suas Metas'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Meta com descricao').first);
     await tester.pumpAndSettle();
 
     expect(find.text('Descricao da meta'), findsOneWidget);
     expect(find.text('Descricao de teste'), findsOneWidget);
+  });
+
+  testWidgets('Shows prioritized goal in continue section', (
+    WidgetTester tester,
+  ) async {
+    await _pumpApp(tester, repository: FakeInMemoryGoalsRepository());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Nova Meta'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextFormField).first, 'Meta prioridade');
+    await tester.tap(find.text('Salvar'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Suas Metas'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.star_border).first);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Dashboard'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.textContaining('Prioridade 1: Meta prioridade'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('Handles very large title/description input without crashing', (
@@ -254,10 +282,7 @@ void main() {
     final String truncatedTitle = _repeat('T', TitleValidator.maxLength);
     final String truncatedActionTitle = _repeat('A', TitleValidator.maxLength);
 
-    await _pumpApp(
-      tester,
-      repository: FakeInMemoryGoalsRepository(),
-    );
+    await _pumpApp(tester, repository: FakeInMemoryGoalsRepository());
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Nova Meta'));
@@ -284,34 +309,38 @@ void main() {
     expect(find.text(truncatedActionTitle), findsOneWidget);
   });
 
-  testWidgets('Does not show retry state after returning from goal screen multiple times', (
-    WidgetTester tester,
-  ) async {
-    await _pumpApp(
-      tester,
-      repository: FakeInMemoryGoalsRepository(),
-    );
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('Nova Meta'));
-    await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextFormField).first, 'Meta estabilidade');
-    await tester.tap(find.text('Salvar'));
-    await tester.pumpAndSettle();
-
-    for (int i = 0; i < 10; i++) {
-      await tester.tap(find.text('Continuar').first);
+  testWidgets(
+    'Does not show retry state after returning from goal screen multiple times',
+    (WidgetTester tester) async {
+      await _pumpApp(tester, repository: FakeInMemoryGoalsRepository());
       await tester.pumpAndSettle();
-      expect(find.textContaining('cadastrada'), findsOneWidget);
-      await tester.pageBack();
+
+      await tester.tap(find.text('Nova Meta'));
       await tester.pumpAndSettle();
-      expect(find.text('Tentar novamente'), findsNothing);
-      expect(find.text('Continuar'), findsOneWidget);
-    }
-  });
+      await tester.enterText(
+        find.byType(TextFormField).first,
+        'Meta estabilidade',
+      );
+      await tester.tap(find.text('Salvar'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Suas Metas'));
+      await tester.pumpAndSettle();
+
+      for (int i = 0; i < 10; i++) {
+        await tester.tap(find.text('Meta estabilidade').first);
+        await tester.pumpAndSettle();
+        expect(find.textContaining('cadastrada'), findsOneWidget);
+        await tester.pageBack();
+        await tester.pumpAndSettle();
+        expect(find.text('Tentar novamente'), findsNothing);
+        expect(find.text('Meta estabilidade'), findsOneWidget);
+      }
+    },
+  );
 }
 
-String _repeat(String value, int count) => List<String>.filled(count, value).join();
+String _repeat(String value, int count) =>
+    List<String>.filled(count, value).join();
 
 Future<void> _pumpApp(
   WidgetTester tester, {
@@ -319,10 +348,6 @@ Future<void> _pumpApp(
 }) async {
   AppRouter.router.go(AppRoutes.dashboard);
   await tester.pumpWidget(
-    MyApp(
-      overrides: [
-        goalsRepositoryProvider.overrideWithValue(repository),
-      ],
-    ),
+    MyApp(overrides: [goalsRepositoryProvider.overrideWithValue(repository)]),
   );
 }

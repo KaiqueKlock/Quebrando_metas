@@ -8,6 +8,7 @@ class GoalMapper {
       'id': goal.id,
       'title': goal.title,
       'description': goal.description,
+      'priorityRank': goal.priorityRank,
       'createdAt': goal.createdAt.toIso8601String(),
       'updatedAt': goal.updatedAt.toIso8601String(),
       'completedActions': goal.completedActions,
@@ -16,13 +17,15 @@ class GoalMapper {
   }
 
   static Goal fromMap(Map<String, dynamic> map) {
-    final DateTime createdAt = _parseDateTime(map['createdAt']) ?? DateTime.now();
+    final DateTime createdAt =
+        _parseDateTime(map['createdAt']) ?? DateTime.now();
     final DateTime updatedAt = _parseDateTime(map['updatedAt']) ?? createdAt;
 
     return Goal(
       id: (map['id'] ?? '').toString(),
       title: (map['title'] ?? '').toString(),
       description: map['description'] as String?,
+      priorityRank: _parseInt(map['priorityRank']),
       createdAt: createdAt,
       updatedAt: updatedAt,
       completedActions: _parseInt(map['completedActions']) ?? 0,
