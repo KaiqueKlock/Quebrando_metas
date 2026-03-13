@@ -273,6 +273,166 @@ void main() {
     );
   });
 
+  testWidgets(
+    'Keeps title and description after screen rotation while keyboard is open',
+    (WidgetTester tester) async {
+      await _pumpApp(tester, repository: FakeInMemoryGoalsRepository());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Nova Meta'));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextFormField).at(0), 'Meta rotacao');
+      await tester.enterText(
+        find.byType(TextFormField).at(1),
+        'Descricao rotacao',
+      );
+      await tester.pump();
+
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(900, 500);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Meta rotacao'), findsOneWidget);
+      expect(find.text('Descricao rotacao'), findsOneWidget);
+
+      tester.view.physicalSize = const Size(500, 900);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Salvar'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Suas Metas'));
+      await tester.pumpAndSettle();
+      expect(find.text('Meta rotacao'), findsOneWidget);
+    },
+  );
+
+  testWidgets('Handles selecting priority on an already prioritized goal', (
+    WidgetTester tester,
+  ) async {
+    await _pumpApp(tester, repository: FakeInMemoryGoalsRepository());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Nova Meta'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byType(TextFormField).first,
+      'Meta prioridade duplicada',
+    );
+    await tester.tap(find.text('Salvar'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Suas Metas'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.star_border).first);
+    await tester.pumpAndSettle();
+    expect(find.text('Meta adicionada as prioridades.'), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.star).first);
+    await tester.pumpAndSettle();
+    expect(find.byIcon(Icons.star_border), findsOneWidget);
+
+    await tester.tap(find.text('Dashboard'));
+    await tester.pumpAndSettle();
+    expect(find.text('Defina uma meta como prioridade.'), findsOneWidget);
+  });
+
+  testWidgets('Handles completing a goal that was prioritized', (
+    WidgetTester tester,
+  ) async {
+    await _pumpApp(tester, repository: FakeInMemoryGoalsRepository());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Nova Meta'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byType(TextFormField).first,
+      'Meta prioritaria concluida',
+    );
+    await tester.tap(find.text('Salvar'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Suas Metas'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.star_border).first);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Meta prioritaria concluida').first);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.add).last);
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, 'Acao unica');
+    await tester.tap(find.text('Salvar'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(CheckboxListTile).first);
+    await tester.pumpAndSettle();
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Dashboard'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Voce tem 0 metas ativas'), findsOneWidget);
+    expect(find.text('Defina uma meta como prioridade.'), findsOneWidget);
+  });
+
+  testWidgets('Allows adding an action to a goal that was completed', (
+    WidgetTester tester,
+  ) async {
+    await _pumpApp(tester, repository: FakeInMemoryGoalsRepository());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Nova Meta'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextFormField).first, 'Meta reaberta');
+    await tester.tap(find.text('Salvar'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Suas Metas'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Meta reaberta').first);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.add).last);
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, 'Acao 1');
+    await tester.tap(find.text('Salvar'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(CheckboxListTile).first);
+    await tester.pumpAndSettle();
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    expect(find.text('1 de 1 acoes concluidas'), findsOneWidget);
+
+    await tester.tap(find.text('Meta reaberta').first);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.add).last);
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, 'Acao 2');
+    await tester.tap(find.text('Salvar'));
+    await tester.pumpAndSettle();
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
+    expect(find.text('1 de 2 acoes concluidas'), findsOneWidget);
+    await tester.tap(find.text('Dashboard'));
+    await tester.pumpAndSettle();
+    expect(find.text('Voce tem 1 metas ativas'), findsOneWidget);
+  });
+
   testWidgets('Handles very large title/description input without crashing', (
     WidgetTester tester,
   ) async {

@@ -405,14 +405,21 @@ Entregas registradas:
 - Ações e Metas -> input extremo tratado com `inputFormatter` + `validator` + feedback visual ✅
 
 ### Sprint 4 - Polimento
-- Melhorar UX - 
-  1 Separação de Pages (DashBoard / Suas Metas) ✅
-  2 Metas Prioritárias ✅
-- Trazer novos cenários para testes
-  1 Usuário rotaciona tela ao inserir texto em Title e em Description(teclado aberto). 
-  2 - Usuário define etapa prioriária ja existente. 
+- Status: Em andamento (atualizado em 13/03/2026)
+
+- Melhorar UX
+  - [x] Separacao em abas (Dashboard / Suas Metas)
+  - [x] Metas prioritarias (0 a 3)
+  - [x] Mensagem amigavel para estado sem prioridade: `Defina uma meta como prioridade.`
+
+- Trazer novos cenarios para testes
+  - [x] Usuario rotaciona tela ao inserir texto em Title e Description (teclado aberto)
+  - [x] Usuario define etapa prioritaria ja existente
+  - [x] Usuario conclui meta que estava marcada como prioridade
+  - [x] Usuario adiciona acao em meta concluida
+
 - Refinar UI
- 1 Centralizar botão Nova Meta ao centro do navigator
+  - [ ] Centralizar botao `Nova Meta` no navigator, removendo o texto do botao
 
 ### Sprint 5 - Release MVP
 - Testes finais
@@ -434,6 +441,21 @@ Entregas registradas:
 - CRUD de ações,
 - input extremo (título e descrição longos),
 - estabilidade no retorno da tela de ações (10 ciclos sem estado de retry).
+
+### Atualizacao tecnica (13/03/2026)
+
+- Navegacao principal dividida em duas abas com `NavigationBar` + `GoRouter`:
+  - `Dashboard` para resumo e foco no proximo passo.
+  - `Suas Metas` para gestao completa das metas.
+- A decisao por `NavigationBar + context.go` foi adotada no Sprint 4 para reduzir risco e manter o fluxo principal estavel.
+- A secao `Continue de onde parou` passou a priorizar metas escolhidas pelo usuario.
+- Modelo `Goal` atualizado com `priorityRank` (1..3), persistido em storage local.
+- Regras de prioridade implementadas:
+  - limite maximo de 3 metas prioritarias,
+  - apenas metas ativas podem ser priorizadas,
+  - normalizacao automatica de ranking para evitar inconsistencias.
+- Estado com 0 prioridades tratado com mensagem amigavel: `Defina uma meta como prioridade.`
+- Cobertura de widget tests ampliada para navegacao por abas e fluxo de metas prioritarias.
 
 ## 20. Visão de Evolução (Pós-MVP)
 
@@ -459,3 +481,7 @@ Evoluir como desenvolvedor enquanto constrói um produto real.
 ## 22. Regra Final do Projeto
 
 Se uma decisão aumentar muito a complexidade do projeto sem aumentar o valor para o usuário, ela deve ser evitada.
+
+
+
+
