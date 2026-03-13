@@ -3,10 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:quebrando_metas/app/router.dart';
 
 class MainBottomNav extends StatelessWidget {
-  const MainBottomNav({
-    super.key,
-    required this.currentIndex,
-  });
+  const MainBottomNav({super.key, required this.currentIndex});
 
   final int currentIndex;
 
@@ -35,5 +32,21 @@ class MainBottomNav extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+class NearNavBarFabLocation extends FloatingActionButtonLocation {
+  const NearNavBarFabLocation();
+
+  @override
+  Offset getOffset(ScaffoldPrelayoutGeometry scaffoldGeometry) {
+    final double fabX =
+        (scaffoldGeometry.scaffoldSize.width -
+            scaffoldGeometry.floatingActionButtonSize.width) /
+        2;
+    final double navTop = scaffoldGeometry.contentBottom;
+    final double fabY =
+        navTop - scaffoldGeometry.floatingActionButtonSize.height - 8;
+    return Offset(fabX, fabY);
   }
 }

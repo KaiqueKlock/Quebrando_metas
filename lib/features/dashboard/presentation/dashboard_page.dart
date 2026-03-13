@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:quebrando_metas/app/router.dart';
 import 'package:quebrando_metas/core/widgets/main_bottom_nav.dart';
+import 'package:quebrando_metas/core/widgets/theme_drawer.dart';
 import 'package:quebrando_metas/features/goals/domain/goal.dart';
 import 'package:quebrando_metas/features/goals/presentation/goals_controller.dart';
 
@@ -19,6 +20,7 @@ class DashboardPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Quebrando Metas')),
+      drawer: const ThemeDrawer(),
       body: goalsAsync.when(
         data: (goals) => _DashboardContent(goals: goals),
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -29,7 +31,7 @@ class DashboardPage extends ConsumerWidget {
         onPressed: () => context.push(AppRoutes.createGoal),
         child: const Icon(Icons.add),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButtonLocation: const NearNavBarFabLocation(),
       bottomNavigationBar: const MainBottomNav(currentIndex: 0),
     );
   }

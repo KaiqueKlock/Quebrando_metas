@@ -52,6 +52,54 @@ void main() {
     expect(find.text('Salvar'), findsOneWidget);
   });
 
+  testWidgets('Opens theme drawer and toggles theme mode with icon', (
+    WidgetTester tester,
+  ) async {
+    await _pumpApp(tester, repository: FakeInMemoryGoalsRepository());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Open navigation menu'));
+    await tester.pumpAndSettle();
+    expect(find.text('Tema'), findsOneWidget);
+    expect(find.byIcon(Icons.wb_sunny_outlined), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('toggle-theme-icon')));
+    await tester.pumpAndSettle();
+
+    final MaterialApp materialApp = tester.widget<MaterialApp>(
+      find.byType(MaterialApp),
+    );
+    expect(materialApp.themeMode, ThemeMode.dark);
+    expect(find.byIcon(Icons.nightlight_round), findsOneWidget);
+  });
+
+  testWidgets('Opens theme drawer and changes seed color', (
+    WidgetTester tester,
+  ) async {
+    await _pumpApp(tester, repository: FakeInMemoryGoalsRepository());
+    await tester.pumpAndSettle();
+
+    final MaterialApp before = tester.widget<MaterialApp>(
+      find.byType(MaterialApp),
+    );
+    final Color initialPrimaryColor = before.theme!.colorScheme.primary;
+
+    await tester.tap(find.byTooltip('Open navigation menu'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Cor principal'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Verde'));
+    await tester.pumpAndSettle();
+
+    final MaterialApp after = tester.widget<MaterialApp>(
+      find.byType(MaterialApp),
+    );
+    expect(
+      after.theme!.colorScheme.primary,
+      isNot(equals(initialPrimaryColor)),
+    );
+  });
+
   testWidgets('Creates a goal and shows it in Suas Metas page', (
     WidgetTester tester,
   ) async {

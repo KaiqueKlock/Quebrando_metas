@@ -420,8 +420,28 @@ Entregas registradas:
 
 - Refinar UI
   - [x] Centralizar botao `Nova Meta` no navigator, removendo o texto do botao
+- Refinamento de Theme
+  - [x] Adicionar Drawer na AppBar para configuracoes de aparencia (Dashboard e Suas Metas)
+  - [x] Adicionar alternancia de tema (`Claro`/`Escuro`) com icone unico (`sol`/`lua`)
+  - [x] Adicionar menu recolhivel para escolha de cor principal
+  - [x] Persistir preferencias de tema localmente
 
-### Sprint 5 - Release MVP
+- Sugestoes de melhoria (proximos passos)
+  - [ ] Adicionar preview rapido de tema no drawer (feedback imediato por item)
+  - [ ] Revisar contraste e acessibilidade (WCAG) das cores selecionaveis
+  - [ ] Refinar espacamento/altura de cards para melhor leitura em telas menores
+  - [ ] Adicionar micro-animacoes leves na troca de abas e prioridades
+
+
+
+
+  
+
+### Sprint 5 - Pomodoro Feature 
+
+
+
+### Sprint 6 - Release MVP
 - Testes finais
 - Revisão
 - Build release
@@ -481,6 +501,7 @@ Evoluir como desenvolvedor enquanto constrói um produto real.
 ## 22. Regra Final do Projeto
 
 Se uma decisão aumentar muito a complexidade do projeto sem aumentar o valor para o usuário, ela deve ser evitada.
+
 
 
 
