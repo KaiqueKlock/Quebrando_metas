@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:quebrando_metas/app/theme/theme_contrast_audit.dart';
 
 class ThemeColorOption {
   const ThemeColorOption({required this.label, required this.color});
@@ -17,7 +18,7 @@ class AppThemeSettings extends ChangeNotifier {
   static const String _themeModeKey = 'theme_mode';
   static const String _themeColorKey = 'theme_color';
 
-  static const List<ThemeColorOption> colorOptions = <ThemeColorOption>[
+  static const List<ThemeColorOption> _allColorOptions = <ThemeColorOption>[
     ThemeColorOption(label: 'Azul', color: Colors.blue),
     ThemeColorOption(label: 'Verde', color: Colors.green),
     ThemeColorOption(label: 'Laranja', color: Colors.orange),
@@ -25,8 +26,15 @@ class AppThemeSettings extends ChangeNotifier {
     ThemeColorOption(label: 'Teal', color: Colors.teal),
   ];
 
+  static final List<ThemeColorOption> colorOptions =
+      List<ThemeColorOption>.unmodifiable(
+        _allColorOptions.where(
+          (option) => ThemeContrastAudit.isSeedColorAccessible(option.color),
+        ),
+      );
+
   ThemeMode _themeMode = ThemeMode.light;
-  Color _seedColor = Colors.blue;
+  Color _seedColor = _defaultSeedColor;
   bool _storageAvailable = false;
 
   ThemeMode get themeMode => _themeMode;
@@ -63,6 +71,7 @@ class AppThemeSettings extends ChangeNotifier {
   }
 
   Future<void> setSeedColor(Color color) async {
+    if (!_isAllowedSeedColor(color)) return;
     if (_seedColor.value == color.value) return;
     _seedColor = color;
     if (_storageAvailable) {
@@ -84,7 +93,18 @@ class AppThemeSettings extends ChangeNotifier {
   }
 
   Color _colorFromValue(int? value) {
-    if (value == null) return Colors.blue;
-    return Color(value);
+    if (value == null) return _defaultSeedColor;
+    final Color storedColor = Color(value);
+    if (_isAllowedSeedColor(storedColor)) return storedColor;
+    return _defaultSeedColor;
+  }
+
+  static Color get _defaultSeedColor {
+    if (colorOptions.isNotEmpty) return colorOptions.first.color;
+    return Colors.blue;
+  }
+
+  bool _isAllowedSeedColor(Color color) {
+    return colorOptions.any((option) => option.color.value == color.value);
   }
 }

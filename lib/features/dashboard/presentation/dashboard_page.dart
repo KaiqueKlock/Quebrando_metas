@@ -44,6 +44,7 @@ class _DashboardContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isCompact = _isCompactLayout(context);
     final int completedGoalsCount = goals
         .where((goal) => goal.progress >= 1)
         .length;
@@ -56,15 +57,24 @@ class _DashboardContent extends StatelessWidget {
           ..sort((a, b) => a.priorityRank!.compareTo(b.priorityRank!));
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
+      padding: EdgeInsets.fromLTRB(
+        isCompact ? 12 : 16,
+        isCompact ? 8 : 12,
+        isCompact ? 12 : 16,
+        isCompact ? 88 : 96,
+      ),
       children: [
         _HeaderSummary(
           completedGoalsCount: completedGoalsCount,
           activeGoalsCount: activeGoals.length,
           averageProgress: averageProgress,
+          isCompact: isCompact,
         ),
-        const SizedBox(height: 16),
-        _PriorityGoalsSection(prioritizedGoals: prioritizedGoals),
+        SizedBox(height: isCompact ? 12 : 16),
+        _PriorityGoalsSection(
+          prioritizedGoals: prioritizedGoals,
+          isCompact: isCompact,
+        ),
       ],
     );
   }
@@ -75,22 +85,29 @@ class _HeaderSummary extends StatelessWidget {
     required this.completedGoalsCount,
     required this.activeGoalsCount,
     required this.averageProgress,
+    required this.isCompact,
   });
 
   final int completedGoalsCount;
   final int activeGoalsCount;
   final double averageProgress;
+  final bool isCompact;
 
   @override
   Widget build(BuildContext context) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(isCompact ? 12 : 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Ola!', style: Theme.of(context).textTheme.headlineSmall),
-            const SizedBox(height: 8),
+            Text(
+              'Ola!',
+              style: isCompact
+                  ? Theme.of(context).textTheme.titleLarge
+                  : Theme.of(context).textTheme.headlineSmall,
+            ),
+            SizedBox(height: isCompact ? 6 : 8),
             Text('Metas concluidas: $completedGoalsCount'),
             const SizedBox(height: 4),
             Text('Voce tem $activeGoalsCount metas ativas'),
@@ -106,16 +123,20 @@ class _HeaderSummary extends StatelessWidget {
 }
 
 class _PriorityGoalsSection extends StatelessWidget {
-  const _PriorityGoalsSection({required this.prioritizedGoals});
+  const _PriorityGoalsSection({
+    required this.prioritizedGoals,
+    required this.isCompact,
+  });
 
   final List<Goal> prioritizedGoals;
+  final bool isCompact;
 
   @override
   Widget build(BuildContext context) {
     return Card(
       color: Theme.of(context).colorScheme.primaryContainer,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(isCompact ? 12 : 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -123,7 +144,7 @@ class _PriorityGoalsSection extends StatelessWidget {
               'Continue de onde parou',
               style: Theme.of(context).textTheme.titleMedium,
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: isCompact ? 10 : 12),
             if (prioritizedGoals.isEmpty) ...[
               const Text('Defina uma meta como prioridade.'),
               const SizedBox(height: 12),
@@ -136,7 +157,7 @@ class _PriorityGoalsSection extends StatelessWidget {
                   .take(3)
                   .map(
                     (goal) => Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
+                      padding: EdgeInsets.only(bottom: isCompact ? 10 : 12),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -148,7 +169,7 @@ class _PriorityGoalsSection extends StatelessWidget {
                           Text(
                             'Progresso: ${(goal.progress * 100).toStringAsFixed(0)}%',
                           ),
-                          const SizedBox(height: 8),
+                          SizedBox(height: isCompact ? 6 : 8),
                           OutlinedButton(
                             onPressed: () => context.pushNamed(
                               'goal-actions',
@@ -177,4 +198,9 @@ double _averageProgress(List<Goal> activeGoals) {
   );
 
   return sum / activeGoals.length;
+}
+
+bool _isCompactLayout(BuildContext context) {
+  final Size size = MediaQuery.sizeOf(context);
+  return size.width <= 380 || size.height <= 700;
 }

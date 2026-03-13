@@ -44,6 +44,7 @@ class _GoalsListContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isCompact = _isCompactLayout(context);
     final List<Goal> activeGoals = goals
         .where((goal) => goal.progress < 1)
         .toList();
@@ -63,10 +64,10 @@ class _GoalsListContent extends StatelessWidget {
     ];
 
     if (orderedGoals.isEmpty) {
-      return const Center(
+      return Center(
         child: Padding(
-          padding: EdgeInsets.all(24),
-          child: Text(
+          padding: EdgeInsets.all(isCompact ? 16 : 24),
+          child: const Text(
             'Nenhuma meta criada ainda. Toque em "Nova Meta" para comecar.',
             textAlign: TextAlign.center,
           ),
@@ -75,29 +76,39 @@ class _GoalsListContent extends StatelessWidget {
     }
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
-      children: [...orderedGoals.map((goal) => _GoalCard(goal: goal))],
+      padding: EdgeInsets.fromLTRB(
+        isCompact ? 12 : 16,
+        isCompact ? 8 : 12,
+        isCompact ? 12 : 16,
+        isCompact ? 88 : 96,
+      ),
+      children: [
+        ...orderedGoals.map(
+          (goal) => _GoalCard(goal: goal, isCompact: isCompact),
+        ),
+      ],
     );
   }
 }
 
 class _GoalCard extends ConsumerWidget {
-  const _GoalCard({required this.goal});
+  const _GoalCard({required this.goal, required this.isCompact});
 
   final Goal goal;
+  final bool isCompact;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: EdgeInsets.only(bottom: isCompact ? 10 : 12),
       child: InkWell(
         onTap: () => context.pushNamed(
           'goal-actions',
           pathParameters: {'goalId': goal.id},
         ),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(isCompact ? 10 : 12),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(isCompact ? 12 : 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -176,18 +187,18 @@ class _GoalCard extends ConsumerWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: isCompact ? 6 : 8),
               if (goal.priorityRank != null)
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
+                  padding: EdgeInsets.only(bottom: isCompact ? 4 : 6),
                   child: Text(
                     'Prioridade ${goal.priorityRank}',
                     style: Theme.of(context).textTheme.labelMedium,
                   ),
                 ),
-              const SizedBox(height: 2),
+              SizedBox(height: isCompact ? 1 : 2),
               LinearProgressIndicator(value: goal.progress),
-              const SizedBox(height: 8),
+              SizedBox(height: isCompact ? 6 : 8),
               Text('${(goal.progress * 100).toStringAsFixed(0)}%'),
               const SizedBox(height: 4),
               Text(
@@ -201,4 +212,9 @@ class _GoalCard extends ConsumerWidget {
       ),
     );
   }
+}
+
+bool _isCompactLayout(BuildContext context) {
+  final Size size = MediaQuery.sizeOf(context);
+  return size.width <= 380 || size.height <= 700;
 }

@@ -417,6 +417,7 @@ Entregas registradas:
   - [x] Usuario define etapa prioritaria ja existente
   - [x] Usuario conclui meta que estava marcada como prioridade
   - [x] Usuario adiciona acao em meta concluida
+  - [x] Usuario rotaciona tela com Drawer aberto sem perder interacao
 
 - Refinar UI
   - [x] Centralizar botao `Nova Meta` no navigator, removendo o texto do botao
@@ -427,15 +428,10 @@ Entregas registradas:
   - [x] Persistir preferencias de tema localmente
 
 - Sugestoes de melhoria (proximos passos)
-  - [ ] Adicionar preview rapido de tema no drawer (feedback imediato por item)
-  - [ ] Revisar contraste e acessibilidade (WCAG) das cores selecionaveis
-  - [ ] Refinar espacamento/altura de cards para melhor leitura em telas menores
+  - [x] Revisar contraste e acessibilidade (WCAG) das cores selecionaveis
+  - [x] Refinar espacamento/altura de cards para melhor leitura em telas menores
   - [ ] Adicionar micro-animacoes leves na troca de abas e prioridades
 
-
-
-
-  
 
 ### Sprint 5 - Pomodoro Feature 
 
@@ -501,8 +497,6 @@ Evoluir como desenvolvedor enquanto constrói um produto real.
 ## 22. Regra Final do Projeto
 
 Se uma decisão aumentar muito a complexidade do projeto sem aumentar o valor para o usuário, ela deve ser evitada.
-
-
 
 
 

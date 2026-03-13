@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:quebrando_metas/app/theme/app_theme_settings.dart';
 
 class ThemeDrawer extends StatelessWidget {
@@ -13,23 +13,27 @@ class ThemeDrawer extends StatelessWidget {
       child: AnimatedBuilder(
         animation: settings,
         builder: (context, _) {
+          final List<ThemeColorOption> colorOptions =
+              AppThemeSettings.colorOptions;
           return ListView(
             padding: EdgeInsets.zero,
             children: [
-              const DrawerHeader(
-                child: Align(
-                  alignment: Alignment.bottomLeft,
-                  child: Text('Configurações', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
+                  child: Text(
+                    'Configurações',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
               Column(
-              
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    
                     children: [
-                      SizedBox(width: 32),
+                      const SizedBox(width: 16),
                       IconButton(
                         key: toggleThemeKey,
                         tooltip: settings.isDarkMode
@@ -52,24 +56,31 @@ class ThemeDrawer extends StatelessWidget {
                 title: const Text('Definir cor'),
                 childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                 children: [
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: AppThemeSettings.colorOptions.map((option) {
-                      final bool isSelected =
-                          settings.seedColor.value == option.color.value;
-                      return ChoiceChip(
-                        label: Text(option.label),
-                        selectedColor: option.color.withValues(alpha: 0.22),
-                        avatar: CircleAvatar(
-                          radius: 8,
-                          backgroundColor: option.color,
-                        ),
-                        selected: isSelected,
-                        onSelected: (_) => settings.setSeedColor(option.color),
-                      );
-                    }).toList(),
-                  ),
+                  if (colorOptions.isEmpty)
+                    const Text('Nenhuma cor acessivel disponivel.')
+                  else
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: colorOptions.asMap().entries.map((entry) {
+                        final int index = entry.key;
+                        final ThemeColorOption option = entry.value;
+                        final bool isSelected =
+                            settings.seedColor.value == option.color.value;
+                        return ChoiceChip(
+                          key: Key('theme-color-$index'),
+                          label: Text(option.label),
+                          selectedColor: option.color.withValues(alpha: 0.22),
+                          avatar: CircleAvatar(
+                            radius: 8,
+                            backgroundColor: option.color,
+                          ),
+                          selected: isSelected,
+                          onSelected: (_) =>
+                              settings.setSeedColor(option.color),
+                        );
+                      }).toList(),
+                    ),
                 ],
               ),
             ],

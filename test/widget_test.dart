@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quebrando_metas/app/router.dart';
+import 'package:quebrando_metas/app/theme/app_theme_settings.dart';
 import 'package:quebrando_metas/features/goals/domain/action.dart';
 import 'package:quebrando_metas/features/goals/domain/goal.dart';
 import 'package:quebrando_metas/features/goals/domain/title_validator.dart';
@@ -60,7 +61,7 @@ void main() {
 
     await tester.tap(find.byTooltip('Open navigation menu'));
     await tester.pumpAndSettle();
-    expect(find.text('Tema'), findsOneWidget);
+    expect(find.byKey(const Key('toggle-theme-icon')), findsOneWidget);
     expect(find.byIcon(Icons.wb_sunny_outlined), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('toggle-theme-icon')));
@@ -73,9 +74,36 @@ void main() {
     expect(find.byIcon(Icons.nightlight_round), findsOneWidget);
   });
 
+  testWidgets('Keeps drawer open after screen rotation', (
+    WidgetTester tester,
+  ) async {
+    await _pumpApp(tester, repository: FakeInMemoryGoalsRepository());
+    await tester.pumpAndSettle();
+
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(500, 900);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Open navigation menu'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('toggle-theme-icon')), findsOneWidget);
+
+    tester.view.physicalSize = const Size(900, 500);
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('toggle-theme-icon')), findsOneWidget);
+  });
+
   testWidgets('Opens theme drawer and changes seed color', (
     WidgetTester tester,
   ) async {
+    expect(AppThemeSettings.colorOptions.length, greaterThan(1));
+
     await _pumpApp(tester, repository: FakeInMemoryGoalsRepository());
     await tester.pumpAndSettle();
 
@@ -86,9 +114,9 @@ void main() {
 
     await tester.tap(find.byTooltip('Open navigation menu'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Cor principal'));
+    await tester.tap(find.text('Definir cor'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Verde'));
+    await tester.tap(find.byKey(const Key('theme-color-1')));
     await tester.pumpAndSettle();
 
     final MaterialApp after = tester.widget<MaterialApp>(
