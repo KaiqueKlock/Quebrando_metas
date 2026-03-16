@@ -5,6 +5,7 @@ import 'package:quebrando_metas/app/router.dart';
 import 'package:quebrando_metas/core/widgets/main_bottom_nav.dart';
 import 'package:quebrando_metas/core/widgets/theme_drawer.dart';
 import 'package:quebrando_metas/features/goals/domain/goal.dart';
+import 'package:quebrando_metas/features/goals/presentation/goal_form_dialog.dart';
 import 'package:quebrando_metas/features/goals/presentation/goals_controller.dart';
 
 class GoalsListPage extends ConsumerWidget {
@@ -28,7 +29,9 @@ class GoalsListPage extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton(
         key: createGoalFabKey,
-        onPressed: () => context.push(AppRoutes.createGoal),
+        onPressed: () async {
+          await showGoalFormDialog(context, ref);
+        },
         child: const Icon(Icons.add),
       ),
       floatingActionButtonLocation: const NearNavBarFabLocation(),
@@ -146,13 +149,23 @@ class _GoalCard extends ConsumerWidget {
                         context,
                       ).showSnackBar(SnackBar(content: Text(message)));
                     },
-                    icon: Icon(
-                      goal.priorityRank == null
-                          ? Icons.star_border
-                          : Icons.star,
-                      color: goal.priorityRank == null
-                          ? null
-                          : Theme.of(context).colorScheme.primary,
+                    icon: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 180),
+                      reverseDuration: const Duration(milliseconds: 140),
+                      switchInCurve: Curves.easeOutBack,
+                      switchOutCurve: Curves.easeInCubic,
+                      transitionBuilder: (child, animation) {
+                        return ScaleTransition(scale: animation, child: child);
+                      },
+                      child: Icon(
+                        goal.priorityRank == null
+                            ? Icons.star_border
+                            : Icons.star,
+                        key: ValueKey<bool>(goal.priorityRank != null),
+                        color: goal.priorityRank == null
+                            ? null
+                            : Theme.of(context).colorScheme.primary,
+                      ),
                     ),
                     tooltip: goal.priorityRank == null
                         ? 'Definir prioridade'
@@ -161,10 +174,7 @@ class _GoalCard extends ConsumerWidget {
                   PopupMenuButton<String>(
                     onSelected: (value) async {
                       if (value == 'edit') {
-                        context.pushNamed(
-                          'edit-goal',
-                          pathParameters: {'goalId': goal.id},
-                        );
+                        await showGoalFormDialog(context, ref, goal: goal);
                         return;
                       }
 

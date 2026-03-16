@@ -418,6 +418,7 @@ Entregas registradas:
   - [x] Usuario conclui meta que estava marcada como prioridade
   - [x] Usuario adiciona acao em meta concluida
   - [x] Usuario rotaciona tela com Drawer aberto sem perder interacao
+  - [x] Usuario em tela pequena (altura/largura reduzida) sem overflow de layout ("over pixel")
 
 - Refinar UI
   - [x] Centralizar botao `Nova Meta` no navigator, removendo o texto do botao
@@ -430,7 +431,7 @@ Entregas registradas:
 - Sugestoes de melhoria (proximos passos)
   - [x] Revisar contraste e acessibilidade (WCAG) das cores selecionaveis
   - [x] Refinar espacamento/altura de cards para melhor leitura em telas menores
-  - [ ] Adicionar micro-animacoes leves na troca de abas e prioridades
+  - [x] Adicionar micro-animacoes leves na troca de abas e prioridades
 
 
 ### Sprint 5 - Pomodoro Feature 
@@ -497,7 +498,6 @@ Evoluir como desenvolvedor enquanto constrói um produto real.
 ## 22. Regra Final do Projeto
 
 Se uma decisão aumentar muito a complexidade do projeto sem aumentar o valor para o usuário, ela deve ser evitada.
-
 
 
 

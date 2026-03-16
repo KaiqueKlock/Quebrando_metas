@@ -5,6 +5,7 @@ import 'package:quebrando_metas/app/router.dart';
 import 'package:quebrando_metas/core/widgets/main_bottom_nav.dart';
 import 'package:quebrando_metas/core/widgets/theme_drawer.dart';
 import 'package:quebrando_metas/features/goals/domain/goal.dart';
+import 'package:quebrando_metas/features/goals/presentation/goal_form_dialog.dart';
 import 'package:quebrando_metas/features/goals/presentation/goals_controller.dart';
 
 class DashboardPage extends ConsumerWidget {
@@ -28,7 +29,9 @@ class DashboardPage extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton(
         key: createGoalFabKey,
-        onPressed: () => context.push(AppRoutes.createGoal),
+        onPressed: () async {
+          await showGoalFormDialog(context, ref);
+        },
         child: const Icon(Icons.add),
       ),
       floatingActionButtonLocation: const NearNavBarFabLocation(),
@@ -128,6 +131,8 @@ class _PriorityGoalsSection extends StatelessWidget {
     required this.isCompact,
   });
 
+  static const Key contentSwitcherKey = Key('priority-content-switcher');
+
   final List<Goal> prioritizedGoals;
   final bool isCompact;
 
@@ -145,46 +150,114 @@ class _PriorityGoalsSection extends StatelessWidget {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             SizedBox(height: isCompact ? 10 : 12),
-            if (prioritizedGoals.isEmpty) ...[
-              const Text('Defina uma meta como prioridade.'),
-              const SizedBox(height: 12),
-              FilledButton(
-                onPressed: () => context.go(AppRoutes.goals),
-                child: const Text('Escolher prioridade'),
-              ),
-            ] else ...[
-              ...prioritizedGoals
-                  .take(3)
-                  .map(
-                    (goal) => Padding(
-                      padding: EdgeInsets.only(bottom: isCompact ? 10 : 12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Prioridade ${goal.priorityRank}: ${goal.title}',
-                            style: Theme.of(context).textTheme.titleSmall,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Progresso: ${(goal.progress * 100).toStringAsFixed(0)}%',
-                          ),
-                          SizedBox(height: isCompact ? 6 : 8),
-                          OutlinedButton(
-                            onPressed: () => context.pushNamed(
-                              'goal-actions',
-                              pathParameters: {'goalId': goal.id},
-                            ),
-                            child: const Text('Continuar'),
-                          ),
-                        ],
+            AnimatedSwitcher(
+              key: contentSwitcherKey,
+              duration: const Duration(milliseconds: 200),
+              reverseDuration: const Duration(milliseconds: 160),
+              switchInCurve: Curves.easeOutCubic,
+              switchOutCurve: Curves.easeInCubic,
+              transitionBuilder: (child, animation) {
+                final Animation<double> fade = CurvedAnimation(
+                  parent: animation,
+                  curve: Curves.easeOutCubic,
+                );
+                final Animation<Offset> slide =
+                    Tween<Offset>(
+                      begin: const Offset(0, 0.03),
+                      end: Offset.zero,
+                    ).animate(
+                      CurvedAnimation(
+                        parent: animation,
+                        curve: Curves.easeOutCubic,
                       ),
+                    );
+
+                return FadeTransition(
+                  opacity: fade,
+                  child: SlideTransition(position: slide, child: child),
+                );
+              },
+              child: prioritizedGoals.isEmpty
+                  ? _EmptyPriorityState(key: const ValueKey('priority-empty'))
+                  : _PriorityGoalsList(
+                      key: ValueKey<String>(
+                        prioritizedGoals
+                            .take(3)
+                            .map((goal) => '${goal.id}:${goal.priorityRank}')
+                            .join('|'),
+                      ),
+                      prioritizedGoals: prioritizedGoals,
+                      isCompact: isCompact,
                     ),
-                  ),
-            ],
+            ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _EmptyPriorityState extends StatelessWidget {
+  const _EmptyPriorityState({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Defina uma meta como prioridade.'),
+        const SizedBox(height: 12),
+        FilledButton(
+          onPressed: () => context.go(AppRoutes.goals),
+          child: const Text('Escolher prioridade'),
+        ),
+      ],
+    );
+  }
+}
+
+class _PriorityGoalsList extends StatelessWidget {
+  const _PriorityGoalsList({
+    super.key,
+    required this.prioritizedGoals,
+    required this.isCompact,
+  });
+
+  final List<Goal> prioritizedGoals;
+  final bool isCompact;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: prioritizedGoals
+          .take(3)
+          .map(
+            (goal) => Padding(
+              padding: EdgeInsets.only(bottom: isCompact ? 10 : 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Prioridade ${goal.priorityRank}: ${goal.title}',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Progresso: ${(goal.progress * 100).toStringAsFixed(0)}%',
+                  ),
+                  SizedBox(height: isCompact ? 6 : 8),
+                  OutlinedButton(
+                    onPressed: () => context.pushNamed(
+                      'goal-actions',
+                      pathParameters: {'goalId': goal.id},
+                    ),
+                    child: const Text('Continuar'),
+                  ),
+                ],
+              ),
+            ),
+          )
+          .toList(),
     );
   }
 }

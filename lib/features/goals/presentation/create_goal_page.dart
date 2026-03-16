@@ -7,10 +7,7 @@ import 'package:quebrando_metas/features/goals/domain/title_validator.dart';
 import 'package:quebrando_metas/features/goals/presentation/goals_controller.dart';
 
 class CreateGoalPage extends ConsumerStatefulWidget {
-  const CreateGoalPage({
-    super.key,
-    this.goalId,
-  });
+  const CreateGoalPage({super.key, this.goalId});
 
   final String? goalId;
 
@@ -52,13 +49,17 @@ class _CreateGoalPageState extends ConsumerState<CreateGoalPage> {
           _showError('Meta nao encontrada para edicao.');
           return;
         }
-        await ref.read(goalsControllerProvider.notifier).updateGoal(
+        await ref
+            .read(goalsControllerProvider.notifier)
+            .updateGoal(
               goal: currentGoal,
               title: _titleController.text,
               description: _descriptionController.text,
             );
       } else {
-        await ref.read(goalsControllerProvider.notifier).createGoal(
+        await ref
+            .read(goalsControllerProvider.notifier)
+            .createGoal(
               title: _titleController.text,
               description: _descriptionController.text,
             );
@@ -81,8 +82,12 @@ class _CreateGoalPageState extends ConsumerState<CreateGoalPage> {
   @override
   Widget build(BuildContext context) {
     final bool isEditMode = widget.isEditMode;
-    final AsyncValue<List<Goal>> goalsAsync = ref.watch(goalsControllerProvider);
-    final Goal? editingGoal = isEditMode ? ref.watch(goalByIdProvider(widget.goalId!)) : null;
+    final AsyncValue<List<Goal>> goalsAsync = ref.watch(
+      goalsControllerProvider,
+    );
+    final Goal? editingGoal = isEditMode
+        ? ref.watch(goalByIdProvider(widget.goalId!))
+        : null;
 
     if (isEditMode && !_prefilledFromGoal && editingGoal != null) {
       _titleController.text = editingGoal.title;
@@ -95,52 +100,80 @@ class _CreateGoalPageState extends ConsumerState<CreateGoalPage> {
       body: isEditMode && goalsAsync.isLoading
           ? const Center(child: CircularProgressIndicator())
           : isEditMode && editingGoal == null
-              ? const Center(child: Text('Meta nao encontrada.'))
-          : Padding(
-              padding: const EdgeInsets.all(16),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    TextFormField(
-                      controller: _titleController,
-                      decoration: const InputDecoration(
-                        labelText: 'Titulo',
+          ? const Center(child: Text('Meta nao encontrada.'))
+          : SafeArea(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 560),
+                    child: Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              TextFormField(
+                                controller: _titleController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Titulo',
+                                ),
+                                maxLength: TitleValidator.maxLength,
+                                inputFormatters: [
+                                  LengthLimitingTextInputFormatter(
+                                    TitleValidator.maxLength,
+                                  ),
+                                ],
+                                validator: (value) {
+                                  try {
+                                    TitleValidator.validate(value ?? '');
+                                    return null;
+                                  } on FormatException catch (error) {
+                                    return error.message;
+                                  }
+                                },
+                              ),
+                              const SizedBox(height: 12),
+                              TextFormField(
+                                controller: _descriptionController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Descricao (opcional)',
+                                ),
+                                maxLength: _descriptionMaxLength,
+                                inputFormatters: [
+                                  LengthLimitingTextInputFormatter(
+                                    _descriptionMaxLength,
+                                  ),
+                                ],
+                                maxLines: 3,
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  TextButton(
+                                    onPressed: _isSaving
+                                        ? null
+                                        : () => context.pop(),
+                                    child: const Text('Cancelar'),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  FilledButton(
+                                    onPressed: _isSaving ? null : _onSave,
+                                    child: Text(
+                                      _isSaving ? 'Salvando...' : 'Salvar',
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                      maxLength: TitleValidator.maxLength,
-                      inputFormatters: [
-                        LengthLimitingTextInputFormatter(TitleValidator.maxLength),
-                      ],
-                      validator: (value) {
-                        try {
-                          TitleValidator.validate(value ?? '');
-                          return null;
-                        } on FormatException catch (error) {
-                          return error.message;
-                        }
-                      },
                     ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _descriptionController,
-                      decoration: const InputDecoration(
-                        labelText: 'Descricao (opcional)',
-                      ),
-                      maxLength: _descriptionMaxLength,
-                      inputFormatters: [
-                        LengthLimitingTextInputFormatter(_descriptionMaxLength),
-                      ],
-                      maxLines: 3,
-                    ),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton(
-                        onPressed: _isSaving ? null : _onSave,
-                        child: Text(_isSaving ? 'Salvando...' : 'Salvar'),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -149,8 +182,8 @@ class _CreateGoalPageState extends ConsumerState<CreateGoalPage> {
 
   void _showError(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }

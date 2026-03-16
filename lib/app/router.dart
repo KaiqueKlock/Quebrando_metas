@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:quebrando_metas/app/onboarding_status.dart';
 import 'package:quebrando_metas/features/dashboard/presentation/dashboard_page.dart';
@@ -25,7 +26,8 @@ class AppRouter {
     refreshListenable: OnboardingStatus.instance,
     redirect: (context, state) {
       final OnboardingStatus onboardingStatus = OnboardingStatus.instance;
-      final bool isOnboardingRoute = state.matchedLocation == AppRoutes.onboarding;
+      final bool isOnboardingRoute =
+          state.matchedLocation == AppRoutes.onboarding;
 
       if (!onboardingStatus.hasCompletedOnboarding && !isOnboardingRoute) {
         return AppRoutes.onboarding;
@@ -41,12 +43,20 @@ class AppRouter {
       GoRoute(
         path: AppRoutes.dashboard,
         name: 'dashboard',
-        builder: (context, state) => const DashboardPage(),
+        pageBuilder: (context, state) => _buildTabTransitionPage(
+          state: state,
+          child: const DashboardPage(),
+          slideFromRight: false,
+        ),
       ),
       GoRoute(
         path: AppRoutes.goals,
         name: 'goals',
-        builder: (context, state) => const GoalsListPage(),
+        pageBuilder: (context, state) => _buildTabTransitionPage(
+          state: state,
+          child: const GoalsListPage(),
+          slideFromRight: true,
+        ),
       ),
       GoRoute(
         path: AppRoutes.onboarding,
@@ -61,17 +71,47 @@ class AppRouter {
       GoRoute(
         path: AppRoutes.editGoal,
         name: 'edit-goal',
-        builder: (context, state) => CreateGoalPage(
-          goalId: state.pathParameters['goalId'],
-        ),
+        builder: (context, state) =>
+            CreateGoalPage(goalId: state.pathParameters['goalId']),
       ),
       GoRoute(
         path: AppRoutes.goalActions,
         name: 'goal-actions',
-        builder: (context, state) => GoalActionsPage(
-          goalId: state.pathParameters['goalId'] ?? '',
-        ),
+        builder: (context, state) =>
+            GoalActionsPage(goalId: state.pathParameters['goalId'] ?? ''),
       ),
     ],
   );
+
+  static CustomTransitionPage<void> _buildTabTransitionPage({
+    required GoRouterState state,
+    required Widget child,
+    required bool slideFromRight,
+  }) {
+    final Offset beginOffset = slideFromRight
+        ? const Offset(0.03, 0)
+        : const Offset(-0.03, 0);
+
+    return CustomTransitionPage<void>(
+      key: state.pageKey,
+      child: child,
+      transitionDuration: const Duration(milliseconds: 180),
+      reverseTransitionDuration: const Duration(milliseconds: 160),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        final Animation<double> fade = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+        );
+        final Animation<Offset> slide =
+            Tween<Offset>(begin: beginOffset, end: Offset.zero).animate(
+              CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+            );
+
+        return FadeTransition(
+          opacity: fade,
+          child: SlideTransition(position: slide, child: child),
+        );
+      },
+    );
+  }
 }

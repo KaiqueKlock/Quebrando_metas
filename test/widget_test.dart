@@ -19,6 +19,7 @@ void main() {
     expect(find.text('Voce tem 0 metas ativas'), findsOneWidget);
     expect(find.text('Defina uma meta como prioridade.'), findsOneWidget);
     expect(find.byKey(const Key('create-goal-fab')), findsOneWidget);
+    expect(find.byKey(const Key('priority-content-switcher')), findsOneWidget);
   });
 
   testWidgets('Shows centered create button above navigation bar', (
@@ -139,7 +140,7 @@ void main() {
     expect(find.text('Nova Meta'), findsOneWidget);
     expect(find.text('Salvar'), findsOneWidget);
 
-    await tester.enterText(find.byType(TextFormField).first, 'Meta de teste');
+    await tester.enterText(find.byType(TextField).first, 'Meta de teste');
     await tester.tap(find.text('Salvar'));
     await tester.pumpAndSettle();
 
@@ -156,7 +157,7 @@ void main() {
     await tester.pumpAndSettle();
 
     await _tapCreateGoalFab(tester);
-    await tester.enterText(find.byType(TextFormField).first, 'Meta original');
+    await tester.enterText(find.byType(TextField).first, 'Meta original');
     await tester.tap(find.text('Salvar'));
     await tester.pumpAndSettle();
 
@@ -170,7 +171,7 @@ void main() {
     await tester.tap(find.text('Editar'));
     await tester.pumpAndSettle();
 
-    await tester.enterText(find.byType(TextFormField).first, 'Meta editada');
+    await tester.enterText(find.byType(TextField).first, 'Meta editada');
     await tester.tap(find.text('Salvar'));
     await tester.pumpAndSettle();
     expect(find.text('Meta editada'), findsOneWidget);
@@ -192,7 +193,7 @@ void main() {
     await tester.pumpAndSettle();
 
     await _tapCreateGoalFab(tester);
-    await tester.enterText(find.byType(TextFormField).first, 'Meta com acoes');
+    await tester.enterText(find.byType(TextField).first, 'Meta com acoes');
     await tester.tap(find.text('Salvar'));
     await tester.pumpAndSettle();
 
@@ -331,14 +332,8 @@ void main() {
     await tester.pumpAndSettle();
 
     await _tapCreateGoalFab(tester);
-    await tester.enterText(
-      find.byType(TextFormField).at(0),
-      'Meta com descricao',
-    );
-    await tester.enterText(
-      find.byType(TextFormField).at(1),
-      'Descricao de teste',
-    );
+    await tester.enterText(find.byType(TextField).at(0), 'Meta com descricao');
+    await tester.enterText(find.byType(TextField).at(1), 'Descricao de teste');
     await tester.tap(find.text('Salvar'));
     await tester.pumpAndSettle();
 
@@ -358,7 +353,7 @@ void main() {
     await tester.pumpAndSettle();
 
     await _tapCreateGoalFab(tester);
-    await tester.enterText(find.byType(TextFormField).first, 'Meta prioridade');
+    await tester.enterText(find.byType(TextField).first, 'Meta prioridade');
     await tester.tap(find.text('Salvar'));
     await tester.pumpAndSettle();
 
@@ -384,11 +379,8 @@ void main() {
 
       await _tapCreateGoalFab(tester);
 
-      await tester.enterText(find.byType(TextFormField).at(0), 'Meta rotacao');
-      await tester.enterText(
-        find.byType(TextFormField).at(1),
-        'Descricao rotacao',
-      );
+      await tester.enterText(find.byType(TextField).at(0), 'Meta rotacao');
+      await tester.enterText(find.byType(TextField).at(1), 'Descricao rotacao');
       await tester.pump();
 
       addTearDown(() {
@@ -415,6 +407,91 @@ void main() {
     },
   );
 
+  testWidgets(
+    'Does not overflow pixels on create goal page with small screen height',
+    (WidgetTester tester) async {
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(800, 320);
+
+      await _pumpApp(tester, repository: FakeInMemoryGoalsRepository());
+      await tester.pumpAndSettle();
+
+      await _tapCreateGoalFab(tester);
+      await tester.enterText(find.byType(TextField).at(0), 'Meta pequena');
+      await tester.enterText(find.byType(TextField).at(1), 'Descricao');
+      await tester.pumpAndSettle();
+
+      expect(find.text('Nova Meta'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('Does not overflow pixels on narrow goals list with long title', (
+    WidgetTester tester,
+  ) async {
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(280, 720);
+
+    final DateTime now = DateTime(2026, 3, 16);
+    final Goal longGoal = Goal(
+      id: 'goal-long-title',
+      title: '${_repeat('Meta muito longa ', 6)}final',
+      description: null,
+      createdAt: now,
+      updatedAt: now,
+      completedActions: 0,
+      totalActions: 0,
+    );
+
+    final List<ActionItem> longGoalActions = <ActionItem>[
+      ActionItem(
+        id: 'action-long-1',
+        goalId: longGoal.id,
+        title: 'Acao 1',
+        isCompleted: true,
+        createdAt: now,
+        updatedAt: now,
+        order: 0,
+        completedAt: now,
+      ),
+      ActionItem(
+        id: 'action-long-2',
+        goalId: longGoal.id,
+        title: 'Acao 2',
+        isCompleted: false,
+        createdAt: now,
+        updatedAt: now,
+        order: 1,
+        completedAt: null,
+      ),
+    ];
+
+    await _pumpApp(
+      tester,
+      repository: FakeInMemoryGoalsRepository(
+        initialGoals: <Goal>[longGoal],
+        initialActions: longGoalActions,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Suas Metas'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Meta muito longa'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('Handles selecting priority on an already prioritized goal', (
     WidgetTester tester,
   ) async {
@@ -423,7 +500,7 @@ void main() {
 
     await _tapCreateGoalFab(tester);
     await tester.enterText(
-      find.byType(TextFormField).first,
+      find.byType(TextField).first,
       'Meta prioridade duplicada',
     );
     await tester.tap(find.text('Salvar'));
@@ -453,7 +530,7 @@ void main() {
 
     await _tapCreateGoalFab(tester);
     await tester.enterText(
-      find.byType(TextFormField).first,
+      find.byType(TextField).first,
       'Meta prioritaria concluida',
     );
     await tester.tap(find.text('Salvar'));
@@ -492,7 +569,7 @@ void main() {
     await tester.pumpAndSettle();
 
     await _tapCreateGoalFab(tester);
-    await tester.enterText(find.byType(TextFormField).first, 'Meta reaberta');
+    await tester.enterText(find.byType(TextField).first, 'Meta reaberta');
     await tester.tap(find.text('Salvar'));
     await tester.pumpAndSettle();
 
@@ -546,8 +623,8 @@ void main() {
 
     await _tapCreateGoalFab(tester);
 
-    await tester.enterText(find.byType(TextFormField).at(0), hugeTitle);
-    await tester.enterText(find.byType(TextFormField).at(1), hugeDescription);
+    await tester.enterText(find.byType(TextField).at(0), hugeTitle);
+    await tester.enterText(find.byType(TextField).at(1), hugeDescription);
     await tester.tap(find.text('Salvar'));
     await tester.pumpAndSettle();
 
@@ -574,10 +651,7 @@ void main() {
       await tester.pumpAndSettle();
 
       await _tapCreateGoalFab(tester);
-      await tester.enterText(
-        find.byType(TextFormField).first,
-        'Meta estabilidade',
-      );
+      await tester.enterText(find.byType(TextField).first, 'Meta estabilidade');
       await tester.tap(find.text('Salvar'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Suas Metas'));
