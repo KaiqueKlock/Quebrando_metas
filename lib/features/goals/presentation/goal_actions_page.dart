@@ -33,7 +33,7 @@ class GoalActionsPage extends ConsumerWidget {
     if (goal == null) {
       return const Scaffold(
         body: Center(
-          child: Text('Meta nao encontrada.'),
+          child: Text('Meta não encontrada.'),
         ),
       );
     }
@@ -72,7 +72,7 @@ class GoalActionsPage extends ConsumerWidget {
                               isCompleted: value,
                             );
                       } catch (_) {
-                        _showError(context, 'Nao foi possivel atualizar a ação.');
+                        _showError(context, 'Não foi possível atualizar a ação.');
                       }
                     },
                     secondary: PopupMenuButton<String>(
@@ -94,7 +94,7 @@ class GoalActionsPage extends ConsumerWidget {
                                   title: updatedTitle,
                                 );
                           } catch (_) {
-                            _showError(context, 'Nao foi possivel editar a ação.');
+                            _showError(context, 'Não foi possível editar a ação.');
                           }
                         }
 
@@ -107,7 +107,7 @@ class GoalActionsPage extends ConsumerWidget {
                                   actionId: action.id,
                                 );
                           } catch (_) {
-                            _showError(context, 'Nao foi possivel excluir a ação.');
+                            _showError(context, 'Não foi possível excluir a ação.');
                           }
                         }
                       },
@@ -144,7 +144,7 @@ class GoalActionsPage extends ConsumerWidget {
                   title: title,
                 );
           } catch (_) {
-            _showError(context, 'Nao foi possivel criar a ação.');
+            _showError(context, 'Não foi possível criar a ação.');
           }
         },
         icon: const Icon(Icons.add),
@@ -222,7 +222,7 @@ class _GoalDescriptionSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final String descriptionText =
         (description == null || description!.trim().isEmpty)
-            ? 'Sem descricao para esta meta.'
+            ? 'Sem descrição para esta meta.'
             : description!.trim();
 
     return Card(
@@ -232,7 +232,7 @@ class _GoalDescriptionSection extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Descricao da meta',
+              'Descrição da meta',
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),

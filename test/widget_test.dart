@@ -189,22 +189,31 @@ void main() {
   testWidgets('Creates, edits and deletes actions for a goal', (
     WidgetTester tester,
   ) async {
-    await _pumpApp(tester, repository: FakeInMemoryGoalsRepository());
+    final DateTime now = DateTime(2026, 3, 17);
+    final Goal goal = Goal(
+      id: 'goal-actions-test',
+      title: 'Meta com acoes',
+      description: null,
+      createdAt: now,
+      updatedAt: now,
+      completedActions: 0,
+      totalActions: 0,
+    );
+    await _pumpApp(
+      tester,
+      repository: FakeInMemoryGoalsRepository(initialGoals: <Goal>[goal]),
+    );
     await tester.pumpAndSettle();
 
-    await _tapCreateGoalFab(tester);
-    await tester.enterText(find.byType(TextField).first, 'Meta com acoes');
-    await tester.tap(find.text('Salvar'));
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('Suas Metas'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Meta com acoes').first);
+    AppRouter.router.goNamed(
+      'goal-actions',
+      pathParameters: {'goalId': goal.id},
+    );
     await tester.pumpAndSettle();
 
     expect(find.textContaining('Meta com acoes'), findsOneWidget);
-    expect(find.text('Descricao da meta'), findsOneWidget);
-    expect(find.text('Sem descricao para esta meta.'), findsOneWidget);
+    expect(find.text('Descrição da meta'), findsOneWidget);
+    expect(find.text('Sem descrição para esta meta.'), findsOneWidget);
 
     await tester.tap(find.byIcon(Icons.add).last);
     await tester.pumpAndSettle();
@@ -328,21 +337,29 @@ void main() {
   testWidgets('Shows goal description section on actions page', (
     WidgetTester tester,
   ) async {
-    await _pumpApp(tester, repository: FakeInMemoryGoalsRepository());
+    final DateTime now = DateTime(2026, 3, 17);
+    final Goal goal = Goal(
+      id: 'goal-description-test',
+      title: 'Meta com descricao',
+      description: 'Descricao de teste',
+      createdAt: now,
+      updatedAt: now,
+      completedActions: 0,
+      totalActions: 0,
+    );
+    await _pumpApp(
+      tester,
+      repository: FakeInMemoryGoalsRepository(initialGoals: <Goal>[goal]),
+    );
     await tester.pumpAndSettle();
 
-    await _tapCreateGoalFab(tester);
-    await tester.enterText(find.byType(TextField).at(0), 'Meta com descricao');
-    await tester.enterText(find.byType(TextField).at(1), 'Descricao de teste');
-    await tester.tap(find.text('Salvar'));
+    AppRouter.router.goNamed(
+      'goal-actions',
+      pathParameters: {'goalId': goal.id},
+    );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Suas Metas'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Meta com descricao').first);
-    await tester.pumpAndSettle();
-
-    expect(find.text('Descricao da meta'), findsOneWidget);
+    expect(find.text('Descrição da meta'), findsOneWidget);
     expect(find.text('Descricao de teste'), findsOneWidget);
   });
 
@@ -370,6 +387,93 @@ void main() {
       findsOneWidget,
     );
   });
+
+  testWidgets(
+    'Keeps priority items left-aligned after removing and adding priorities',
+    (WidgetTester tester) async {
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(360, 800);
+
+      await _pumpApp(tester, repository: FakeInMemoryGoalsRepository());
+      await tester.pumpAndSettle();
+
+      Future<void> createGoal(String title) async {
+        await _tapCreateGoalFab(tester);
+        await tester.enterText(find.byType(TextField).first, title);
+        await tester.tap(find.text('Salvar'));
+        await tester.pumpAndSettle();
+      }
+
+      Future<void> togglePriority(String goalTitle) async {
+        final Finder goalTitleFinder = find.text(goalTitle).first;
+        await tester.ensureVisible(goalTitleFinder);
+        await tester.pumpAndSettle();
+
+        final Finder goalCard = find.ancestor(
+          of: goalTitleFinder,
+          matching: find.byType(Card),
+        );
+        final Finder priorityButton = find.descendant(
+          of: goalCard,
+          matching: find.byWidgetPredicate(
+            (widget) =>
+                widget is IconButton &&
+                (widget.tooltip == 'Definir prioridade' ||
+                    widget.tooltip == 'Remover prioridade'),
+          ),
+        );
+        await tester.tap(priorityButton.first);
+      }
+
+      const String shortTitle = 'Meta curta';
+      const String longTitle =
+          'Meta com titulo bem maior para validar quebra e alinhamento';
+      const String mediumTitle = 'Meta media';
+      const String newLongTitle =
+          'Nova prioridade com titulo longo para manter alinhamento';
+
+      await createGoal(shortTitle);
+      await createGoal(longTitle);
+      await createGoal(mediumTitle);
+      await createGoal(newLongTitle);
+
+      await tester.tap(find.text('Suas Metas'));
+      await tester.pumpAndSettle();
+
+      await togglePriority(shortTitle);
+      await tester.pumpAndSettle();
+      await togglePriority(longTitle);
+      await tester.pumpAndSettle();
+      await togglePriority(mediumTitle);
+      await tester.pumpAndSettle();
+
+      await togglePriority(longTitle);
+      await tester.pumpAndSettle();
+      await togglePriority(newLongTitle);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Dashboard'));
+      await tester.pumpAndSettle();
+
+      final double shortLeft = tester
+          .getTopLeft(find.textContaining(shortTitle))
+          .dx;
+      final double mediumLeft = tester
+          .getTopLeft(find.textContaining(mediumTitle))
+          .dx;
+      final double longLeft = tester
+          .getTopLeft(find.textContaining(newLongTitle))
+          .dx;
+
+      expect((shortLeft - mediumLeft).abs(), lessThanOrEqualTo(1.0));
+      expect((shortLeft - longLeft).abs(), lessThanOrEqualTo(1.0));
+    },
+  );
 
   testWidgets(
     'Keeps title and description after screen rotation while keyboard is open',
@@ -401,7 +505,7 @@ void main() {
       await tester.tap(find.text('Salvar'));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Suas Metas'));
+      AppRouter.router.go(AppRoutes.goals);
       await tester.pumpAndSettle();
       expect(find.text('Meta rotacao'), findsOneWidget);
     },
@@ -562,6 +666,101 @@ void main() {
     expect(find.text('Defina uma meta como prioridade.'), findsOneWidget);
   });
 
+  testWidgets(
+    'Does not block third active priority when a completed legacy priority exists',
+    (WidgetTester tester) async {
+      final DateTime now = DateTime(2026, 3, 17);
+      final Goal completedWithPriority = Goal(
+        id: 'completed-priority-goal',
+        title: 'Meta concluida antiga',
+        description: null,
+        priorityRank: 1,
+        createdAt: now,
+        updatedAt: now,
+        completedActions: 0,
+        totalActions: 0,
+      );
+      final List<Goal> activeGoals = <Goal>[
+        Goal(
+          id: 'new-priority-1',
+          title: 'Nova prioridade 1',
+          description: null,
+          createdAt: now.add(const Duration(minutes: 1)),
+          updatedAt: now.add(const Duration(minutes: 1)),
+          completedActions: 0,
+          totalActions: 0,
+        ),
+        Goal(
+          id: 'new-priority-2',
+          title: 'Nova prioridade 2',
+          description: null,
+          createdAt: now.add(const Duration(minutes: 2)),
+          updatedAt: now.add(const Duration(minutes: 2)),
+          completedActions: 0,
+          totalActions: 0,
+        ),
+        Goal(
+          id: 'new-priority-3',
+          title: 'Nova prioridade 3',
+          description: null,
+          createdAt: now.add(const Duration(minutes: 3)),
+          updatedAt: now.add(const Duration(minutes: 3)),
+          completedActions: 0,
+          totalActions: 0,
+        ),
+      ];
+      final List<ActionItem> actions = <ActionItem>[
+        ActionItem(
+          id: 'completed-priority-action-1',
+          goalId: completedWithPriority.id,
+          title: 'Acao concluida',
+          isCompleted: true,
+          createdAt: now,
+          updatedAt: now,
+          order: 0,
+          completedAt: now,
+        ),
+      ];
+
+      await _pumpApp(
+        tester,
+        repository: FakeInMemoryGoalsRepository(
+          initialGoals: <Goal>[completedWithPriority, ...activeGoals],
+          initialActions: actions,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Suas Metas'));
+      await tester.pumpAndSettle();
+
+      await _tapPriorityForGoal(tester, 'Nova prioridade 1');
+      await tester.pumpAndSettle();
+      await _tapPriorityForGoal(tester, 'Nova prioridade 2');
+      await tester.pumpAndSettle();
+      await _tapPriorityForGoal(tester, 'Nova prioridade 3');
+      await tester.pumpAndSettle();
+
+      expect(find.text('Voce pode priorizar no maximo 3 metas.'), findsNothing);
+
+      await tester.tap(find.text('Dashboard'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.textContaining('Prioridade 1: Nova prioridade 1'),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining('Prioridade 2: Nova prioridade 2'),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining('Prioridade 3: Nova prioridade 3'),
+        findsOneWidget,
+      );
+    },
+  );
+
   testWidgets('Allows adding an action to a goal that was completed', (
     WidgetTester tester,
   ) async {
@@ -676,6 +875,21 @@ String _repeat(String value, int count) =>
 Future<void> _tapCreateGoalFab(WidgetTester tester) async {
   await tester.tap(find.byKey(const Key('create-goal-fab')));
   await tester.pumpAndSettle();
+}
+
+Future<void> _tapPriorityForGoal(WidgetTester tester, String goalTitle) async {
+  final Finder goalTitleFinder = find.text(goalTitle).first;
+  await tester.ensureVisible(goalTitleFinder);
+  await tester.pumpAndSettle();
+  final Finder goalCard = find.ancestor(
+    of: goalTitleFinder,
+    matching: find.byType(Card),
+  );
+  final Finder priorityButton = find.descendant(
+    of: goalCard,
+    matching: find.byTooltip('Definir prioridade'),
+  );
+  await tester.tap(priorityButton.first);
 }
 
 Future<void> _pumpApp(

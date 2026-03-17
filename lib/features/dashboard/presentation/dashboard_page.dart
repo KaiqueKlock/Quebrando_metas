@@ -229,31 +229,35 @@ class _PriorityGoalsList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: prioritizedGoals
           .take(3)
           .map(
             (goal) => Padding(
               padding: EdgeInsets.only(bottom: isCompact ? 10 : 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Prioridade ${goal.priorityRank}: ${goal.title}',
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Progresso: ${(goal.progress * 100).toStringAsFixed(0)}%',
-                  ),
-                  SizedBox(height: isCompact ? 6 : 8),
-                  OutlinedButton(
-                    onPressed: () => context.pushNamed(
-                      'goal-actions',
-                      pathParameters: {'goalId': goal.id},
+              child: SizedBox(
+                width: double.infinity,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Prioridade ${goal.priorityRank}: ${goal.title}',
+                      style: Theme.of(context).textTheme.titleSmall,
                     ),
-                    child: const Text('Continuar'),
-                  ),
-                ],
+                    const SizedBox(height: 4),
+                    Text(
+                      'Progresso: ${(goal.progress * 100).toStringAsFixed(0)}%',
+                    ),
+                    SizedBox(height: isCompact ? 6 : 8),
+                    OutlinedButton(
+                      onPressed: () => context.pushNamed(
+                        'goal-actions',
+                        pathParameters: {'goalId': goal.id},
+                      ),
+                      child: const Text('Continuar'),
+                    ),
+                  ],
+                ),
               ),
             ),
           )

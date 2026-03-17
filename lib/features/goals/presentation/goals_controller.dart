@@ -107,7 +107,7 @@ class GoalsController extends AsyncNotifier<List<Goal>> {
     }
 
     final List<Goal> prioritized = goals
-        .where((item) => item.priorityRank != null)
+        .where((item) => item.priorityRank != null && item.progress < 1)
         .toList(growable: false);
     if (prioritized.length >= 3) {
       return GoalPriorityResult.limitReached;
@@ -131,14 +131,29 @@ class GoalsController extends AsyncNotifier<List<Goal>> {
   }
 
   Future<bool> _normalizePriorityRanks(List<Goal> goals) async {
-    final List<Goal> prioritized =
-        goals.where((goal) => goal.priorityRank != null).toList()..sort((a, b) {
-          final int byRank = a.priorityRank!.compareTo(b.priorityRank!);
-          if (byRank != 0) return byRank;
-          return a.createdAt.compareTo(b.createdAt);
-        });
-
     bool changed = false;
+
+    // Completed goals cannot keep priority rank.
+    for (final Goal goal in goals) {
+      if (goal.priorityRank == null || goal.progress < 1) continue;
+      final Goal withoutPriority = goal.copyWith(
+        clearPriority: true,
+        updatedAt: DateTime.now(),
+      );
+      await _repository.updateGoal(withoutPriority);
+      changed = true;
+    }
+
+    final List<Goal> prioritized =
+        goals
+            .where((goal) => goal.priorityRank != null && goal.progress < 1)
+            .toList()
+          ..sort((a, b) {
+            final int byRank = a.priorityRank!.compareTo(b.priorityRank!);
+            if (byRank != 0) return byRank;
+            return a.createdAt.compareTo(b.createdAt);
+          });
+
     for (int i = 0; i < prioritized.length; i++) {
       final Goal goal = prioritized[i];
       final int? expectedRank = i < 3 ? i + 1 : null;
