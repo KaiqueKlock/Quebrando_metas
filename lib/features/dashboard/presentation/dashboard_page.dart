@@ -48,13 +48,9 @@ class _DashboardContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isCompact = _isCompactLayout(context);
-    final int completedGoalsCount = goals
-        .where((goal) => goal.progress >= 1)
-        .length;
     final List<Goal> activeGoals = goals
         .where((goal) => goal.progress < 1)
         .toList();
-    final double averageProgress = _averageProgress(activeGoals);
     final List<Goal> prioritizedGoals =
         activeGoals.where((goal) => goal.priorityRank != null).toList()
           ..sort((a, b) => a.priorityRank!.compareTo(b.priorityRank!));
@@ -67,60 +63,11 @@ class _DashboardContent extends StatelessWidget {
         isCompact ? 88 : 96,
       ),
       children: [
-        _HeaderSummary(
-          completedGoalsCount: completedGoalsCount,
-          activeGoalsCount: activeGoals.length,
-          averageProgress: averageProgress,
-          isCompact: isCompact,
-        ),
-        SizedBox(height: isCompact ? 12 : 16),
         _PriorityGoalsSection(
           prioritizedGoals: prioritizedGoals,
           isCompact: isCompact,
         ),
       ],
-    );
-  }
-}
-
-class _HeaderSummary extends StatelessWidget {
-  const _HeaderSummary({
-    required this.completedGoalsCount,
-    required this.activeGoalsCount,
-    required this.averageProgress,
-    required this.isCompact,
-  });
-
-  final int completedGoalsCount;
-  final int activeGoalsCount;
-  final double averageProgress;
-  final bool isCompact;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: EdgeInsets.all(isCompact ? 12 : 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Ola!',
-              style: isCompact
-                  ? Theme.of(context).textTheme.titleLarge
-                  : Theme.of(context).textTheme.headlineSmall,
-            ),
-            SizedBox(height: isCompact ? 6 : 8),
-            Text('Metas concluidas: $completedGoalsCount'),
-            const SizedBox(height: 4),
-            Text('Voce tem $activeGoalsCount metas ativas'),
-            const SizedBox(height: 4),
-            Text(
-              'Progresso medio: ${(averageProgress * 100).toStringAsFixed(0)}%',
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
@@ -264,17 +211,6 @@ class _PriorityGoalsList extends StatelessWidget {
           .toList(),
     );
   }
-}
-
-double _averageProgress(List<Goal> activeGoals) {
-  if (activeGoals.isEmpty) return 0;
-
-  final double sum = activeGoals.fold<double>(
-    0,
-    (previousValue, goal) => previousValue + goal.progress,
-  );
-
-  return sum / activeGoals.length;
 }
 
 bool _isCompactLayout(BuildContext context) {

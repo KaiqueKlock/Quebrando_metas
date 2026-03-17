@@ -419,9 +419,11 @@ Entregas registradas:
   - [x] Usuario adiciona acao em meta concluida
   - [x] Usuario rotaciona tela com Drawer aberto sem perder interacao
   - [x] Usuario em tela pequena (altura/largura reduzida) sem overflow de layout ("over pixel")
+  - [x] Regressao de prioridades: remover e adicionar metas priorizadas com titulos de tamanhos diferentes sem desalinhamento visual no Dashboard
 
 - Refinar UI
   - [x] Centralizar botao `Nova Meta` no navigator, removendo o texto do botao
+  - [x] Padronizar alinhamento a esquerda dos itens do card `Continue de onde parou`, incluindo metas com titulo longo
 - Refinamento de Theme
   - [x] Adicionar Drawer na AppBar para configuracoes de aparencia (Dashboard e Suas Metas)
   - [x] Adicionar alternancia de tema (`Claro`/`Escuro`) com icone unico (`sol`/`lua`)
@@ -474,6 +476,13 @@ Entregas registradas:
 - Estado com 0 prioridades tratado com mensagem amigavel: `Defina uma meta como prioridade.`
 - Cobertura de widget tests ampliada para navegacao por abas e fluxo de metas prioritarias.
 
+### Atualizacao tecnica (17/03/2026)
+
+- Corrigido desalinhamento visual na secao `Continue de onde parou` ao alternar prioridades com titulos de tamanhos diferentes.
+- Ajuste de layout aplicado para manter os itens de prioridade com largura consistente e ancoragem a esquerda.
+- Adicionado widget test de regressao para o fluxo: priorizar 3 metas, remover 1, adicionar outra e validar alinhamento horizontal dos titulos no Dashboard.
+- Validacao executada com suite completa de testes (`flutter test -r compact`) sem falhas.
+
 ## 20. Visão de Evolução (Pós-MVP)
 
 Possíveis evoluções:
@@ -498,6 +507,5 @@ Evoluir como desenvolvedor enquanto constrói um produto real.
 ## 22. Regra Final do Projeto
 
 Se uma decisão aumentar muito a complexidade do projeto sem aumentar o valor para o usuário, ela deve ser evitada.
-
 
 

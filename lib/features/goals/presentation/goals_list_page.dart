@@ -12,6 +12,7 @@ class GoalsListPage extends ConsumerWidget {
   const GoalsListPage({super.key});
 
   static const Key createGoalFabKey = Key('create-goal-fab');
+  static const Key goalsListScrollKey = Key('goals-list-scroll');
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -48,9 +49,17 @@ class _GoalsListContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isCompact = _isCompactLayout(context);
+    final double horizontalPadding = isCompact ? 12 : 16;
+    final double topPadding = isCompact ? 8 : 12;
+    final double headerBottomSpacing = isCompact ? 10 : 12;
+    final double listBottomPadding = isCompact ? 88 : 96;
+    final int completedGoalsCount = goals
+        .where((goal) => goal.progress >= 1)
+        .length;
     final List<Goal> activeGoals = goals
         .where((goal) => goal.progress < 1)
         .toList();
+    final double averageProgress = _averageProgress(activeGoals);
     final List<Goal> prioritizedActiveGoals =
         activeGoals.where((goal) => goal.priorityRank != null).toList()
           ..sort((a, b) => a.priorityRank!.compareTo(b.priorityRank!));
@@ -66,30 +75,106 @@ class _GoalsListContent extends StatelessWidget {
       ...completedGoals,
     ];
 
-    if (orderedGoals.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: EdgeInsets.all(isCompact ? 16 : 24),
-          child: const Text(
-            'Nenhuma meta criada ainda. Toque em "Nova Meta" para comecar.',
-            textAlign: TextAlign.center,
+    return Column(
+      children: [
+        Padding(
+          padding: EdgeInsets.fromLTRB(
+            horizontalPadding,
+            topPadding,
+            horizontalPadding,
+            headerBottomSpacing,
+          ),
+          child: _HeaderSummary(
+            completedGoalsCount: completedGoalsCount,
+            activeGoalsCount: activeGoals.length,
+            averageProgress: averageProgress,
+            isCompact: isCompact,
           ),
         ),
-      );
-    }
-
-    return ListView(
-      padding: EdgeInsets.fromLTRB(
-        isCompact ? 12 : 16,
-        isCompact ? 8 : 12,
-        isCompact ? 12 : 16,
-        isCompact ? 88 : 96,
-      ),
-      children: [
-        ...orderedGoals.map(
-          (goal) => _GoalCard(goal: goal, isCompact: isCompact),
-        ),
+        Expanded(
+          child: orderedGoals.isEmpty
+              ? Center(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      vertical: isCompact ? 20 : 28,
+                      horizontal: isCompact ? 16 : 24,
+                    ),
+                    child: const Text(
+                      'Nenhuma meta criada ainda. Toque em "Nova Meta" para comecar.',
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                )
+              : ListView(
+                  key: GoalsListPage.goalsListScrollKey,
+                  padding: EdgeInsets.fromLTRB(
+                    horizontalPadding,
+                    0,
+                    horizontalPadding,
+                    listBottomPadding,
+                  ),
+                  children: orderedGoals
+                      .map((goal) => _GoalCard(goal: goal, isCompact: isCompact))
+                      .toList(),
+                ),
+          )
       ],
+    );
+  }
+}
+
+class _HeaderSummary extends StatelessWidget {
+  const _HeaderSummary({
+    required this.completedGoalsCount,
+    required this.activeGoalsCount,
+    required this.averageProgress,
+    required this.isCompact,
+  });
+
+  final int completedGoalsCount;
+  final int activeGoalsCount;
+  final double averageProgress;
+  final bool isCompact;
+
+  @override
+  Widget build(BuildContext context) {
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    return Card(
+      elevation: isCompact ? 2 : 3,
+      color: colorScheme.primaryContainer,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(isCompact ? 14 : 16),
+        side: BorderSide(color: colorScheme.primary, width: 1),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(isCompact ? 12 : 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Ola!',
+              style: isCompact
+                  ? Theme.of(context).textTheme.titleLarge
+                  : Theme.of(context).textTheme.headlineSmall,
+            ),
+            SizedBox(height: isCompact ? 6 : 8),
+            Text(
+              'Metas concluidas: $completedGoalsCount',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Voce tem $activeGoalsCount metas ativas',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Progresso medio: ${(averageProgress * 100).toStringAsFixed(0)}%',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -227,4 +312,15 @@ class _GoalCard extends ConsumerWidget {
 bool _isCompactLayout(BuildContext context) {
   final Size size = MediaQuery.sizeOf(context);
   return size.width <= 380 || size.height <= 700;
+}
+
+double _averageProgress(List<Goal> activeGoals) {
+  if (activeGoals.isEmpty) return 0;
+
+  final double sum = activeGoals.fold<double>(
+    0,
+    (previousValue, goal) => previousValue + goal.progress,
+  );
+
+  return sum / activeGoals.length;
 }
