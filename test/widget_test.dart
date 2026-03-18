@@ -471,6 +471,143 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets(
+    'Does not overflow pixels when user completes focus on small screen',
+    (WidgetTester tester) async {
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(320, 500);
+
+      final DateTime now = DateTime(2026, 3, 18, 11, 30);
+      final Goal goal = Goal(
+        id: 'goal-focus-overflow-complete',
+        title: 'Meta foco concluir pequena',
+        description: null,
+        createdAt: now,
+        updatedAt: now,
+        completedActions: 0,
+        totalActions: 1,
+      );
+      final ActionItem action = ActionItem(
+        id: 'action-focus-overflow-complete',
+        goalId: goal.id,
+        title: 'Acao concluir pequena',
+        isCompleted: false,
+        createdAt: now,
+        updatedAt: now,
+        order: 0,
+        completedAt: null,
+      );
+      final FakeInMemoryGoalsRepository repository =
+          FakeInMemoryGoalsRepository(
+            initialGoals: <Goal>[goal],
+            initialActions: <ActionItem>[action],
+          );
+
+      await _pumpApp(tester, repository: repository);
+      await tester.pumpAndSettle();
+
+      AppRouter.router.goNamed(
+        'goal-actions',
+        pathParameters: {'goalId': goal.id},
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(
+        find.byKey(
+          const ValueKey<String>('select-focus-action-focus-overflow-complete'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('start-focus-button')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey<String>('focus-duration-15')));
+      await tester.pump();
+      await tester.pump(const Duration(minutes: 1));
+
+      await tester.tap(find.text('Concluir agora'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Tempo gasto: 1 min'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'Completes focus automatically when timer reaches zero',
+    (WidgetTester tester) async {
+      final DateTime now = DateTime(2026, 3, 18, 12, 0);
+      final Goal goal = Goal(
+        id: 'goal-focus-auto-zero',
+        title: 'Meta foco auto zero',
+        description: null,
+        createdAt: now,
+        updatedAt: now,
+        completedActions: 0,
+        totalActions: 1,
+      );
+      final ActionItem action = ActionItem(
+        id: 'action-focus-auto-zero',
+        goalId: goal.id,
+        title: 'Acao foco auto zero',
+        isCompleted: false,
+        createdAt: now,
+        updatedAt: now,
+        order: 0,
+        completedAt: null,
+      );
+      final FakeInMemoryGoalsRepository repository =
+          FakeInMemoryGoalsRepository(
+            initialGoals: <Goal>[goal],
+            initialActions: <ActionItem>[action],
+          );
+
+      await _pumpApp(tester, repository: repository);
+      await tester.pumpAndSettle();
+
+      AppRouter.router.goNamed(
+        'goal-actions',
+        pathParameters: {'goalId': goal.id},
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(
+        find.byKey(const ValueKey<String>('select-focus-action-focus-auto-zero')),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('start-focus-button')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey<String>('focus-duration-15')));
+      await tester.pump();
+
+      await tester.pump(const Duration(minutes: 15));
+      await tester.pump();
+
+      expect(find.text('Foco concluido!'), findsOneWidget);
+      expect(find.text('Tempo gasto: 15 min'), findsOneWidget);
+
+      await tester.tap(find.text('Fechar'));
+      await tester.pumpAndSettle();
+
+      final List<FocusSession> sessions = await repository.listFocusSessions(
+        goalId: goal.id,
+        actionId: action.id,
+      );
+      expect(sessions, hasLength(1));
+      expect(sessions.first.status, FocusSessionStatus.completed);
+      expect(sessions.first.durationMinutes, 15);
+
+      final List<ActionItem> actions = await repository.listActions(goal.id);
+      expect(actions, hasLength(1));
+      expect(actions.first.totalFocusMinutes, 15);
+      expect(actions.first.isCompleted, isFalse);
+    },
+  );
+
   testWidgets('Blocks completing an action without recorded focus time', (
     WidgetTester tester,
   ) async {
@@ -577,8 +714,25 @@ void main() {
     'Shows correct summary for long-time user with many completed and active goals',
     (WidgetTester tester) async {
       final DateTime now = DateTime(2026, 3, 12);
+      final DateTime streakNow = DateTime.now();
       final List<Goal> seededGoals = <Goal>[];
       final List<ActionItem> seededActions = <ActionItem>[];
+      final List<FocusSession> seededSessions = <FocusSession>[
+        _completedSession(
+          id: 'summary-streak-1',
+          goalId: 'active-0',
+          actionId: 'active-a-0-2',
+          startedAt: streakNow.subtract(const Duration(days: 1)),
+          durationMinutes: 25,
+        ),
+        _completedSession(
+          id: 'summary-streak-2',
+          goalId: 'active-0',
+          actionId: 'active-a-0-2',
+          startedAt: streakNow,
+          durationMinutes: 15,
+        ),
+      ];
 
       for (int i = 0; i < 10; i++) {
         final String goalId = 'done-$i';
@@ -659,6 +813,8 @@ void main() {
         repository: FakeInMemoryGoalsRepository(
           initialGoals: seededGoals,
           initialActions: seededActions,
+          initialFocusSessions: seededSessions,
+          initialBestFocusStreak: 3,
         ),
       );
       await tester.pumpAndSettle();
@@ -668,6 +824,8 @@ void main() {
       expect(find.text('Metas concluidas: 10'), findsOneWidget);
       expect(find.text('Voce tem 5 metas ativas'), findsOneWidget);
       expect(find.text('Progresso medio: 50%'), findsOneWidget);
+      expect(find.text('Streak atual: 2 dias'), findsOneWidget);
+      expect(find.text('Melhor streak: 3 dias'), findsOneWidget);
     },
   );
 
@@ -755,6 +913,100 @@ void main() {
 
     expect(find.text('Descrição da meta'), findsOneWidget);
     expect(find.text('Descricao de teste'), findsOneWidget);
+  });
+
+  testWidgets('Shows total focus time on goal card in Suas Metas', (
+    WidgetTester tester,
+  ) async {
+    final DateTime now = DateTime(2026, 3, 18, 14);
+    final Goal goal = Goal(
+      id: 'goal-total-focus-card',
+      title: 'Meta total foco',
+      description: null,
+      createdAt: now,
+      updatedAt: now,
+      completedActions: 0,
+      totalActions: 0,
+    );
+    final List<ActionItem> actions = <ActionItem>[
+      ActionItem(
+        id: 'goal-total-focus-card-a1',
+        goalId: goal.id,
+        title: 'Acao 1',
+        isCompleted: false,
+        createdAt: now,
+        updatedAt: now,
+        order: 0,
+        totalFocusMinutes: 45,
+      ),
+      ActionItem(
+        id: 'goal-total-focus-card-a2',
+        goalId: goal.id,
+        title: 'Acao 2',
+        isCompleted: true,
+        createdAt: now,
+        updatedAt: now,
+        order: 1,
+        totalFocusMinutes: 30,
+        completedAt: now,
+      ),
+    ];
+
+    await _pumpApp(
+      tester,
+      repository: FakeInMemoryGoalsRepository(
+        initialGoals: <Goal>[goal],
+        initialActions: actions,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Suas Metas'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Tempo de foco total: 1h 15min'), findsOneWidget);
+  });
+
+  testWidgets('Shows zero accumulated focus time per action', (
+    WidgetTester tester,
+  ) async {
+    final DateTime now = DateTime(2026, 3, 18, 8);
+    final Goal goal = Goal(
+      id: 'goal-action-focus-zero',
+      title: 'Meta foco zero',
+      description: null,
+      createdAt: now,
+      updatedAt: now,
+      completedActions: 0,
+      totalActions: 1,
+    );
+    final ActionItem action = ActionItem(
+      id: 'action-focus-zero',
+      goalId: goal.id,
+      title: 'Acao foco zero',
+      isCompleted: false,
+      createdAt: now,
+      updatedAt: now,
+      order: 0,
+      totalFocusMinutes: 0,
+    );
+
+    await _pumpApp(
+      tester,
+      repository: FakeInMemoryGoalsRepository(
+        initialGoals: <Goal>[goal],
+        initialActions: <ActionItem>[action],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    AppRouter.router.goNamed(
+      'goal-actions',
+      pathParameters: {'goalId': goal.id},
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Tempo de foco: 0min'), findsOneWidget);
   });
 
   testWidgets('Shows prioritized goal in continue section', (
@@ -1247,6 +1499,27 @@ void main() {
 
 String _repeat(String value, int count) =>
     List<String>.filled(count, value).join();
+
+FocusSession _completedSession({
+  required String id,
+  required String goalId,
+  required String actionId,
+  required DateTime startedAt,
+  required int durationMinutes,
+}) {
+  final DateTime endedAt = startedAt.add(Duration(minutes: durationMinutes));
+  return FocusSession(
+    id: id,
+    actionId: actionId,
+    goalId: goalId,
+    startedAt: startedAt,
+    endedAt: endedAt,
+    durationMinutes: durationMinutes,
+    status: FocusSessionStatus.completed,
+    createdAt: startedAt,
+    updatedAt: endedAt,
+  );
+}
 
 Future<void> _tapCreateGoalFab(WidgetTester tester) async {
   await tester.tap(find.byKey(const Key('create-goal-fab')));

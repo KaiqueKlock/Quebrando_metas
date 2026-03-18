@@ -41,18 +41,28 @@ class GoalsListPage extends ConsumerWidget {
   }
 }
 
-class _GoalsListContent extends StatelessWidget {
+class _GoalsListContent extends ConsumerWidget {
   const _GoalsListContent({required this.goals});
 
   final List<Goal> goals;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final bool isCompact = _isCompactLayout(context);
     final double horizontalPadding = isCompact ? 12 : 16;
     final double topPadding = isCompact ? 8 : 12;
     final double headerBottomSpacing = isCompact ? 10 : 12;
     final double listBottomPadding = isCompact ? 88 : 96;
+    final AsyncValue<int> streakAsync = ref.watch(focusStreakProvider);
+    final AsyncValue<int> bestStreakAsync = ref.watch(bestFocusStreakProvider);
+    final int currentStreak = streakAsync.maybeWhen(
+      data: (value) => value,
+      orElse: () => 0,
+    );
+    final int bestStreak = bestStreakAsync.maybeWhen(
+      data: (value) => value,
+      orElse: () => 0,
+    );
     final int completedGoalsCount = goals
         .where((goal) => goal.progress >= 1)
         .length;
@@ -88,6 +98,8 @@ class _GoalsListContent extends StatelessWidget {
             completedGoalsCount: completedGoalsCount,
             activeGoalsCount: activeGoals.length,
             averageProgress: averageProgress,
+            currentStreak: currentStreak,
+            bestStreak: bestStreak,
             isCompact: isCompact,
           ),
         ),
@@ -114,10 +126,12 @@ class _GoalsListContent extends StatelessWidget {
                     listBottomPadding,
                   ),
                   children: orderedGoals
-                      .map((goal) => _GoalCard(goal: goal, isCompact: isCompact))
+                      .map(
+                        (goal) => _GoalCard(goal: goal, isCompact: isCompact),
+                      )
                       .toList(),
                 ),
-          )
+        ),
       ],
     );
   }
@@ -128,12 +142,16 @@ class _HeaderSummary extends StatelessWidget {
     required this.completedGoalsCount,
     required this.activeGoalsCount,
     required this.averageProgress,
+    required this.currentStreak,
+    required this.bestStreak,
     required this.isCompact,
   });
 
   final int completedGoalsCount;
   final int activeGoalsCount;
   final double averageProgress;
+  final int currentStreak;
+  final int bestStreak;
   final bool isCompact;
 
   @override
@@ -170,6 +188,16 @@ class _HeaderSummary extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               'Progresso medio: ${(averageProgress * 100).toStringAsFixed(0)}%',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Streak atual: ${_formatDays(currentStreak)}',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Melhor streak: ${_formatDays(bestStreak)}',
               style: Theme.of(context).textTheme.bodyMedium,
             ),
           ],
@@ -300,6 +328,10 @@ class _GoalCard extends ConsumerWidget {
                 '${goal.completedActions} de ${goal.totalActions} acoes concluidas',
               ),
               const SizedBox(height: 4),
+              Text(
+                'Tempo de foco total: ${_formatMinutes(goal.totalFocusMinutes)}',
+              ),
+              const SizedBox(height: 4),
               const Text('Toque para gerenciar acoes'),
             ],
           ),
@@ -307,6 +339,19 @@ class _GoalCard extends ConsumerWidget {
       ),
     );
   }
+}
+
+String _formatDays(int days) {
+  if (days == 1) return '1 dia';
+  return '$days dias';
+}
+
+String _formatMinutes(int totalMinutes) {
+  if (totalMinutes < 60) return '${totalMinutes}min';
+  final int hours = totalMinutes ~/ 60;
+  final int minutes = totalMinutes % 60;
+  if (minutes == 0) return '${hours}h';
+  return '${hours}h ${minutes.toString().padLeft(2, '0')}min';
 }
 
 bool _isCompactLayout(BuildContext context) {

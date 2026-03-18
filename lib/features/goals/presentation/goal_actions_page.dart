@@ -431,11 +431,9 @@ class _ActionTile extends StatelessWidget {
                 ? const TextStyle(decoration: TextDecoration.lineThrough)
                 : null,
           ),
-          subtitle: action.totalFocusMinutes > 0
-              ? Text(
-                  'Tempo de foco: ${_formatMinutes(action.totalFocusMinutes)}',
-                )
-              : null,
+          subtitle: Text(
+            'Tempo de foco: ${_formatMinutes(action.totalFocusMinutes)}',
+          ),
           trailing: PopupMenuButton<String>(
             onSelected: (choice) {
               if (choice == 'edit') {
@@ -602,27 +600,29 @@ class _FocusTimerDialogState extends State<_FocusTimerDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text('Modo foco'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Meta: ${widget.goalTitle}'),
-          const SizedBox(height: 4),
-          Text('Acao: ${widget.actionTitle}'),
-          const SizedBox(height: 16),
-          Center(
-            child: Text(
-              _formatDuration(_remainingSeconds),
-              style: Theme.of(context).textTheme.displaySmall,
-            ),
-          ),
-          if (_completed) ...[
-            const SizedBox(height: 12),
-            const Text('Foco concluido!'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Meta: ${widget.goalTitle}'),
             const SizedBox(height: 4),
-            Text('Tempo gasto: $_completedMinutes min'),
+            Text('Acao: ${widget.actionTitle}'),
+            const SizedBox(height: 16),
+            Center(
+              child: Text(
+                _formatDuration(_remainingSeconds),
+                style: Theme.of(context).textTheme.displaySmall,
+              ),
+            ),
+            if (_completed) ...[
+              const SizedBox(height: 12),
+              const Text('Foco concluido!'),
+              const SizedBox(height: 4),
+              Text('Tempo gasto: $_completedMinutes min'),
+            ],
           ],
-        ],
+        ),
       ),
       actions: [
         if (!_completed)

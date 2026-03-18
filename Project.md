@@ -486,9 +486,9 @@ Etapas pequenas de implementacao:
 - [x] Persistir `bestStreak` para historico.
 
 7. Etapa 5.7 - Exibicao de dados
-- [ ] Mostrar tempo acumulado por acao.
-- [ ] Mostrar tempo total acumulado da meta.
-- [ ] Mostrar streak atual em ponto de destaque de UX (definir local no inicio da etapa).
+- [x] Mostrar tempo acumulado por acao.
+- [x] Mostrar tempo total acumulado da meta.
+- [x] Mostrar streak atual em ponto de destaque de UX (definir local no inicio da etapa).
 
 8. Etapa 5.8 - Testes
 - [x] Unit tests para acumulacao de minutos e calculo de streak.
@@ -609,6 +609,19 @@ Etapas pequenas de implementacao:
   - melhor streak nao aumenta com multiplos inicios no mesmo dia;
   - melhor streak persistido nao e sobrescrito por historico inferior;
   - streak atual zera apos quebra de 1 dia sem inicio de foco.
+- Validacao executada com suite completa de testes (`flutter test -r compact`) sem falhas.
+
+### Atualizacao tecnica (18/03/2026 - Sprint 5.7)
+
+- Ponto de destaque de streak definido em UX conforme decisao de produto:
+  - o card de resumo da aba `Suas Metas` agora exibe `Streak atual` e `Melhor streak` junto de metas ativas/concluidas e progresso medio.
+- Exibicao de foco por nivel concluida:
+  - por acao: `Tempo de foco` exibido de forma consistente na tela de acoes;
+  - por meta: `Tempo de foco total` exibido no card da meta na aba `Suas Metas`.
+- Cobertura de testes expandida para a 5.7:
+  - resumo com `streak atual` e `melhor streak`;
+  - exibicao de tempo total da meta;
+  - exibicao de tempo por acao inclusive em `0min`.
 - Validacao executada com suite completa de testes (`flutter test -r compact`) sem falhas.
 
 ## 20. Visão de Evolução (Pós-MVP)
