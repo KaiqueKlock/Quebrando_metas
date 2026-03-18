@@ -13,6 +13,7 @@ class GoalMapper {
       'updatedAt': goal.updatedAt.toIso8601String(),
       'completedActions': goal.completedActions,
       'totalActions': goal.totalActions,
+      'totalFocusMinutes': goal.totalFocusMinutes,
     };
   }
 
@@ -30,6 +31,7 @@ class GoalMapper {
       updatedAt: updatedAt,
       completedActions: _parseInt(map['completedActions']) ?? 0,
       totalActions: _parseInt(map['totalActions']) ?? 0,
+      totalFocusMinutes: _parseInt(map['totalFocusMinutes']) ?? 0,
     );
   }
 

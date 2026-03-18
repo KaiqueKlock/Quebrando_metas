@@ -9,9 +9,9 @@ class FakeInMemoryGoalsRepository implements GoalsRepository {
     List<Goal> initialGoals = const <Goal>[],
     List<ActionItem> initialActions = const <ActionItem>[],
     List<FocusSession> initialFocusSessions = const <FocusSession>[],
-  })  : _goals = List<Goal>.from(initialGoals),
-        _actions = List<ActionItem>.from(initialActions),
-        _focusSessions = List<FocusSession>.from(initialFocusSessions) {
+  }) : _goals = List<Goal>.from(initialGoals),
+       _actions = List<ActionItem>.from(initialActions),
+       _focusSessions = List<FocusSession>.from(initialFocusSessions) {
     _syncGoalCounters();
   }
 
@@ -26,14 +26,8 @@ class FakeInMemoryGoalsRepository implements GoalsRepository {
   }
 
   @override
-  Future<Goal> createGoal({
-    required String title,
-    String? description,
-  }) async {
-    final Goal goal = Goal.create(
-      title: title,
-      description: description,
-    );
+  Future<Goal> createGoal({required String title, String? description}) async {
+    final Goal goal = Goal.create(title: title, description: description);
     _goals.add(goal);
     return goal;
   }
@@ -59,14 +53,16 @@ class FakeInMemoryGoalsRepository implements GoalsRepository {
     _actions.removeWhere((action) => action.goalId == goalId);
     _focusSessions.removeWhere(
       (session) =>
-          session.goalId == goalId || deletedActionIds.contains(session.actionId),
+          session.goalId == goalId ||
+          deletedActionIds.contains(session.actionId),
     );
   }
 
   @override
   Future<List<ActionItem>> listActions(String goalId) async {
-    final List<ActionItem> actions =
-        _actions.where((action) => action.goalId == goalId).toList(growable: false);
+    final List<ActionItem> actions = _actions
+        .where((action) => action.goalId == goalId)
+        .toList(growable: false);
     return actions..sort((a, b) => a.order.compareTo(b.order));
   }
 
@@ -114,18 +110,22 @@ class FakeInMemoryGoalsRepository implements GoalsRepository {
     String? goalId,
     String? actionId,
   }) async {
-    final List<FocusSession> sessions = _focusSessions.where((session) {
-      if (goalId != null && session.goalId != goalId) return false;
-      if (actionId != null && session.actionId != actionId) return false;
-      return true;
-    }).toList(growable: false);
+    final List<FocusSession> sessions = _focusSessions
+        .where((session) {
+          if (goalId != null && session.goalId != goalId) return false;
+          if (actionId != null && session.actionId != actionId) return false;
+          return true;
+        })
+        .toList(growable: false);
     sessions.sort((a, b) => a.startedAt.compareTo(b.startedAt));
     return sessions;
   }
 
   @override
   Future<FocusSession> saveFocusSession(FocusSession session) async {
-    final int index = _focusSessions.indexWhere((item) => item.id == session.id);
+    final int index = _focusSessions.indexWhere(
+      (item) => item.id == session.id,
+    );
     if (index == -1) {
       _focusSessions.add(session);
       return session;
@@ -142,7 +142,9 @@ class FakeInMemoryGoalsRepository implements GoalsRepository {
 
   Future<void> _normalizeActionOrder(String goalId) async {
     final List<ActionItem> actions =
-        _actions.where((action) => action.goalId == goalId).toList(growable: false)
+        _actions
+            .where((action) => action.goalId == goalId)
+            .toList(growable: false)
           ..sort((a, b) => a.order.compareTo(b.order));
 
     for (int i = 0; i < actions.length; i++) {
@@ -156,13 +158,19 @@ class FakeInMemoryGoalsRepository implements GoalsRepository {
     final int goalIndex = _goals.indexWhere((goal) => goal.id == goalId);
     if (goalIndex == -1) return;
 
-    final List<ActionItem> actions =
-        _actions.where((action) => action.goalId == goalId).toList(growable: false);
+    final List<ActionItem> actions = _actions
+        .where((action) => action.goalId == goalId)
+        .toList(growable: false);
     final int completed = actions.where((action) => action.isCompleted).length;
+    final int totalFocusMinutes = actions.fold<int>(
+      0,
+      (sum, action) => sum + action.totalFocusMinutes,
+    );
     final Goal goal = _goals[goalIndex];
     _goals[goalIndex] = goal.copyWith(
       completedActions: completed,
       totalActions: actions.length,
+      totalFocusMinutes: totalFocusMinutes,
       updatedAt: DateTime.now(),
     );
   }
@@ -170,12 +178,20 @@ class FakeInMemoryGoalsRepository implements GoalsRepository {
   void _syncGoalCounters() {
     for (int i = 0; i < _goals.length; i++) {
       final Goal goal = _goals[i];
-      final List<ActionItem> actions =
-          _actions.where((action) => action.goalId == goal.id).toList(growable: false);
-      final int completed = actions.where((action) => action.isCompleted).length;
+      final List<ActionItem> actions = _actions
+          .where((action) => action.goalId == goal.id)
+          .toList(growable: false);
+      final int completed = actions
+          .where((action) => action.isCompleted)
+          .length;
+      final int totalFocusMinutes = actions.fold<int>(
+        0,
+        (sum, action) => sum + action.totalFocusMinutes,
+      );
       _goals[i] = goal.copyWith(
         completedActions: completed,
         totalActions: actions.length,
+        totalFocusMinutes: totalFocusMinutes,
       );
     }
   }

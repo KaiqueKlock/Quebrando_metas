@@ -11,14 +11,12 @@ void main() {
       expect(goal.title, 'Get fit');
       expect(goal.completedActions, 0);
       expect(goal.totalActions, 0);
+      expect(goal.totalFocusMinutes, 0);
       expect(goal.progress, 0);
     });
 
     test('create should normalize blank description to null', () {
-      final Goal goal = Goal.create(
-        title: 'Study',
-        description: '   ',
-      );
+      final Goal goal = Goal.create(title: 'Study', description: '   ');
 
       expect(goal.description, isNull);
     });
@@ -29,9 +27,7 @@ void main() {
         description: 'Initial description',
       );
 
-      final Goal updated = goal.copyWith(
-        clearDescription: true,
-      );
+      final Goal updated = goal.copyWith(clearDescription: true);
 
       expect(updated.description, isNull);
     });

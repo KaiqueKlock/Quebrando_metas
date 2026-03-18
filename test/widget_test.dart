@@ -285,7 +285,9 @@ void main() {
     );
     expect(startFocusButton.onPressed, isNull);
 
-    await tester.tap(find.byKey(const ValueKey<String>('select-focus-action-focus-test')));
+    await tester.tap(
+      find.byKey(const ValueKey<String>('select-focus-action-focus-test')),
+    );
     await tester.pumpAndSettle();
 
     startFocusButton = tester.widget<FilledButton>(
@@ -303,9 +305,18 @@ void main() {
     expect(find.text('Modo foco'), findsOneWidget);
     expect(find.text('Acao: Acao para foco'), findsOneWidget);
     expect(find.text('Meta: Meta com foco'), findsOneWidget);
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is Text &&
+            RegExp(r'^\d{2}:\d{2}$').hasMatch(widget.data ?? ''),
+      ),
+      findsOneWidget,
+    );
 
     await tester.tap(find.text('Cancelar'));
     await tester.pumpAndSettle();
+    expect(find.text('Acao para foco'), findsOneWidget);
 
     final List<FocusSession> sessions = await repository.listFocusSessions(
       goalId: goal.id,
@@ -314,6 +325,191 @@ void main() {
     expect(sessions, hasLength(1));
     expect(sessions.first.durationMinutes, 15);
     expect(sessions.first.status, FocusSessionStatus.canceled);
+    final List<ActionItem> actions = await repository.listActions(goal.id);
+    expect(actions, hasLength(1));
+    expect(actions.first.totalFocusMinutes, 0);
+    expect(actions.first.isCompleted, isFalse);
+  });
+
+  testWidgets(
+    'Completes focus and accumulates time without auto-completing action',
+    (WidgetTester tester) async {
+      final DateTime now = DateTime(2026, 3, 18, 9, 30);
+      final Goal goal = Goal(
+        id: 'goal-focus-completed-test',
+        title: 'Meta foco completo',
+        description: null,
+        createdAt: now,
+        updatedAt: now,
+        completedActions: 0,
+        totalActions: 1,
+      );
+      final ActionItem action = ActionItem(
+        id: 'action-focus-completed-test',
+        goalId: goal.id,
+        title: 'Acao foco completo',
+        isCompleted: false,
+        createdAt: now,
+        updatedAt: now,
+        order: 0,
+        completedAt: null,
+      );
+      final FakeInMemoryGoalsRepository repository =
+          FakeInMemoryGoalsRepository(
+            initialGoals: <Goal>[goal],
+            initialActions: <ActionItem>[action],
+          );
+
+      await _pumpApp(tester, repository: repository);
+      await tester.pumpAndSettle();
+
+      AppRouter.router.goNamed(
+        'goal-actions',
+        pathParameters: {'goalId': goal.id},
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(
+        find.byKey(
+          const ValueKey<String>('select-focus-action-focus-completed-test'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('start-focus-button')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey<String>('focus-duration-15')));
+      await tester.pump();
+
+      await tester.tap(find.text('Concluir agora'));
+      await tester.pumpAndSettle();
+      expect(find.text('Tempo gasto: 15 min'), findsOneWidget);
+
+      await tester.tap(find.text('Fechar'));
+      await tester.pumpAndSettle();
+
+      final List<FocusSession> sessions = await repository.listFocusSessions(
+        goalId: goal.id,
+        actionId: action.id,
+      );
+      expect(sessions, hasLength(1));
+      expect(sessions.first.status, FocusSessionStatus.completed);
+      expect(sessions.first.durationMinutes, 15);
+
+      final List<ActionItem> actions = await repository.listActions(goal.id);
+      expect(actions, hasLength(1));
+      expect(actions.first.totalFocusMinutes, 15);
+      expect(actions.first.isCompleted, isFalse);
+
+      final List<Goal> goals = await repository.listGoals();
+      expect(goals, hasLength(1));
+      expect(goals.first.totalFocusMinutes, 15);
+
+      expect(find.text('Tempo de foco: 15min'), findsOneWidget);
+    },
+  );
+
+  testWidgets('Blocks completing an action without recorded focus time', (
+    WidgetTester tester,
+  ) async {
+    final DateTime now = DateTime(2026, 3, 18, 10, 0);
+    final Goal goal = Goal(
+      id: 'goal-no-focus-complete',
+      title: 'Meta sem foco',
+      description: null,
+      createdAt: now,
+      updatedAt: now,
+      completedActions: 0,
+      totalActions: 1,
+    );
+    final ActionItem action = ActionItem(
+      id: 'action-no-focus-complete',
+      goalId: goal.id,
+      title: 'Acao sem foco',
+      isCompleted: false,
+      createdAt: now,
+      updatedAt: now,
+      order: 0,
+      completedAt: null,
+    );
+    final FakeInMemoryGoalsRepository repository = FakeInMemoryGoalsRepository(
+      initialGoals: <Goal>[goal],
+      initialActions: <ActionItem>[action],
+    );
+
+    await _pumpApp(tester, repository: repository);
+    await tester.pumpAndSettle();
+
+    AppRouter.router.goNamed(
+      'goal-actions',
+      pathParameters: {'goalId': goal.id},
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(CheckboxListTile).first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Sem tempo gasto na acao.'), findsOneWidget);
+
+    final List<ActionItem> actions = await repository.listActions(goal.id);
+    expect(actions, hasLength(1));
+    expect(actions.first.isCompleted, isFalse);
+  });
+
+  testWidgets('Keeps action pending after canceled focus session', (
+    WidgetTester tester,
+  ) async {
+    final DateTime now = DateTime(2026, 3, 18, 10, 30);
+    final Goal goal = Goal(
+      id: 'goal-canceled-focus',
+      title: 'Meta foco cancelado',
+      description: null,
+      createdAt: now,
+      updatedAt: now,
+      completedActions: 0,
+      totalActions: 1,
+    );
+    final ActionItem action = ActionItem(
+      id: 'action-canceled-focus',
+      goalId: goal.id,
+      title: 'Acao cancelada',
+      isCompleted: false,
+      createdAt: now,
+      updatedAt: now,
+      order: 0,
+      completedAt: null,
+    );
+    final FakeInMemoryGoalsRepository repository = FakeInMemoryGoalsRepository(
+      initialGoals: <Goal>[goal],
+      initialActions: <ActionItem>[action],
+    );
+
+    await _pumpApp(tester, repository: repository);
+    await tester.pumpAndSettle();
+
+    AppRouter.router.goNamed(
+      'goal-actions',
+      pathParameters: {'goalId': goal.id},
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(
+      find.byKey(const ValueKey<String>('select-focus-action-canceled-focus')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('start-focus-button')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey<String>('focus-duration-15')));
+    await tester.pump();
+    await tester.tap(find.text('Cancelar'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(CheckboxListTile).first);
+    await tester.pumpAndSettle();
+    expect(find.text('Sem tempo gasto na acao.'), findsOneWidget);
+
+    final List<ActionItem> actions = await repository.listActions(goal.id);
+    expect(actions, hasLength(1));
+    expect(actions.first.isCompleted, isFalse);
   });
 
   testWidgets(
@@ -525,75 +721,74 @@ void main() {
     );
   });
 
-  testWidgets(
-    'Keeps priority items left-aligned with mixed title lengths',
-    (WidgetTester tester) async {
-      addTearDown(() {
-        tester.view.resetPhysicalSize();
-        tester.view.resetDevicePixelRatio();
-      });
+  testWidgets('Keeps priority items left-aligned with mixed title lengths', (
+    WidgetTester tester,
+  ) async {
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
 
-      tester.view.devicePixelRatio = 1.0;
-      tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(360, 800);
 
-      const String shortTitle = 'Meta curta';
-      const String longTitle =
-          'Meta com titulo bem maior para validar quebra e alinhamento';
-      const String mediumTitle = 'Meta media';
-      final DateTime now = DateTime(2026, 3, 17);
-      final List<Goal> seededGoals = <Goal>[
-        Goal(
-          id: 'align-short',
-          title: shortTitle,
-          description: null,
-          priorityRank: 1,
-          createdAt: now,
-          updatedAt: now,
-          completedActions: 0,
-          totalActions: 1,
-        ),
-        Goal(
-          id: 'align-medium',
-          title: mediumTitle,
-          description: null,
-          priorityRank: 2,
-          createdAt: now.add(const Duration(minutes: 1)),
-          updatedAt: now.add(const Duration(minutes: 1)),
-          completedActions: 0,
-          totalActions: 1,
-        ),
-        Goal(
-          id: 'align-long',
-          title: longTitle,
-          description: null,
-          priorityRank: 3,
-          createdAt: now.add(const Duration(minutes: 2)),
-          updatedAt: now.add(const Duration(minutes: 2)),
-          completedActions: 0,
-          totalActions: 1,
-        ),
-      ];
+    const String shortTitle = 'Meta curta';
+    const String longTitle =
+        'Meta com titulo bem maior para validar quebra e alinhamento';
+    const String mediumTitle = 'Meta media';
+    final DateTime now = DateTime(2026, 3, 17);
+    final List<Goal> seededGoals = <Goal>[
+      Goal(
+        id: 'align-short',
+        title: shortTitle,
+        description: null,
+        priorityRank: 1,
+        createdAt: now,
+        updatedAt: now,
+        completedActions: 0,
+        totalActions: 1,
+      ),
+      Goal(
+        id: 'align-medium',
+        title: mediumTitle,
+        description: null,
+        priorityRank: 2,
+        createdAt: now.add(const Duration(minutes: 1)),
+        updatedAt: now.add(const Duration(minutes: 1)),
+        completedActions: 0,
+        totalActions: 1,
+      ),
+      Goal(
+        id: 'align-long',
+        title: longTitle,
+        description: null,
+        priorityRank: 3,
+        createdAt: now.add(const Duration(minutes: 2)),
+        updatedAt: now.add(const Duration(minutes: 2)),
+        completedActions: 0,
+        totalActions: 1,
+      ),
+    ];
 
-      await _pumpApp(
-        tester,
-        repository: FakeInMemoryGoalsRepository(initialGoals: seededGoals),
-      );
-      await tester.pumpAndSettle();
+    await _pumpApp(
+      tester,
+      repository: FakeInMemoryGoalsRepository(initialGoals: seededGoals),
+    );
+    await tester.pumpAndSettle();
 
-      final double shortLeft = tester
-          .getTopLeft(find.textContaining(shortTitle))
-          .dx;
-      final double mediumLeft = tester
-          .getTopLeft(find.textContaining(mediumTitle))
-          .dx;
-      final double longLeft = tester
-          .getTopLeft(find.textContaining(longTitle))
-          .dx;
+    final double shortLeft = tester
+        .getTopLeft(find.textContaining(shortTitle))
+        .dx;
+    final double mediumLeft = tester
+        .getTopLeft(find.textContaining(mediumTitle))
+        .dx;
+    final double longLeft = tester
+        .getTopLeft(find.textContaining(longTitle))
+        .dx;
 
-      expect((shortLeft - mediumLeft).abs(), lessThanOrEqualTo(1.0));
-      expect((shortLeft - longLeft).abs(), lessThanOrEqualTo(1.0));
-    },
-  );
+    expect((shortLeft - mediumLeft).abs(), lessThanOrEqualTo(1.0));
+    expect((shortLeft - longLeft).abs(), lessThanOrEqualTo(1.0));
+  });
 
   testWidgets(
     'Keeps title and description after screen rotation while keyboard is open',
@@ -774,6 +969,7 @@ void main() {
     await tester.tap(find.text('Salvar'));
     await tester.pumpAndSettle();
 
+    await _completeFocusForSingleAction(tester);
     await tester.tap(find.byType(CheckboxListTile).first);
     await tester.pumpAndSettle();
 
@@ -905,6 +1101,7 @@ void main() {
     await tester.tap(find.text('Salvar'));
     await tester.pumpAndSettle();
 
+    await _completeFocusForSingleAction(tester);
     await tester.tap(find.byType(CheckboxListTile).first);
     await tester.pumpAndSettle();
 
@@ -994,6 +1191,23 @@ String _repeat(String value, int count) =>
 
 Future<void> _tapCreateGoalFab(WidgetTester tester) async {
   await tester.tap(find.byKey(const Key('create-goal-fab')));
+  await tester.pumpAndSettle();
+}
+
+Future<void> _completeFocusForSingleAction(WidgetTester tester) async {
+  await tester.tap(find.byIcon(Icons.radio_button_unchecked).first);
+  await tester.pumpAndSettle();
+
+  await tester.tap(find.byKey(const Key('start-focus-button')));
+  await tester.pumpAndSettle();
+
+  await tester.tap(find.byKey(const ValueKey<String>('focus-duration-15')));
+  await tester.pump();
+
+  await tester.tap(find.text('Concluir agora'));
+  await tester.pumpAndSettle();
+
+  await tester.tap(find.text('Fechar'));
   await tester.pumpAndSettle();
 }
 

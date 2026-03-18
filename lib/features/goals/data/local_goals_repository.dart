@@ -52,15 +52,9 @@ class LocalGoalsRepository implements GoalsRepository {
   }
 
   @override
-  Future<Goal> createGoal({
-    required String title,
-    String? description,
-  }) async {
+  Future<Goal> createGoal({required String title, String? description}) async {
     final Box<dynamic> box = await _goalsBoxFuture;
-    final Goal goal = Goal.create(
-      title: title,
-      description: description,
-    );
+    final Goal goal = Goal.create(title: title, description: description);
 
     await box.put(goal.id, GoalMapper.toMap(goal));
     return goal;
@@ -266,11 +260,18 @@ class LocalGoalsRepository implements GoalsRepository {
     final Goal goal = GoalMapper.fromMap(goalMap);
     final List<ActionItem> actions = await listActions(goalId);
     final int totalActions = actions.length;
-    final int completedActions = actions.where((action) => action.isCompleted).length;
+    final int completedActions = actions
+        .where((action) => action.isCompleted)
+        .length;
+    final int totalFocusMinutes = actions.fold<int>(
+      0,
+      (sum, action) => sum + action.totalFocusMinutes,
+    );
 
     final Goal updatedGoal = goal.copyWith(
       completedActions: completedActions,
       totalActions: totalActions,
+      totalFocusMinutes: totalFocusMinutes,
       updatedAt: DateTime.now(),
     );
 
@@ -279,8 +280,6 @@ class LocalGoalsRepository implements GoalsRepository {
 
   Map<String, dynamic>? _coerceMap(dynamic raw) {
     if (raw is! Map) return null;
-    return raw.map(
-      (key, value) => MapEntry(key.toString(), value),
-    );
+    return raw.map((key, value) => MapEntry(key.toString(), value));
   }
 }

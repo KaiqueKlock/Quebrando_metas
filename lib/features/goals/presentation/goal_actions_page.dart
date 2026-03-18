@@ -11,10 +11,7 @@ import 'package:quebrando_metas/features/goals/presentation/goal_actions_control
 import 'package:quebrando_metas/features/goals/presentation/goals_controller.dart';
 
 class GoalActionsPage extends ConsumerStatefulWidget {
-  const GoalActionsPage({
-    super.key,
-    required this.goalId,
-  });
+  const GoalActionsPage({super.key, required this.goalId});
 
   final String goalId;
   static const Key startFocusButtonKey = Key('start-focus-button');
@@ -28,31 +25,24 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final AsyncValue<List<Goal>> goalsAsync = ref.watch(goalsControllerProvider);
+    final AsyncValue<List<Goal>> goalsAsync = ref.watch(
+      goalsControllerProvider,
+    );
     final Goal? goal = ref.watch(goalByIdProvider(widget.goalId));
-    final AsyncValue<List<ActionItem>> actionsAsync =
-        ref.watch(goalActionsControllerProvider(widget.goalId));
+    final AsyncValue<List<ActionItem>> actionsAsync = ref.watch(
+      goalActionsControllerProvider(widget.goalId),
+    );
 
     if (goalsAsync.isLoading) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     if (goal == null) {
-      return const Scaffold(
-        body: Center(
-          child: Text('Meta não encontrada.'),
-        ),
-      );
+      return const Scaffold(body: Center(child: Text('Meta não encontrada.')));
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Ações: ${goal.title}'),
-      ),
+      appBar: AppBar(title: Text('Ações: ${goal.title}')),
       body: actionsAsync.when(
         data: (actions) {
           final ActionItem? selectedAction = _findSelectedAction(actions);
@@ -138,20 +128,26 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
     required ActionItem action,
     required bool isCompleted,
   }) async {
-    if (isCompleted && action.id == _selectedActionId) {
-      setState(() {
-        _selectedActionId = null;
-      });
-    }
-
     try {
-      await ref
+      final ToggleActionResult result = await ref
           .read(goalActionsControllerProvider(widget.goalId).notifier)
           .toggleAction(
             goalId: widget.goalId,
             action: action,
             isCompleted: isCompleted,
           );
+      if (!mounted) return;
+
+      if (result == ToggleActionResult.blockedNoFocusTime) {
+        _showMessage(context, 'Sem tempo gasto na acao.');
+        return;
+      }
+
+      if (isCompleted && action.id == _selectedActionId) {
+        setState(() {
+          _selectedActionId = null;
+        });
+      }
     } catch (_) {
       if (mounted) {
         _showError(context, 'Não foi possível atualizar a ação.');
@@ -160,17 +156,13 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
   }
 
   Future<void> _createAction() async {
-    final String? title = await _showActionDialog(
-      context,
-      title: 'Nova ação',
-    );
+    final String? title = await _showActionDialog(context, title: 'Nova ação');
     if (title == null) return;
 
     try {
-      await ref.read(goalActionsControllerProvider(widget.goalId).notifier).createAction(
-            goalId: widget.goalId,
-            title: title,
-          );
+      await ref
+          .read(goalActionsControllerProvider(widget.goalId).notifier)
+          .createAction(goalId: widget.goalId, title: title);
     } catch (_) {
       if (mounted) {
         _showError(context, 'Não foi possível criar a ação.');
@@ -187,7 +179,9 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
     if (updatedTitle == null) return;
 
     try {
-      await ref.read(goalActionsControllerProvider(widget.goalId).notifier).updateAction(
+      await ref
+          .read(goalActionsControllerProvider(widget.goalId).notifier)
+          .updateAction(
             goalId: widget.goalId,
             action: action,
             title: updatedTitle,
@@ -207,10 +201,9 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
     }
 
     try {
-      await ref.read(goalActionsControllerProvider(widget.goalId).notifier).deleteAction(
-            goalId: widget.goalId,
-            actionId: action.id,
-          );
+      await ref
+          .read(goalActionsControllerProvider(widget.goalId).notifier)
+          .deleteAction(goalId: widget.goalId, actionId: action.id);
     } catch (_) {
       if (mounted) {
         _showError(context, 'Não foi possível excluir a ação.');
@@ -225,8 +218,9 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
     final int? durationMinutes = await _showFocusDurationPicker(context);
     if (!mounted || durationMinutes == null) return;
 
-    final GoalActionsController controller =
-        ref.read(goalActionsControllerProvider(widget.goalId).notifier);
+    final GoalActionsController controller = ref.read(
+      goalActionsControllerProvider(widget.goalId).notifier,
+    );
 
     late final FocusSession session;
     try {
@@ -293,7 +287,9 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
     required String title,
     String initialValue = '',
   }) async {
-    final TextEditingController controller = TextEditingController(text: initialValue);
+    final TextEditingController controller = TextEditingController(
+      text: initialValue,
+    );
     String? errorText;
 
     return showDialog<String>(
@@ -323,7 +319,9 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
                 FilledButton(
                   onPressed: () {
                     try {
-                      final String value = TitleValidator.validate(controller.text);
+                      final String value = TitleValidator.validate(
+                        controller.text,
+                      );
                       Navigator.of(context).pop(value);
                     } on FormatException catch (error) {
                       setState(() {
@@ -342,9 +340,15 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
   }
 
   void _showError(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  void _showMessage(BuildContext context, String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   String _formatMinutes(int totalMinutes) {
@@ -416,14 +420,8 @@ class _ActionTile extends StatelessWidget {
                 }
               },
               itemBuilder: (context) => const [
-                PopupMenuItem<String>(
-                  value: 'edit',
-                  child: Text('Editar'),
-                ),
-                PopupMenuItem<String>(
-                  value: 'delete',
-                  child: Text('Excluir'),
-                ),
+                PopupMenuItem<String>(value: 'edit', child: Text('Editar')),
+                PopupMenuItem<String>(value: 'delete', child: Text('Excluir')),
               ],
             ),
           ],
@@ -556,6 +554,8 @@ class _FocusTimerDialogState extends State<_FocusTimerDialog> {
           if (_completed) ...[
             const SizedBox(height: 12),
             const Text('Foco concluido!'),
+            const SizedBox(height: 4),
+            Text('Tempo gasto: ${widget.durationMinutes} min'),
           ],
         ],
       ),
@@ -591,8 +591,8 @@ class _GoalDescriptionSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final String descriptionText =
         (description == null || description!.trim().isEmpty)
-            ? 'Sem descrição para esta meta.'
-            : description!.trim();
+        ? 'Sem descrição para esta meta.'
+        : description!.trim();
 
     return Card(
       child: Padding(

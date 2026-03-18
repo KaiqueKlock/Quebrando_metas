@@ -21,6 +21,7 @@ void main() {
       expect(goal.title, 'Meta antiga');
       expect(goal.completedActions, 0);
       expect(goal.totalActions, 0);
+      expect(goal.totalFocusMinutes, 0);
     });
   });
 

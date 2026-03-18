@@ -12,6 +12,7 @@ class Goal {
     required this.updatedAt,
     required this.completedActions,
     required this.totalActions,
+    this.totalFocusMinutes = 0,
   });
 
   final String id;
@@ -22,6 +23,7 @@ class Goal {
   final DateTime updatedAt;
   final int completedActions;
   final int totalActions;
+  final int totalFocusMinutes;
 
   double get progress => ProgressCalculator.fromCompletedCount(
     completedActions: completedActions,
@@ -46,6 +48,7 @@ class Goal {
       updatedAt: timestamp,
       completedActions: 0,
       totalActions: 0,
+      totalFocusMinutes: 0,
     );
   }
 
@@ -60,6 +63,7 @@ class Goal {
     DateTime? updatedAt,
     int? completedActions,
     int? totalActions,
+    int? totalFocusMinutes,
   }) {
     return Goal(
       id: id ?? this.id,
@@ -70,6 +74,7 @@ class Goal {
       updatedAt: updatedAt ?? this.updatedAt,
       completedActions: completedActions ?? this.completedActions,
       totalActions: totalActions ?? this.totalActions,
+      totalFocusMinutes: totalFocusMinutes ?? this.totalFocusMinutes,
     );
   }
 }

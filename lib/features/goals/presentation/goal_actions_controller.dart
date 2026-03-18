@@ -3,13 +3,22 @@ import 'package:quebrando_metas/features/goals/domain/action.dart';
 import 'package:quebrando_metas/features/goals/domain/focus_session.dart';
 import 'package:quebrando_metas/features/goals/presentation/goals_controller.dart';
 
-final AsyncNotifierProviderFamily<GoalActionsController, List<ActionItem>, String>
-    goalActionsControllerProvider =
-    AsyncNotifierProviderFamily<GoalActionsController, List<ActionItem>, String>(
-  GoalActionsController.new,
-);
+final AsyncNotifierProviderFamily<
+  GoalActionsController,
+  List<ActionItem>,
+  String
+>
+goalActionsControllerProvider =
+    AsyncNotifierProviderFamily<
+      GoalActionsController,
+      List<ActionItem>,
+      String
+    >(GoalActionsController.new);
 
-class GoalActionsController extends FamilyAsyncNotifier<List<ActionItem>, String> {
+enum ToggleActionResult { updated, blockedNoFocusTime }
+
+class GoalActionsController
+    extends FamilyAsyncNotifier<List<ActionItem>, String> {
   String get _goalId => arg;
 
   @override
@@ -21,10 +30,9 @@ class GoalActionsController extends FamilyAsyncNotifier<List<ActionItem>, String
     required String goalId,
     required String title,
   }) async {
-    await ref.read(goalsRepositoryProvider).createAction(
-          goalId: goalId,
-          title: title,
-        );
+    await ref
+        .read(goalsRepositoryProvider)
+        .createAction(goalId: goalId, title: title);
     await _reload();
   }
 
@@ -33,33 +41,44 @@ class GoalActionsController extends FamilyAsyncNotifier<List<ActionItem>, String
     required ActionItem action,
     required String title,
   }) async {
-    await ref.read(goalsRepositoryProvider).updateAction(
-          action.copyWith(
-            title: title,
-            updatedAt: DateTime.now(),
-          ),
-        );
+    await ref
+        .read(goalsRepositoryProvider)
+        .updateAction(action.copyWith(title: title, updatedAt: DateTime.now()));
     await _reload();
   }
 
-  Future<void> toggleAction({
+  Future<ToggleActionResult> toggleAction({
     required String goalId,
     required ActionItem action,
     required bool isCompleted,
   }) async {
-    final ActionItem updated = isCompleted ? action.markCompleted() : action.markPending();
+    if (isCompleted && action.totalFocusMinutes <= 0) {
+      final List<FocusSession> sessions = await ref
+          .read(goalsRepositoryProvider)
+          .listFocusSessions(goalId: goalId, actionId: action.id);
+      final bool hasCompletedFocus = sessions.any(
+        (session) => session.status == FocusSessionStatus.completed,
+      );
+      if (!hasCompletedFocus) {
+        return ToggleActionResult.blockedNoFocusTime;
+      }
+    }
+
+    final ActionItem updated = isCompleted
+        ? action.markCompleted()
+        : action.markPending();
     await ref.read(goalsRepositoryProvider).updateAction(updated);
     await _reload();
+    return ToggleActionResult.updated;
   }
 
   Future<void> deleteAction({
     required String goalId,
     required String actionId,
   }) async {
-    await ref.read(goalsRepositoryProvider).deleteAction(
-          goalId: goalId,
-          actionId: actionId,
-        );
+    await ref
+        .read(goalsRepositoryProvider)
+        .deleteAction(goalId: goalId, actionId: actionId);
     await _reload();
   }
 
@@ -80,6 +99,27 @@ class GoalActionsController extends FamilyAsyncNotifier<List<ActionItem>, String
   Future<void> completeFocusSession(FocusSession session) async {
     final FocusSession completed = session.markCompleted();
     await ref.read(goalsRepositoryProvider).saveFocusSession(completed);
+    final List<ActionItem> actions = await ref
+        .read(goalsRepositoryProvider)
+        .listActions(session.goalId);
+    ActionItem? currentAction;
+    for (final ActionItem action in actions) {
+      if (action.id == session.actionId) {
+        currentAction = action;
+        break;
+      }
+    }
+    if (currentAction == null) {
+      return;
+    }
+
+    final ActionItem focusedAction = currentAction.registerFocus(
+      durationMinutes: completed.durationMinutes,
+      startedAt: completed.startedAt,
+      now: DateTime.now(),
+    );
+    await ref.read(goalsRepositoryProvider).updateAction(focusedAction);
+    await _reload();
   }
 
   Future<void> cancelFocusSession(FocusSession session) async {
@@ -88,8 +128,9 @@ class GoalActionsController extends FamilyAsyncNotifier<List<ActionItem>, String
   }
 
   Future<void> _reload() async {
-    final List<ActionItem> actions =
-        await ref.read(goalsRepositoryProvider).listActions(_goalId);
+    final List<ActionItem> actions = await ref
+        .read(goalsRepositoryProvider)
+        .listActions(_goalId);
     state = AsyncData(actions);
     await ref.read(goalsControllerProvider.notifier).reload();
   }

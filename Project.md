@@ -440,7 +440,7 @@ Entregas registradas:
 
 
 ### Sprint 5 - Modo Foco (Pomodoro)
-- Status: Em andamento (atualizado em 18/03/2026)
+- Status: Em andamento (atualizado em 18/03/2026 - etapas 5.1 a 5.4 concluidas, com 1 regra pendente de cancelamento)
 
 Referencia funcional detalhada:
 - Ver `README.md` -> `Nova Feature Planejada - Modo Foco (Sprint 5)`
@@ -463,18 +463,19 @@ Etapas pequenas de implementacao:
 - [x] Iniciar timer em tela dedicada/modal com estado reativo.
 
 3. Etapa 5.3 - Tela durante foco
-- [ ] Exibir nome da meta, nome da acao, tempo restante e botao de cancelar.
-- [ ] Manter experiencia direta, sem exigir navegacao extra.
-- [ ] Em cancelamento, registrar sessao cancelada sem somar tempo acumulado.
+- [x] Exibir nome da meta, nome da acao, tempo restante e botao de cancelar.
+- [x] Manter experiencia direta, sem exigir navegacao extra.
+- [x] Em cancelamento, registrar sessao cancelada sem somar tempo acumulado.
 
 4. Etapa 5.4 - Finalizacao do foco
-- [ ] Ao concluir timer, registrar sessao concluida.
-- [ ] Incrementar automaticamente `totalFocusMinutes` da acao.
-- [ ] Atualizar agregado de tempo da meta (soma das acoes da meta).
-- [ ] Nao concluir acao automaticamente.
+- [x] Ao concluir timer, registrar sessao concluida e mostra tempo gasto.
+- [x] Incrementar automaticamente `totalFocusMinutes` da acao.
+- [x] Atualizar agregado de tempo da meta (soma das acoes da meta).
+- [x] Nao concluir acao automaticamente.
+- [ ] Ao cancelar, o tempo acumulado conta se for a partir de 5 minutos de foco. 
 
 5. Etapa 5.5 - Conclusao manual da acao
-- [ ] Implementar conclusao manual por gesto (ex: swipe lateral).
+- [ ] Implementar conclusao manual por gesto (ex: swipe lateral). remover bolinha de seleção e manter a seleção onde hoje é a conclusão da ação. Conclusão passa a ser por swipe lateral.
 - [ ] Registrar `completedAt` na acao ao concluir.
 - [ ] Recalcular progresso da meta apos conclusao.
 
@@ -491,9 +492,9 @@ Etapas pequenas de implementacao:
 
 8. Etapa 5.8 - Testes
 - [ ] Unit tests para acumulacao de minutos e calculo de streak.
-- [ ] Widget tests para fluxo iniciar/cancelar/finalizar foco.
+- [x] Widget tests para fluxo iniciar/cancelar/finalizar foco.
 - [ ] Widget test para conclusao manual de acao sem dependencia do foco.
-- [ ] Regressao: foco concluido soma tempo e nao marca acao como concluida automaticamente.
+- [x] Regressao: foco concluido soma tempo e nao marca acao como concluida automaticamente.
 
 ### Sprint 6 - Release MVP
 - Testes finais
@@ -547,6 +548,38 @@ Etapas pequenas de implementacao:
 - Adicionado teste para garantir que o card de resumo permanece fixo durante o scroll.
 - Validacao executada com suite completa de testes (`flutter test -r compact`) sem falhas.
 
+### Atualizacao tecnica (18/03/2026 - Sprint 5)
+
+- Etapa 5.1 concluida com modelo e persistencia de foco:
+  - entidade `FocusSession` adicionada;
+  - `ActionItem` com `totalFocusMinutes` e `lastFocusStartedAt`;
+  - mappers e repositorio local atualizados para os novos campos.
+- Etapa 5.2 concluida com fluxo de inicio de foco:
+  - selecao da acao para foco;
+  - CTA `Iniciar foco`;
+  - escolha de duracao (15, 25, 45);
+  - abertura de modal com timer reativo.
+- Etapa 5.3 concluida com experiencia durante foco:
+  - modal exibe meta, acao e tempo restante;
+  - cancelamento registra sessao `canceled` e nao soma tempo.
+- Ajuste adicional de regra funcional:
+  - bloqueio de conclusao de acao sem foco concluido;
+  - feedback amigavel em UI: `Sem tempo gasto na acao.`
+- Etapa 5.4 concluida (parcialmente, com 1 regra pendente):
+  - ao concluir foco, sessao passa para `completed`;
+  - tempo da sessao soma automaticamente em `totalFocusMinutes` da acao;
+  - agregado da meta foi adicionado (`Goal.totalFocusMinutes`) e recalculado pela soma das acoes;
+  - acao nao e concluida automaticamente apos foco;
+  - modal mostra `Tempo gasto: X min` apos concluir.
+- Regra pendente mantida por decisao de escopo:
+  - no cancelamento, acumular tempo somente quando houver 5+ minutos de foco (ainda nao implementado).
+- Cobertura de testes ampliada para Sprint 5:
+  - fluxo iniciar/cancelar foco;
+  - fluxo concluir foco com acumulacao de tempo;
+  - regressao para garantir que concluir foco nao conclui acao automaticamente;
+  - bloqueio de conclusao manual sem foco registrado.
+- Validacao executada com suite completa de testes (`flutter test -r compact`) sem falhas.
+
 ## 20. Visão de Evolução (Pós-MVP)
 
 Possíveis evoluções:
@@ -571,5 +604,3 @@ Evoluir como desenvolvedor enquanto constrói um produto real.
 ## 22. Regra Final do Projeto
 
 Se uma decisão aumentar muito a complexidade do projeto sem aumentar o valor para o usuário, ela deve ser evitada.
-
-
