@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quebrando_metas/features/goals/data/local_goals_repository.dart';
 import 'package:quebrando_metas/features/goals/data/goals_repository.dart';
+import 'package:quebrando_metas/features/goals/domain/focus_session.dart';
+import 'package:quebrando_metas/features/goals/domain/focus_streak_calculator.dart';
 import 'package:quebrando_metas/features/goals/domain/goal.dart';
 
 final LocalGoalsRepository _localGoalsRepository = LocalGoalsRepository();
@@ -30,6 +32,37 @@ final ProviderFamily<Goal?, String> goalByIdProvider =
         orElse: () => null,
       );
     });
+
+final FutureProvider<int> focusStreakProvider = FutureProvider<int>((
+  ref,
+) async {
+  final GoalsRepository repository = ref.watch(goalsRepositoryProvider);
+  final List<FocusSession> sessions = await repository.listFocusSessions();
+  return FocusStreakCalculator.currentStreakFromSessions(
+    sessions,
+    now: DateTime.now(),
+  );
+});
+
+final FutureProvider<int> bestFocusStreakProvider = FutureProvider<int>((
+  ref,
+) async {
+  final GoalsRepository repository = ref.watch(goalsRepositoryProvider);
+  final int persistedBest = await repository.getBestFocusStreak();
+  if (persistedBest > 0) {
+    return persistedBest;
+  }
+
+  final List<FocusSession> sessions = await repository.listFocusSessions();
+  final int migratedBest = FocusStreakCalculator.bestStreakFromSessions(
+    sessions,
+  );
+  if (migratedBest > persistedBest) {
+    await repository.saveBestFocusStreak(migratedBest);
+    return migratedBest;
+  }
+  return persistedBest;
+});
 
 enum GoalPriorityResult {
   prioritized,
@@ -83,6 +116,7 @@ class GoalsController extends AsyncNotifier<List<Goal>> {
 
   Future<void> deleteGoal(String goalId) async {
     await _repository.deleteGoal(goalId);
+    ref.invalidate(focusStreakProvider);
     await _refreshGoals();
   }
 

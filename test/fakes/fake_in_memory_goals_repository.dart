@@ -9,15 +9,20 @@ class FakeInMemoryGoalsRepository implements GoalsRepository {
     List<Goal> initialGoals = const <Goal>[],
     List<ActionItem> initialActions = const <ActionItem>[],
     List<FocusSession> initialFocusSessions = const <FocusSession>[],
+    int initialBestFocusStreak = 0,
   }) : _goals = List<Goal>.from(initialGoals),
        _actions = List<ActionItem>.from(initialActions),
-       _focusSessions = List<FocusSession>.from(initialFocusSessions) {
+       _focusSessions = List<FocusSession>.from(initialFocusSessions),
+       _bestFocusStreak = initialBestFocusStreak < 0
+           ? 0
+           : initialBestFocusStreak {
     _syncGoalCounters();
   }
 
   final List<Goal> _goals;
   final List<ActionItem> _actions;
   final List<FocusSession> _focusSessions;
+  int _bestFocusStreak;
 
   @override
   Future<List<Goal>> listGoals() async {
@@ -138,6 +143,16 @@ class FakeInMemoryGoalsRepository implements GoalsRepository {
   @override
   Future<void> deleteFocusSession(String sessionId) async {
     _focusSessions.removeWhere((session) => session.id == sessionId);
+  }
+
+  @override
+  Future<int> getBestFocusStreak() async {
+    return _bestFocusStreak;
+  }
+
+  @override
+  Future<void> saveBestFocusStreak(int bestStreak) async {
+    _bestFocusStreak = bestStreak < 0 ? 0 : bestStreak;
   }
 
   Future<void> _normalizeActionOrder(String goalId) async {

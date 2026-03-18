@@ -480,10 +480,10 @@ Etapas pequenas de implementacao:
 - [x] Recalcular progresso da meta apos conclusao.
 
 6. Etapa 5.6 - Logica de streak
-- [ ] Registrar o dia de cada inicio de foco.
-- [ ] Calcular streak atual por dias consecutivos com pelo menos 1 inicio de foco por dia.
-- [ ] Resetar streak quando houver quebra de 1 dia sem foco.
-- [ ] Persistir `bestStreak` para historico.
+- [x] Registrar o dia de cada inicio de foco.
+- [x] Calcular streak atual por dias consecutivos com pelo menos 1 inicio de foco por dia.
+- [x] Resetar streak quando houver quebra de 1 dia sem foco.
+- [x] Persistir `bestStreak` para historico.
 
 7. Etapa 5.7 - Exibicao de dados
 - [ ] Mostrar tempo acumulado por acao.
@@ -491,9 +491,9 @@ Etapas pequenas de implementacao:
 - [ ] Mostrar streak atual em ponto de destaque de UX (definir local no inicio da etapa).
 
 8. Etapa 5.8 - Testes
-- [ ] Unit tests para acumulacao de minutos e calculo de streak.
+- [x] Unit tests para acumulacao de minutos e calculo de streak.
 - [x] Widget tests para fluxo iniciar/cancelar/finalizar foco.
-- [ ] Widget test para conclusao manual de acao sem dependencia do foco.
+- [x] Widget test para conclusao manual de acao sem foco concluido (regra atual: bloquear e mostrar feedback).
 - [x] Regressao: foco concluido soma tempo e nao marca acao como concluida automaticamente.
 
 ### Sprint 6 - Release MVP
@@ -576,6 +576,12 @@ Etapas pequenas de implementacao:
   - controle de selecao para foco foi reposicionado para a area da antiga conclusao;
   - `completedAt` e recálculo de progresso seguem pelo fluxo de atualizacao da acao;
   - testes de widget atualizados para validar conclusao por `swipe`.
+- Etapa 5.6 concluida:
+  - streak passa a ser calculada por dias com inicio de foco (`startedAt`);
+  - dias consecutivos sao contados por data (ignorando duplicidade de sessoes no mesmo dia);
+  - streak zera quando o ultimo inicio de foco estiver ha mais de 1 dia;
+  - `bestStreak` persistido em storage local para historico;
+  - provider `focusStreakProvider` adicionado para streak atual e `bestFocusStreakProvider` para historico/migracao.
 - Regra pendente mantida por decisao de escopo:
   - no cancelamento, acumular tempo somente quando houver 5+ minutos de foco (ainda nao implementado).
 - Cobertura de testes ampliada para Sprint 5:
@@ -585,6 +591,24 @@ Etapas pequenas de implementacao:
   - bloqueio de conclusao manual sem foco registrado;
   - regressao para conclusao antecipada (ex: sessao de 45 min encerrada com 2 min soma 2 min);
   - overflow em tela pequena durante modal de foco.
+- Validacao executada com suite completa de testes (`flutter test -r compact`) sem falhas.
+
+### Atualizacao tecnica (18/03/2026 - Sprint 5.6/5.8)
+
+- Persistencia de streak finalizada com `bestStreak` em storage local:
+  - `GoalsRepository` expandido com leitura/escrita de melhor sequencia;
+  - `LocalGoalsRepository` com box dedicada de estatisticas de foco;
+  - `bestFocusStreakProvider` com migracao automatica a partir das sessoes historicas quando necessario.
+- Regras de streak fortalecidas com cenarios de borda:
+  - sessoes fora de ordem cronologica;
+  - duplicidade de inicios no mesmo dia;
+  - sequencias atraves de virada de mes;
+  - confirmacao de melhor sequencia historica sem regressao.
+- Cobertura de testes ampliada para comportamento real do produto:
+  - conclusao manual bloqueada sem tempo de foco concluido (`Sem tempo gasto na acao.`);
+  - melhor streak nao aumenta com multiplos inicios no mesmo dia;
+  - melhor streak persistido nao e sobrescrito por historico inferior;
+  - streak atual zera apos quebra de 1 dia sem inicio de foco.
 - Validacao executada com suite completa de testes (`flutter test -r compact`) sem falhas.
 
 ## 20. Visão de Evolução (Pós-MVP)

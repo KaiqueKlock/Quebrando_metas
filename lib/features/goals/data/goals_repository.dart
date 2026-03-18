@@ -30,4 +30,6 @@ abstract class GoalsRepository {
   });
   Future<FocusSession> saveFocusSession(FocusSession session);
   Future<void> deleteFocusSession(String sessionId);
+  Future<int> getBestFocusStreak();
+  Future<void> saveBestFocusStreak(int bestStreak);
 }

@@ -14,11 +14,16 @@ class LocalGoalsRepository implements GoalsRepository {
   static const String _goalsBoxName = 'goals_box';
   static const String _actionsBoxName = 'actions_box';
   static const String _focusSessionsBoxName = 'focus_sessions_box';
+  static const String _focusStatsBoxName = 'focus_stats_box';
+  static const String _bestFocusStreakKey = 'best_focus_streak';
 
   late final Future<Box<dynamic>> _goalsBoxFuture = _openBox(_goalsBoxName);
   late final Future<Box<dynamic>> _actionsBoxFuture = _openBox(_actionsBoxName);
   late final Future<Box<dynamic>> _focusSessionsBoxFuture = _openBox(
     _focusSessionsBoxName,
+  );
+  late final Future<Box<dynamic>> _focusStatsBoxFuture = _openBox(
+    _focusStatsBoxName,
   );
 
   Future<Box<dynamic>> _openBox(String boxName) async {
@@ -236,6 +241,23 @@ class LocalGoalsRepository implements GoalsRepository {
     await sessionsBox.delete(sessionId);
   }
 
+  @override
+  Future<int> getBestFocusStreak() async {
+    final Box<dynamic> statsBox = await _focusStatsBoxFuture;
+    final int? value = _parseInt(statsBox.get(_bestFocusStreakKey));
+    if (value == null || value < 0) {
+      return 0;
+    }
+    return value;
+  }
+
+  @override
+  Future<void> saveBestFocusStreak(int bestStreak) async {
+    final Box<dynamic> statsBox = await _focusStatsBoxFuture;
+    final int sanitized = bestStreak < 0 ? 0 : bestStreak;
+    await statsBox.put(_bestFocusStreakKey, sanitized);
+  }
+
   Future<void> _normalizeOrder(String goalId) async {
     final Box<dynamic> actionsBox = await _actionsBoxFuture;
     final List<ActionItem> actions = await listActions(goalId);
@@ -281,5 +303,12 @@ class LocalGoalsRepository implements GoalsRepository {
   Map<String, dynamic>? _coerceMap(dynamic raw) {
     if (raw is! Map) return null;
     return raw.map((key, value) => MapEntry(key.toString(), value));
+  }
+
+  int? _parseInt(dynamic value) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    if (value is String) return int.tryParse(value);
+    return null;
   }
 }

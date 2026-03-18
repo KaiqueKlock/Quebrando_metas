@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quebrando_metas/features/goals/domain/action.dart';
 import 'package:quebrando_metas/features/goals/domain/focus_session.dart';
+import 'package:quebrando_metas/features/goals/domain/focus_streak_calculator.dart';
 import 'package:quebrando_metas/features/goals/presentation/goals_controller.dart';
 
 final AsyncNotifierProviderFamily<
@@ -79,6 +80,7 @@ class GoalActionsController
     await ref
         .read(goalsRepositoryProvider)
         .deleteAction(goalId: goalId, actionId: actionId);
+    ref.invalidate(focusStreakProvider);
     await _reload();
   }
 
@@ -86,13 +88,28 @@ class GoalActionsController
     required String goalId,
     required String actionId,
     required int durationMinutes,
+    DateTime? now,
   }) async {
+    final DateTime startedAt = now ?? DateTime.now();
     final FocusSession session = FocusSession.start(
       goalId: goalId,
       actionId: actionId,
       durationMinutes: durationMinutes,
+      now: startedAt,
     );
-    await ref.read(goalsRepositoryProvider).saveFocusSession(session);
+    final repository = ref.read(goalsRepositoryProvider);
+    await repository.saveFocusSession(session);
+    final List<FocusSession> sessions = await repository.listFocusSessions();
+    final int currentStreak = FocusStreakCalculator.currentStreakFromSessions(
+      sessions,
+      now: startedAt,
+    );
+    final int bestStreak = await repository.getBestFocusStreak();
+    if (currentStreak > bestStreak) {
+      await repository.saveBestFocusStreak(currentStreak);
+    }
+    ref.invalidate(focusStreakProvider);
+    ref.invalidate(bestFocusStreakProvider);
     return session;
   }
 
