@@ -96,7 +96,10 @@ class GoalActionsController
     return session;
   }
 
-  Future<void> completeFocusSession(FocusSession session) async {
+  Future<int> completeFocusSession(
+    FocusSession session, {
+    int? elapsedMinutes,
+  }) async {
     final FocusSession completed = session.markCompleted();
     await ref.read(goalsRepositoryProvider).saveFocusSession(completed);
     final List<ActionItem> actions = await ref
@@ -110,16 +113,25 @@ class GoalActionsController
       }
     }
     if (currentAction == null) {
-      return;
+      return 0;
+    }
+
+    final int minutesToAccumulate = _normalizeElapsedMinutes(
+      sessionDurationMinutes: completed.durationMinutes,
+      elapsedMinutes: elapsedMinutes,
+    );
+    if (minutesToAccumulate <= 0) {
+      return 0;
     }
 
     final ActionItem focusedAction = currentAction.registerFocus(
-      durationMinutes: completed.durationMinutes,
+      durationMinutes: minutesToAccumulate,
       startedAt: completed.startedAt,
       now: DateTime.now(),
     );
     await ref.read(goalsRepositoryProvider).updateAction(focusedAction);
     await _reload();
+    return minutesToAccumulate;
   }
 
   Future<void> cancelFocusSession(FocusSession session) async {
@@ -133,5 +145,17 @@ class GoalActionsController
         .listActions(_goalId);
     state = AsyncData(actions);
     await ref.read(goalsControllerProvider.notifier).reload();
+  }
+
+  int _normalizeElapsedMinutes({
+    required int sessionDurationMinutes,
+    int? elapsedMinutes,
+  }) {
+    final int rawElapsed = elapsedMinutes ?? sessionDurationMinutes;
+    if (rawElapsed <= 0) return 0;
+    if (rawElapsed > sessionDurationMinutes) {
+      return sessionDurationMinutes;
+    }
+    return rawElapsed;
   }
 }

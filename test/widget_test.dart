@@ -377,12 +377,13 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('start-focus-button')));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey<String>('focus-duration-15')));
+      await tester.tap(find.byKey(const ValueKey<String>('focus-duration-45')));
       await tester.pump();
+      await tester.pump(const Duration(minutes: 2));
 
       await tester.tap(find.text('Concluir agora'));
       await tester.pumpAndSettle();
-      expect(find.text('Tempo gasto: 15 min'), findsOneWidget);
+      expect(find.text('Tempo gasto: 2 min'), findsOneWidget);
 
       await tester.tap(find.text('Fechar'));
       await tester.pumpAndSettle();
@@ -393,20 +394,82 @@ void main() {
       );
       expect(sessions, hasLength(1));
       expect(sessions.first.status, FocusSessionStatus.completed);
-      expect(sessions.first.durationMinutes, 15);
+      expect(sessions.first.durationMinutes, 45);
 
       final List<ActionItem> actions = await repository.listActions(goal.id);
       expect(actions, hasLength(1));
-      expect(actions.first.totalFocusMinutes, 15);
+      expect(actions.first.totalFocusMinutes, 2);
       expect(actions.first.isCompleted, isFalse);
 
       final List<Goal> goals = await repository.listGoals();
       expect(goals, hasLength(1));
-      expect(goals.first.totalFocusMinutes, 15);
+      expect(goals.first.totalFocusMinutes, 2);
 
-      expect(find.text('Tempo de foco: 15min'), findsOneWidget);
+      expect(find.text('Tempo de foco: 2min'), findsOneWidget);
     },
   );
+
+  testWidgets('Does not overflow pixels on focus dialog in small screen', (
+    WidgetTester tester,
+  ) async {
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(320, 500);
+
+    final DateTime now = DateTime(2026, 3, 18, 11, 0);
+    final Goal goal = Goal(
+      id: 'goal-focus-overflow',
+      title: 'Meta foco pequena',
+      description: null,
+      createdAt: now,
+      updatedAt: now,
+      completedActions: 0,
+      totalActions: 1,
+    );
+    final ActionItem action = ActionItem(
+      id: 'action-focus-overflow',
+      goalId: goal.id,
+      title: 'Acao foco pequena',
+      isCompleted: false,
+      createdAt: now,
+      updatedAt: now,
+      order: 0,
+      completedAt: null,
+    );
+
+    await _pumpApp(
+      tester,
+      repository: FakeInMemoryGoalsRepository(
+        initialGoals: <Goal>[goal],
+        initialActions: <ActionItem>[action],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    AppRouter.router.goNamed(
+      'goal-actions',
+      pathParameters: {'goalId': goal.id},
+    );
+    await tester.pumpAndSettle();
+
+    final Finder focusSelector = find.byKey(
+      const ValueKey<String>('select-focus-action-focus-overflow'),
+    );
+    await tester.ensureVisible(focusSelector);
+    await tester.tap(focusSelector);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('start-focus-button')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey<String>('focus-duration-45')));
+    await tester.pump();
+
+    expect(find.text('Modo foco'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets('Blocks completing an action without recorded focus time', (
     WidgetTester tester,
@@ -445,8 +508,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byType(CheckboxListTile).first);
-    await tester.pumpAndSettle();
+    await _swipeFirstActionToComplete(tester);
 
     expect(find.text('Sem tempo gasto na acao.'), findsOneWidget);
 
@@ -503,8 +565,7 @@ void main() {
     await tester.tap(find.text('Cancelar'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byType(CheckboxListTile).first);
-    await tester.pumpAndSettle();
+    await _swipeFirstActionToComplete(tester);
     expect(find.text('Sem tempo gasto na acao.'), findsOneWidget);
 
     final List<ActionItem> actions = await repository.listActions(goal.id);
@@ -970,8 +1031,7 @@ void main() {
     await tester.pumpAndSettle();
 
     await _completeFocusForSingleAction(tester);
-    await tester.tap(find.byType(CheckboxListTile).first);
-    await tester.pumpAndSettle();
+    await _swipeFirstActionToComplete(tester);
 
     await tester.pageBack();
     await tester.pumpAndSettle();
@@ -1102,8 +1162,7 @@ void main() {
     await tester.pumpAndSettle();
 
     await _completeFocusForSingleAction(tester);
-    await tester.tap(find.byType(CheckboxListTile).first);
-    await tester.pumpAndSettle();
+    await _swipeFirstActionToComplete(tester);
 
     await tester.pageBack();
     await tester.pumpAndSettle();
@@ -1203,11 +1262,17 @@ Future<void> _completeFocusForSingleAction(WidgetTester tester) async {
 
   await tester.tap(find.byKey(const ValueKey<String>('focus-duration-15')));
   await tester.pump();
+  await tester.pump(const Duration(minutes: 1));
 
   await tester.tap(find.text('Concluir agora'));
   await tester.pumpAndSettle();
 
   await tester.tap(find.text('Fechar'));
+  await tester.pumpAndSettle();
+}
+
+Future<void> _swipeFirstActionToComplete(WidgetTester tester) async {
+  await tester.drag(find.byType(Dismissible).first, const Offset(500, 0));
   await tester.pumpAndSettle();
 }
 

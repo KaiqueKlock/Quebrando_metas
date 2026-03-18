@@ -64,7 +64,7 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
                   (action) => _ActionTile(
                     action: action,
                     isSelectedForFocus: action.id == _selectedActionId,
-                    onToggleCompleted: (value) => _toggleActionCompletion(
+                    onSwipeCompletion: (value) => _toggleActionCompletion(
                       action: action,
                       isCompleted: value,
                     ),
@@ -245,7 +245,10 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
         actionTitle: action.title,
         goalTitle: goal.title,
         durationMinutes: durationMinutes,
-        onCompleted: () => controller.completeFocusSession(session),
+        onCompleted: (elapsedMinutes) => controller.completeFocusSession(
+          session,
+          elapsedMinutes: elapsedMinutes,
+        ),
         onCanceled: () => controller.cancelFocusSession(session),
       ),
     );
@@ -364,7 +367,7 @@ class _ActionTile extends StatelessWidget {
   const _ActionTile({
     required this.action,
     required this.isSelectedForFocus,
-    required this.onToggleCompleted,
+    required this.onSwipeCompletion,
     required this.onSelectForFocus,
     required this.onEdit,
     required this.onDelete,
@@ -372,59 +375,82 @@ class _ActionTile extends StatelessWidget {
 
   final ActionItem action;
   final bool isSelectedForFocus;
-  final Future<void> Function(bool isCompleted) onToggleCompleted;
+  final Future<void> Function(bool isCompleted) onSwipeCompletion;
   final VoidCallback? onSelectForFocus;
   final Future<void> Function() onEdit;
   final Future<void> Function() onDelete;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: CheckboxListTile(
-        key: ValueKey<String>('action-tile-${action.id}'),
-        selected: isSelectedForFocus,
-        title: Text(action.title),
-        subtitle: action.totalFocusMinutes > 0
-            ? Text('Tempo de foco: ${_formatMinutes(action.totalFocusMinutes)}')
-            : null,
-        value: action.isCompleted,
-        onChanged: (value) {
-          if (value == null) return;
-          onToggleCompleted(value);
-        },
-        secondary: Wrap(
-          spacing: 2,
-          children: [
-            IconButton(
-              key: ValueKey<String>('select-focus-${action.id}'),
-              tooltip: action.isCompleted
-                  ? 'Foco indisponível para ação concluída'
-                  : (isSelectedForFocus
-                        ? 'Ação selecionada para foco'
-                        : 'Selecionar para foco'),
-              onPressed: onSelectForFocus,
-              icon: Icon(
-                isSelectedForFocus
-                    ? Icons.radio_button_checked
-                    : Icons.radio_button_unchecked,
-              ),
+    final bool canComplete = !action.isCompleted;
+    final DismissDirection swipeDirection = canComplete
+        ? DismissDirection.startToEnd
+        : DismissDirection.endToStart;
+
+    return Dismissible(
+      key: ValueKey<String>('action-swipe-${action.id}'),
+      direction: swipeDirection,
+      confirmDismiss: (direction) async {
+        final bool shouldComplete = direction == DismissDirection.startToEnd;
+        await onSwipeCompletion(shouldComplete);
+        return false;
+      },
+      background: _SwipeActionBackground(
+        alignment: Alignment.centerLeft,
+        color: Colors.green.shade600,
+        icon: Icons.check_circle_outline,
+        label: 'Concluir acao',
+      ),
+      secondaryBackground: _SwipeActionBackground(
+        alignment: Alignment.centerRight,
+        color: Colors.orange.shade700,
+        icon: Icons.undo,
+        label: 'Reabrir acao',
+      ),
+      child: Card(
+        child: ListTile(
+          key: ValueKey<String>('action-tile-${action.id}'),
+          selected: isSelectedForFocus,
+          leading: IconButton(
+            key: ValueKey<String>('select-focus-${action.id}'),
+            tooltip: action.isCompleted
+                ? 'Foco indisponivel para acao concluida'
+                : (isSelectedForFocus
+                      ? 'Acao selecionada para foco'
+                      : 'Selecionar para foco'),
+            onPressed: onSelectForFocus,
+            icon: Icon(
+              isSelectedForFocus
+                  ? Icons.radio_button_checked
+                  : Icons.radio_button_unchecked,
             ),
-            PopupMenuButton<String>(
-              onSelected: (choice) {
-                if (choice == 'edit') {
-                  onEdit();
-                  return;
-                }
-                if (choice == 'delete') {
-                  onDelete();
-                }
-              },
-              itemBuilder: (context) => const [
-                PopupMenuItem<String>(value: 'edit', child: Text('Editar')),
-                PopupMenuItem<String>(value: 'delete', child: Text('Excluir')),
-              ],
-            ),
-          ],
+          ),
+          title: Text(
+            action.title,
+            style: action.isCompleted
+                ? const TextStyle(decoration: TextDecoration.lineThrough)
+                : null,
+          ),
+          subtitle: action.totalFocusMinutes > 0
+              ? Text(
+                  'Tempo de foco: ${_formatMinutes(action.totalFocusMinutes)}',
+                )
+              : null,
+          trailing: PopupMenuButton<String>(
+            onSelected: (choice) {
+              if (choice == 'edit') {
+                onEdit();
+                return;
+              }
+              if (choice == 'delete') {
+                onDelete();
+              }
+            },
+            itemBuilder: (context) => const [
+              PopupMenuItem<String>(value: 'edit', child: Text('Editar')),
+              PopupMenuItem<String>(value: 'delete', child: Text('Excluir')),
+            ],
+          ),
         ),
       ),
     );
@@ -436,6 +462,41 @@ class _ActionTile extends StatelessWidget {
     final int minutes = totalMinutes % 60;
     if (minutes == 0) return '${hours}h';
     return '${hours}h ${minutes.toString().padLeft(2, '0')}min';
+  }
+}
+
+class _SwipeActionBackground extends StatelessWidget {
+  const _SwipeActionBackground({
+    required this.alignment,
+    required this.color,
+    required this.icon,
+    required this.label,
+  });
+
+  final Alignment alignment;
+  final Color color;
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      alignment: alignment,
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: Colors.white),
+          const SizedBox(width: 8),
+          Text(label, style: const TextStyle(color: Colors.white)),
+        ],
+      ),
+    );
   }
 }
 
@@ -466,7 +527,7 @@ class _FocusTimerDialog extends StatefulWidget {
   final String actionTitle;
   final String goalTitle;
   final int durationMinutes;
-  final Future<void> Function()? onCompleted;
+  final Future<int> Function(int elapsedMinutes)? onCompleted;
   final Future<void> Function()? onCanceled;
 
   @override
@@ -478,6 +539,7 @@ class _FocusTimerDialogState extends State<_FocusTimerDialog> {
   Timer? _timer;
   bool _completed = false;
   bool _busy = false;
+  int _completedMinutes = 0;
 
   @override
   void initState() {
@@ -500,17 +562,20 @@ class _FocusTimerDialogState extends State<_FocusTimerDialog> {
   Future<void> _handleCompleted() async {
     if (_completed || _busy) return;
     _timer?.cancel();
+    final int elapsedMinutes = _elapsedMinutes(_remainingSeconds);
     setState(() {
       _remainingSeconds = 0;
       _busy = true;
     });
+    int completedMinutes = elapsedMinutes;
     if (widget.onCompleted != null) {
-      await widget.onCompleted!();
+      completedMinutes = await widget.onCompleted!(elapsedMinutes);
     }
     if (!mounted) return;
     setState(() {
       _completed = true;
       _busy = false;
+      _completedMinutes = completedMinutes;
     });
   }
 
@@ -555,7 +620,7 @@ class _FocusTimerDialogState extends State<_FocusTimerDialog> {
             const SizedBox(height: 12),
             const Text('Foco concluido!'),
             const SizedBox(height: 4),
-            Text('Tempo gasto: ${widget.durationMinutes} min'),
+            Text('Tempo gasto: $_completedMinutes min'),
           ],
         ],
       ),
@@ -579,6 +644,13 @@ class _FocusTimerDialogState extends State<_FocusTimerDialog> {
     final int minutes = totalSeconds ~/ 60;
     final int seconds = totalSeconds % 60;
     return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  }
+
+  int _elapsedMinutes(int remainingSeconds) {
+    final int durationSeconds = widget.durationMinutes * 60;
+    final int elapsedSeconds = durationSeconds - remainingSeconds;
+    if (elapsedSeconds <= 0) return 0;
+    return elapsedSeconds ~/ 60;
   }
 }
 
