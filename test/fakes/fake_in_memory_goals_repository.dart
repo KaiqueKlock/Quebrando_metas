@@ -1,19 +1,23 @@
 import 'package:quebrando_metas/core/errors/app_exception.dart';
 import 'package:quebrando_metas/features/goals/data/goals_repository.dart';
 import 'package:quebrando_metas/features/goals/domain/action.dart';
+import 'package:quebrando_metas/features/goals/domain/focus_session.dart';
 import 'package:quebrando_metas/features/goals/domain/goal.dart';
 
 class FakeInMemoryGoalsRepository implements GoalsRepository {
   FakeInMemoryGoalsRepository({
     List<Goal> initialGoals = const <Goal>[],
     List<ActionItem> initialActions = const <ActionItem>[],
+    List<FocusSession> initialFocusSessions = const <FocusSession>[],
   })  : _goals = List<Goal>.from(initialGoals),
-        _actions = List<ActionItem>.from(initialActions) {
+        _actions = List<ActionItem>.from(initialActions),
+        _focusSessions = List<FocusSession>.from(initialFocusSessions) {
     _syncGoalCounters();
   }
 
   final List<Goal> _goals;
   final List<ActionItem> _actions;
+  final List<FocusSession> _focusSessions;
 
   @override
   Future<List<Goal>> listGoals() async {
@@ -48,7 +52,15 @@ class FakeInMemoryGoalsRepository implements GoalsRepository {
   @override
   Future<void> deleteGoal(String goalId) async {
     _goals.removeWhere((goal) => goal.id == goalId);
+    final Set<String> deletedActionIds = _actions
+        .where((action) => action.goalId == goalId)
+        .map((action) => action.id)
+        .toSet();
     _actions.removeWhere((action) => action.goalId == goalId);
+    _focusSessions.removeWhere(
+      (session) =>
+          session.goalId == goalId || deletedActionIds.contains(session.actionId),
+    );
   }
 
   @override
@@ -92,8 +104,40 @@ class FakeInMemoryGoalsRepository implements GoalsRepository {
     required String actionId,
   }) async {
     _actions.removeWhere((action) => action.id == actionId);
+    _focusSessions.removeWhere((session) => session.actionId == actionId);
     await _normalizeActionOrder(goalId);
     await _recalculateGoal(goalId);
+  }
+
+  @override
+  Future<List<FocusSession>> listFocusSessions({
+    String? goalId,
+    String? actionId,
+  }) async {
+    final List<FocusSession> sessions = _focusSessions.where((session) {
+      if (goalId != null && session.goalId != goalId) return false;
+      if (actionId != null && session.actionId != actionId) return false;
+      return true;
+    }).toList(growable: false);
+    sessions.sort((a, b) => a.startedAt.compareTo(b.startedAt));
+    return sessions;
+  }
+
+  @override
+  Future<FocusSession> saveFocusSession(FocusSession session) async {
+    final int index = _focusSessions.indexWhere((item) => item.id == session.id);
+    if (index == -1) {
+      _focusSessions.add(session);
+      return session;
+    }
+
+    _focusSessions[index] = session;
+    return session;
+  }
+
+  @override
+  Future<void> deleteFocusSession(String sessionId) async {
+    _focusSessions.removeWhere((session) => session.id == sessionId);
   }
 
   Future<void> _normalizeActionOrder(String goalId) async {

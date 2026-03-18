@@ -1,9 +1,11 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:quebrando_metas/core/errors/app_exception.dart';
 import 'package:quebrando_metas/features/goals/data/action_mapper.dart';
+import 'package:quebrando_metas/features/goals/data/focus_session_mapper.dart';
 import 'package:quebrando_metas/features/goals/data/goal_mapper.dart';
 import 'package:quebrando_metas/features/goals/data/goals_repository.dart';
 import 'package:quebrando_metas/features/goals/domain/action.dart';
+import 'package:quebrando_metas/features/goals/domain/focus_session.dart';
 import 'package:quebrando_metas/features/goals/domain/goal.dart';
 
 class LocalGoalsRepository implements GoalsRepository {
@@ -11,9 +13,13 @@ class LocalGoalsRepository implements GoalsRepository {
 
   static const String _goalsBoxName = 'goals_box';
   static const String _actionsBoxName = 'actions_box';
+  static const String _focusSessionsBoxName = 'focus_sessions_box';
 
   late final Future<Box<dynamic>> _goalsBoxFuture = _openBox(_goalsBoxName);
   late final Future<Box<dynamic>> _actionsBoxFuture = _openBox(_actionsBoxName);
+  late final Future<Box<dynamic>> _focusSessionsBoxFuture = _openBox(
+    _focusSessionsBoxName,
+  );
 
   Future<Box<dynamic>> _openBox(String boxName) async {
     if (Hive.isBoxOpen(boxName)) {
@@ -75,6 +81,7 @@ class LocalGoalsRepository implements GoalsRepository {
   Future<void> deleteGoal(String goalId) async {
     final Box<dynamic> goalsBox = await _goalsBoxFuture;
     final Box<dynamic> actionsBox = await _actionsBoxFuture;
+    final Box<dynamic> focusSessionsBox = await _focusSessionsBoxFuture;
     final List<String> actionIds = <String>[];
     for (final dynamic rawAction in actionsBox.values) {
       final Map<String, dynamic>? actionMap = _coerceMap(rawAction);
@@ -89,6 +96,24 @@ class LocalGoalsRepository implements GoalsRepository {
 
     for (final String actionId in actionIds) {
       await actionsBox.delete(actionId);
+    }
+
+    final List<String> focusSessionIds = <String>[];
+    for (final dynamic rawSession in focusSessionsBox.values) {
+      final Map<String, dynamic>? sessionMap = _coerceMap(rawSession);
+      if (sessionMap == null) continue;
+
+      final String sessionGoalId = (sessionMap['goalId'] ?? '').toString();
+      if (sessionGoalId != goalId) continue;
+
+      final String sessionId = (sessionMap['id'] ?? '').toString();
+      if (sessionId.isNotEmpty) {
+        focusSessionIds.add(sessionId);
+      }
+    }
+
+    for (final String sessionId in focusSessionIds) {
+      await focusSessionsBox.delete(sessionId);
     }
 
     await goalsBox.delete(goalId);
@@ -152,9 +177,69 @@ class LocalGoalsRepository implements GoalsRepository {
     required String actionId,
   }) async {
     final Box<dynamic> actionsBox = await _actionsBoxFuture;
+    final Box<dynamic> focusSessionsBox = await _focusSessionsBoxFuture;
     await actionsBox.delete(actionId);
+
+    final List<String> focusSessionIds = <String>[];
+    for (final dynamic rawSession in focusSessionsBox.values) {
+      final Map<String, dynamic>? sessionMap = _coerceMap(rawSession);
+      if (sessionMap == null) continue;
+
+      final String sessionActionId = (sessionMap['actionId'] ?? '').toString();
+      if (sessionActionId != actionId) continue;
+
+      final String sessionId = (sessionMap['id'] ?? '').toString();
+      if (sessionId.isNotEmpty) {
+        focusSessionIds.add(sessionId);
+      }
+    }
+
+    for (final String sessionId in focusSessionIds) {
+      await focusSessionsBox.delete(sessionId);
+    }
+
     await _normalizeOrder(goalId);
     await _recalculateGoalCounters(goalId);
+  }
+
+  @override
+  Future<List<FocusSession>> listFocusSessions({
+    String? goalId,
+    String? actionId,
+  }) async {
+    final Box<dynamic> sessionsBox = await _focusSessionsBoxFuture;
+    final List<FocusSession> sessions = <FocusSession>[];
+
+    for (final dynamic rawSession in sessionsBox.values) {
+      final Map<String, dynamic>? sessionMap = _coerceMap(rawSession);
+      if (sessionMap == null) continue;
+
+      try {
+        final FocusSession session = FocusSessionMapper.fromMap(sessionMap);
+        if (session.id.isEmpty) continue;
+        if (goalId != null && session.goalId != goalId) continue;
+        if (actionId != null && session.actionId != actionId) continue;
+        sessions.add(session);
+      } catch (_) {
+        continue;
+      }
+    }
+
+    sessions.sort((a, b) => a.startedAt.compareTo(b.startedAt));
+    return List<FocusSession>.unmodifiable(sessions);
+  }
+
+  @override
+  Future<FocusSession> saveFocusSession(FocusSession session) async {
+    final Box<dynamic> sessionsBox = await _focusSessionsBoxFuture;
+    await sessionsBox.put(session.id, FocusSessionMapper.toMap(session));
+    return session;
+  }
+
+  @override
+  Future<void> deleteFocusSession(String sessionId) async {
+    final Box<dynamic> sessionsBox = await _focusSessionsBoxFuture;
+    await sessionsBox.delete(sessionId);
   }
 
   Future<void> _normalizeOrder(String goalId) async {

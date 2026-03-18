@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quebrando_metas/features/goals/data/action_mapper.dart';
+import 'package:quebrando_metas/features/goals/data/focus_session_mapper.dart';
 import 'package:quebrando_metas/features/goals/data/goal_mapper.dart';
+import 'package:quebrando_metas/features/goals/domain/focus_session.dart';
 
 void main() {
   group('GoalMapper compatibility', () {
@@ -40,6 +42,49 @@ void main() {
       expect(action.goalId, isEmpty);
       expect(action.isCompleted, isTrue);
       expect(action.order, 2);
+      expect(action.totalFocusMinutes, 0);
+      expect(action.lastFocusStartedAt, isNull);
+    });
+
+    test('fromMap should parse legacy lastFocusAt when present', () {
+      final DateTime lastFocusAt = DateTime(2026, 3, 18, 9, 0);
+      final Map<String, dynamic> raw = <String, dynamic>{
+        'id': 'action-2',
+        'goalId': 'goal-1',
+        'title': 'Acao com foco legado',
+        'isCompleted': false,
+        'createdAt': DateTime(2026, 3, 12).toIso8601String(),
+        'updatedAt': DateTime(2026, 3, 12).toIso8601String(),
+        'order': 0,
+        'totalFocusMinutes': 45,
+        'lastFocusAt': lastFocusAt.toIso8601String(),
+      };
+
+      final action = ActionMapper.fromMap(raw);
+
+      expect(action.totalFocusMinutes, 45);
+      expect(action.lastFocusStartedAt, lastFocusAt);
+    });
+  });
+
+  group('FocusSessionMapper compatibility', () {
+    test('fromMap should fallback unknown status to running', () {
+      final Map<String, dynamic> raw = <String, dynamic>{
+        'id': 'session-1',
+        'actionId': 'action-1',
+        'goalId': 'goal-1',
+        'startedAt': DateTime(2026, 3, 18, 9, 0).toIso8601String(),
+        'durationMinutes': 25,
+        'status': 'legacy-status',
+        'createdAt': DateTime(2026, 3, 18, 9, 0).toIso8601String(),
+        'updatedAt': DateTime(2026, 3, 18, 9, 0).toIso8601String(),
+      };
+
+      final FocusSession session = FocusSessionMapper.fromMap(raw);
+
+      expect(session.id, 'session-1');
+      expect(session.status, FocusSessionStatus.running);
+      expect(session.durationMinutes, 25);
     });
   });
 }

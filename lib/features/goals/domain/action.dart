@@ -10,6 +10,8 @@ class ActionItem {
     required this.createdAt,
     required this.updatedAt,
     required this.order,
+    this.totalFocusMinutes = 0,
+    this.lastFocusStartedAt,
     this.completedAt,
   });
 
@@ -20,6 +22,8 @@ class ActionItem {
   final DateTime createdAt;
   final DateTime updatedAt;
   final int order;
+  final int totalFocusMinutes;
+  final DateTime? lastFocusStartedAt;
   final DateTime? completedAt;
 
   factory ActionItem.create({
@@ -38,6 +42,8 @@ class ActionItem {
       createdAt: timestamp,
       updatedAt: timestamp,
       order: order,
+      totalFocusMinutes: 0,
+      lastFocusStartedAt: null,
       completedAt: null,
     );
   }
@@ -59,6 +65,19 @@ class ActionItem {
     );
   }
 
+  ActionItem registerFocus({
+    required int durationMinutes,
+    DateTime? startedAt,
+    DateTime? now,
+  }) {
+    final int sanitizedDuration = durationMinutes < 0 ? 0 : durationMinutes;
+    return copyWith(
+      totalFocusMinutes: totalFocusMinutes + sanitizedDuration,
+      lastFocusStartedAt: startedAt ?? now ?? DateTime.now(),
+      updatedAt: now ?? DateTime.now(),
+    );
+  }
+
   ActionItem copyWith({
     String? id,
     String? goalId,
@@ -67,6 +86,9 @@ class ActionItem {
     DateTime? createdAt,
     DateTime? updatedAt,
     int? order,
+    int? totalFocusMinutes,
+    DateTime? lastFocusStartedAt,
+    bool clearLastFocusStartedAt = false,
     DateTime? completedAt,
     bool clearCompletedAt = false,
   }) {
@@ -78,6 +100,10 @@ class ActionItem {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       order: order ?? this.order,
+      totalFocusMinutes: totalFocusMinutes ?? this.totalFocusMinutes,
+      lastFocusStartedAt: clearLastFocusStartedAt
+          ? null
+          : lastFocusStartedAt ?? this.lastFocusStartedAt,
       completedAt: clearCompletedAt ? null : completedAt ?? this.completedAt,
     );
   }

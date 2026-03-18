@@ -12,6 +12,8 @@ class ActionMapper {
       'createdAt': action.createdAt.toIso8601String(),
       'updatedAt': action.updatedAt.toIso8601String(),
       'order': action.order,
+      'totalFocusMinutes': action.totalFocusMinutes,
+      'lastFocusStartedAt': action.lastFocusStartedAt?.toIso8601String(),
       'completedAt': action.completedAt?.toIso8601String(),
     };
   }
@@ -29,6 +31,10 @@ class ActionMapper {
       createdAt: createdAt,
       updatedAt: updatedAt,
       order: _parseInt(map['order']) ?? 0,
+      totalFocusMinutes: _parseInt(map['totalFocusMinutes']) ?? 0,
+      lastFocusStartedAt:
+          _parseDateTime(map['lastFocusStartedAt']) ??
+          _parseDateTime(map['lastFocusAt']),
       completedAt: completedAt,
     );
   }

@@ -79,7 +79,45 @@ O aplicativo funciona inicialmente de forma **local-first**, sem backend ou sinc
 
 ---
 
-# Stack Tecnológica
+### Nova Feature Planejada - Modo Foco (Sprint 5)
+
+O proximo passo do produto e integrar um fluxo de **Modo Foco** (inspirado em Pomodoro) diretamente nas acoes das metas.
+
+## Objetivo
+
+Permitir que o usuario execute uma acao com timer e registrar tempo real de dedicacao, criando historico de esforco e consistencia.
+
+## Fluxo esperado
+
+1. O usuario seleciona uma acao e inicia foco.
+2. Escolhe a duracao (15, 25 ou 45 minutos).
+3. Durante foco, visualiza:
+- nome da meta
+- nome da acao
+- tempo restante
+- botao para cancelar
+4. Ao terminar, o app:
+- registra a sessao de foco
+- incrementa tempo acumulado da acao
+- atualiza tempo total agregado da meta
+5. A acao **nao** e concluida automaticamente. Conclusao continua manual pelo usuario.
+
+## Regra oficial de streak
+
+- O streak conta **somente** quando o usuario inicia foco em uma acao.
+- Conclusao manual da acao nao incrementa streak.
+- Se passar 1 dia sem iniciar foco, streak zera.
+
+## Resultado esperado da feature
+
+- Progresso mais visivel (tempo por acao e por meta)
+- Melhor consistencia de execucao diaria (streak)
+- Fluxo natural de uso, sem excesso de cliques
+
+---
+
+
+# Stack Tecnologica
 
 O projeto foi desenvolvido utilizando:
 
@@ -215,6 +253,7 @@ O projeto também funciona como um laboratório de aprendizado prático em desen
 # Autor
 
 Projeto desenvolvido por **Kaique Klock**
+
 
 
 

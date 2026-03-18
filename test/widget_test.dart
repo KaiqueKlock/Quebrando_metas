@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:quebrando_metas/app/router.dart';
 import 'package:quebrando_metas/app/theme/app_theme_settings.dart';
 import 'package:quebrando_metas/features/goals/domain/action.dart';
+import 'package:quebrando_metas/features/goals/domain/focus_session.dart';
 import 'package:quebrando_metas/features/goals/domain/goal.dart';
 import 'package:quebrando_metas/features/goals/domain/title_validator.dart';
 import 'package:quebrando_metas/features/goals/presentation/goals_controller.dart';
@@ -240,6 +241,79 @@ void main() {
     await tester.tap(find.text('Excluir'));
     await tester.pumpAndSettle();
     expect(find.text('Acao editada'), findsNothing);
+  });
+
+  testWidgets('Starts focus flow from selected action', (
+    WidgetTester tester,
+  ) async {
+    final DateTime now = DateTime(2026, 3, 18, 9, 0);
+    final Goal goal = Goal(
+      id: 'goal-focus-test',
+      title: 'Meta com foco',
+      description: null,
+      createdAt: now,
+      updatedAt: now,
+      completedActions: 0,
+      totalActions: 1,
+    );
+    final ActionItem action = ActionItem(
+      id: 'action-focus-test',
+      goalId: goal.id,
+      title: 'Acao para foco',
+      isCompleted: false,
+      createdAt: now,
+      updatedAt: now,
+      order: 0,
+      completedAt: null,
+    );
+    final FakeInMemoryGoalsRepository repository = FakeInMemoryGoalsRepository(
+      initialGoals: <Goal>[goal],
+      initialActions: <ActionItem>[action],
+    );
+
+    await _pumpApp(tester, repository: repository);
+    await tester.pumpAndSettle();
+
+    AppRouter.router.goNamed(
+      'goal-actions',
+      pathParameters: {'goalId': goal.id},
+    );
+    await tester.pumpAndSettle();
+
+    FilledButton startFocusButton = tester.widget<FilledButton>(
+      find.byKey(const Key('start-focus-button')),
+    );
+    expect(startFocusButton.onPressed, isNull);
+
+    await tester.tap(find.byKey(const ValueKey<String>('select-focus-action-focus-test')));
+    await tester.pumpAndSettle();
+
+    startFocusButton = tester.widget<FilledButton>(
+      find.byKey(const Key('start-focus-button')),
+    );
+    expect(startFocusButton.onPressed, isNotNull);
+
+    await tester.tap(find.byKey(const Key('start-focus-button')));
+    await tester.pumpAndSettle();
+    expect(find.text('Escolha a duracao do foco'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey<String>('focus-duration-15')));
+    await tester.pump();
+
+    expect(find.text('Modo foco'), findsOneWidget);
+    expect(find.text('Acao: Acao para foco'), findsOneWidget);
+    expect(find.text('Meta: Meta com foco'), findsOneWidget);
+
+    await tester.tap(find.text('Cancelar'));
+    await tester.pumpAndSettle();
+
+    final List<FocusSession> sessions = await repository.listFocusSessions(
+      goalId: goal.id,
+      actionId: action.id,
+    );
+    expect(sessions, hasLength(1));
+    expect(sessions.first.durationMinutes, 15);
+    expect(sessions.first.status, FocusSessionStatus.canceled);
   });
 
   testWidgets(

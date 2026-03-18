@@ -405,7 +405,7 @@ Entregas registradas:
 - Ações e Metas -> input extremo tratado com `inputFormatter` + `validator` + feedback visual ✅
 
 ### Sprint 4 - Polimento
-- Status: Em andamento (atualizado em 13/03/2026)
+- Status: Concluido em 18/03/2026
 
 - Melhorar UX
   - [x] Separacao em abas (Dashboard / Suas Metas)
@@ -420,10 +420,13 @@ Entregas registradas:
   - [x] Usuario rotaciona tela com Drawer aberto sem perder interacao
   - [x] Usuario em tela pequena (altura/largura reduzida) sem overflow de layout ("over pixel")
   - [x] Regressao de prioridades: remover e adicionar metas priorizadas com titulos de tamanhos diferentes sem desalinhamento visual no Dashboard
+  - [x] Card de resumo em `Suas Metas` permanece fixo durante o scroll da lista
 
 - Refinar UI
   - [x] Centralizar botao `Nova Meta` no navigator, removendo o texto do botao
   - [x] Padronizar alinhamento a esquerda dos itens do card `Continue de onde parou`, incluindo metas com titulo longo
+  - [x] Mover card de resumo para `Suas Metas`, mantendo o Dashboard livre para evolucoes futuras
+  - [x] Destacar visualmente o card de resumo (cor, borda e elevacao)
 - Refinamento de Theme
   - [x] Adicionar Drawer na AppBar para configuracoes de aparencia (Dashboard e Suas Metas)
   - [x] Adicionar alternancia de tema (`Claro`/`Escuro`) com icone unico (`sol`/`lua`)
@@ -436,9 +439,61 @@ Entregas registradas:
   - [x] Adicionar micro-animacoes leves na troca de abas e prioridades
 
 
-### Sprint 5 - Pomodoro Feature 
+### Sprint 5 - Modo Foco (Pomodoro)
+- Status: Em andamento (atualizado em 18/03/2026)
 
+Referencia funcional detalhada:
+- Ver `README.md` -> `Nova Feature Planejada - Modo Foco (Sprint 5)`
 
+Regra oficial de streak:
+- O streak conta somente quando o usuario inicia foco em uma acao.
+- Conclusao manual da acao nao incrementa streak.
+- Se passar 1 dia sem iniciar foco, streak zera.
+
+Etapas pequenas de implementacao:
+
+1. Etapa 5.1 - Modelo de dados e persistencia
+- [x] Criar entidade `FocusSession` (id, actionId, goalId, startedAt, endedAt, durationMinutes, status).
+- [x] Adicionar campos de tempo acumulado na acao (`totalFocusMinutes`) e data do ultimo foco.
+- [x] Atualizar mappers e repositorio local para salvar os novos campos.
+
+2. Etapa 5.2 - Fluxo de inicio do foco
+- [x] Habilitar CTA `Iniciar foco` ao selecionar uma acao.
+- [x] Permitir escolher duracao pre-definida (15, 25, 45 minutos).
+- [x] Iniciar timer em tela dedicada/modal com estado reativo.
+
+3. Etapa 5.3 - Tela durante foco
+- [ ] Exibir nome da meta, nome da acao, tempo restante e botao de cancelar.
+- [ ] Manter experiencia direta, sem exigir navegacao extra.
+- [ ] Em cancelamento, registrar sessao cancelada sem somar tempo acumulado.
+
+4. Etapa 5.4 - Finalizacao do foco
+- [ ] Ao concluir timer, registrar sessao concluida.
+- [ ] Incrementar automaticamente `totalFocusMinutes` da acao.
+- [ ] Atualizar agregado de tempo da meta (soma das acoes da meta).
+- [ ] Nao concluir acao automaticamente.
+
+5. Etapa 5.5 - Conclusao manual da acao
+- [ ] Implementar conclusao manual por gesto (ex: swipe lateral).
+- [ ] Registrar `completedAt` na acao ao concluir.
+- [ ] Recalcular progresso da meta apos conclusao.
+
+6. Etapa 5.6 - Logica de streak
+- [ ] Registrar o dia de cada inicio de foco.
+- [ ] Calcular streak atual por dias consecutivos com pelo menos 1 inicio de foco por dia.
+- [ ] Resetar streak quando houver quebra de 1 dia sem foco.
+- [ ] (Opcional) Persistir `bestStreak` para historico.
+
+7. Etapa 5.7 - Exibicao de dados
+- [ ] Mostrar tempo acumulado por acao.
+- [ ] Mostrar tempo total acumulado da meta.
+- [ ] Mostrar streak atual em ponto de destaque de UX (definir local no inicio da etapa).
+
+8. Etapa 5.8 - Testes
+- [ ] Unit tests para acumulacao de minutos e calculo de streak.
+- [ ] Widget tests para fluxo iniciar/cancelar/finalizar foco.
+- [ ] Widget test para conclusao manual de acao sem dependencia do foco.
+- [ ] Regressao: foco concluido soma tempo e nao marca acao como concluida automaticamente.
 
 ### Sprint 6 - Release MVP
 - Testes finais
@@ -481,6 +536,15 @@ Entregas registradas:
 - Corrigido desalinhamento visual na secao `Continue de onde parou` ao alternar prioridades com titulos de tamanhos diferentes.
 - Ajuste de layout aplicado para manter os itens de prioridade com largura consistente e ancoragem a esquerda.
 - Adicionado widget test de regressao para o fluxo: priorizar 3 metas, remover 1, adicionar outra e validar alinhamento horizontal dos titulos no Dashboard.
+- Validacao executada com suite completa de testes (`flutter test -r compact`) sem falhas.
+
+### Atualizacao tecnica (18/03/2026)
+
+- Sprint 4 concluido oficialmente.
+- Card de resumo (`metas concluidas`, `metas ativas`, `progresso medio`) movido para a aba `Suas Metas`.
+- Layout da aba `Suas Metas` refatorado para separar header fixo e lista rolavel (`Expanded + ListView`).
+- Dashboard mantida sem esse bloco para abrir espaco a implementacoes futuras.
+- Adicionado teste para garantir que o card de resumo permanece fixo durante o scroll.
 - Validacao executada com suite completa de testes (`flutter test -r compact`) sem falhas.
 
 ## 20. Visão de Evolução (Pós-MVP)
