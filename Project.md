@@ -533,7 +533,7 @@ Etapas pequenas de implementacao:
 - [x] Readaptar widget tests para a nova composicao visual.
 - [x] Atualizar finders/keys de cenarios de prioridade, foco e navegacao.
 - [x] Validar suite completa (flutter test -r compact) sem falhas.
-- [ ] Atualizar/introduzir golden tests da nova Home e detalhe da meta.
+- [x] Atualizar/introduzir golden tests da nova Home e detalhe da meta.
 
 6. Etapa 6.6 - Fechamento documental
 - [x] Registrar entregas e estado do sprint no Project.md.
@@ -725,6 +725,19 @@ Etapas pequenas de implementacao:
 - Cobertura de testes adicionada para 6.7:
   - validacao da regra da `Proxima acao` (pendente com menor foco; desempate por ordem);
   - validacao de escopo da `Sequencia` por meta.
+
+### Atualizacao tecnica (19/03/2026 - Sprint 6.5)
+
+- Golden tests adicionados para cobertura visual da UI final do Sprint 6:
+  - `test/ui_golden_test.dart` com cenario da Home principal;
+  - `test/ui_golden_test.dart` com cenario da tela de detalhe da meta.
+- Baselines gerados em:
+  - `test/goldens/dashboard_home_sprint6.png`;
+  - `test/goldens/goal_detail_sprint6.png`.
+- Validacao executada:
+  - `flutter test test/ui_golden_test.dart --update-goldens -r compact --concurrency=1`;
+  - `flutter test test/ui_golden_test.dart -r compact --concurrency=1`;
+  - `flutter test -r compact`.
 
 ### Atualizacao tecnica (19/03/2026 - Sprint 6.8/6.9)
 
