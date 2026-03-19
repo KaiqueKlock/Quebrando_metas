@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quebrando_metas/features/goals/domain/action.dart';
 import 'package:quebrando_metas/features/goals/domain/focus_session.dart';
+import 'package:quebrando_metas/features/goals/domain/focus_streak_calculator.dart';
 import 'package:quebrando_metas/features/goals/domain/goal.dart';
 import 'package:quebrando_metas/features/goals/domain/title_validator.dart';
 import 'package:quebrando_metas/features/goals/presentation/goal_actions_controller.dart';
@@ -38,11 +39,11 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
     }
 
     if (goal == null) {
-      return const Scaffold(body: Center(child: Text('Meta não encontrada.')));
+      return const Scaffold(body: Center(child: Text('Meta nao encontrada.')));
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text('Ações: ${goal.title}')),
+      appBar: AppBar(title: const Text('Meta')),
       body: actionsAsync.when(
         data: (actions) {
           final ActionItem? selectedAction = _findSelectedAction(actions);
@@ -50,13 +51,24 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
           return ListView(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
             children: [
-              _GoalDescriptionSection(description: goal.description),
+              _GoalProgressCard(goal: goal),
               const SizedBox(height: 12),
+              _GoalInfoSection(goal: goal),
+              const SizedBox(height: 12),
+              _GoalMetricsSection(goal: goal),
+              const SizedBox(height: 18),
+              Text(
+                'Acoes da meta',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 10),
               if (actions.isEmpty)
                 const Card(
                   child: Padding(
                     padding: EdgeInsets.all(16),
-                    child: Text('Nenhuma ação cadastrada para esta meta.'),
+                    child: Text('Nenhuma acao cadastrada para esta meta.'),
                   ),
                 )
               else
@@ -85,7 +97,7 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, __) => const Center(child: Text('Erro ao carregar ações.')),
+        error: (_, __) => const Center(child: Text('Erro ao carregar acoes.')),
       ),
       bottomNavigationBar: actionsAsync.maybeWhen(
         data: (actions) {
@@ -111,7 +123,7 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _createAction,
         icon: const Icon(Icons.add),
-        label: const Text('Nova Ação'),
+        label: const Text('Nova acao'),
       ),
     );
   }
@@ -150,13 +162,13 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
       }
     } catch (_) {
       if (mounted) {
-        _showError(context, 'Não foi possível atualizar a ação.');
+        _showError(context, 'Nao foi possivel atualizar a acao.');
       }
     }
   }
 
   Future<void> _createAction() async {
-    final String? title = await _showActionDialog(context, title: 'Nova ação');
+    final String? title = await _showActionDialog(context, title: 'Nova acao');
     if (title == null) return;
 
     try {
@@ -165,7 +177,7 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
           .createAction(goalId: widget.goalId, title: title);
     } catch (_) {
       if (mounted) {
-        _showError(context, 'Não foi possível criar a ação.');
+        _showError(context, 'Nao foi possivel criar a acao.');
       }
     }
   }
@@ -173,7 +185,7 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
   Future<void> _editAction(ActionItem action) async {
     final String? updatedTitle = await _showActionDialog(
       context,
-      title: 'Editar ação',
+      title: 'Editar acao',
       initialValue: action.title,
     );
     if (updatedTitle == null) return;
@@ -188,7 +200,7 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
           );
     } catch (_) {
       if (mounted) {
-        _showError(context, 'Não foi possível editar a ação.');
+        _showError(context, 'Nao foi possivel editar a acao.');
       }
     }
   }
@@ -206,7 +218,7 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
           .deleteAction(goalId: widget.goalId, actionId: action.id);
     } catch (_) {
       if (mounted) {
-        _showError(context, 'Não foi possível excluir a ação.');
+        _showError(context, 'Nao foi possivel excluir a acao.');
       }
     }
   }
@@ -231,7 +243,7 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
       );
     } catch (_) {
       if (mounted) {
-        _showError(context, 'Não foi possível iniciar o foco.');
+        _showError(context, 'Nao foi possivel iniciar o foco.');
       }
       return;
     }
@@ -310,7 +322,7 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
                   LengthLimitingTextInputFormatter(TitleValidator.maxLength),
                 ],
                 decoration: InputDecoration(
-                  labelText: 'Titulo da ação',
+                  labelText: 'Titulo da acao',
                   errorText: errorText,
                 ),
               ),
@@ -353,13 +365,161 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
   }
+}
 
-  String _formatMinutes(int totalMinutes) {
-    if (totalMinutes < 60) return '${totalMinutes}min';
-    final int hours = totalMinutes ~/ 60;
-    final int minutes = totalMinutes % 60;
-    if (minutes == 0) return '${hours}h';
-    return '${hours}h ${minutes.toString().padLeft(2, '0')}min';
+class _GoalProgressCard extends StatelessWidget {
+  const _GoalProgressCard({required this.goal});
+
+  final Goal goal;
+
+  @override
+  Widget build(BuildContext context) {
+    final ColorScheme colors = Theme.of(context).colorScheme;
+    return Card(
+      color: colors.primaryContainer,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Progresso da meta',
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(999),
+                    child: LinearProgressIndicator(
+                      value: goal.progress,
+                      minHeight: 10,
+                      backgroundColor: colors.surface.withValues(alpha: 0.9),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Text('${(goal.progress * 100).toStringAsFixed(0)}%'),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _GoalInfoSection extends StatelessWidget {
+  const _GoalInfoSection({required this.goal});
+
+  final Goal goal;
+
+  @override
+  Widget build(BuildContext context) {
+    final String description =
+        (goal.description == null || goal.description!.trim().isEmpty)
+        ? 'Sem descricao para esta meta.'
+        : goal.description!.trim();
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              goal.title,
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Descricao da meta',
+              style: Theme.of(context).textTheme.labelLarge,
+            ),
+            const SizedBox(height: 6),
+            Text(description),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _GoalMetricsSection extends ConsumerWidget {
+  const _GoalMetricsSection({required this.goal});
+
+  final Goal goal;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Row(
+      children: [
+        Expanded(
+          child: _MetricCard(
+            title: 'Tempo total',
+            value: _formatMinutes(goal.totalFocusMinutes),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: FutureBuilder<int>(
+            future: _loadGoalStreak(ref, goal.id),
+            builder: (context, snapshot) {
+              final int streak = snapshot.data ?? 0;
+              return _MetricCard(
+                title: 'Sequencia',
+                value: _formatDays(streak),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<int> _loadGoalStreak(WidgetRef ref, String goalId) async {
+    final List<FocusSession> sessions = await ref
+        .read(goalsRepositoryProvider)
+        .listFocusSessions(goalId: goalId);
+    return FocusStreakCalculator.currentStreakFromSessions(
+      sessions,
+      now: DateTime.now(),
+    );
+  }
+}
+
+class _MetricCard extends StatelessWidget {
+  const _MetricCard({required this.title, required this.value});
+
+  final String title;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: Theme.of(context).textTheme.labelMedium),
+            const SizedBox(height: 6),
+            Text(
+              value,
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -408,11 +568,17 @@ class _ActionTile extends StatelessWidget {
         label: 'Reabrir acao',
       ),
       child: Card(
+        key: ValueKey<String>('action-card-${action.id}'),
+        margin: const EdgeInsets.only(bottom: 10),
         child: ListTile(
           key: ValueKey<String>('action-tile-${action.id}'),
           selected: isSelectedForFocus,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 10,
+            vertical: 4,
+          ),
           leading: IconButton(
-            key: ValueKey<String>('select-focus-${action.id}'),
+            key: ValueKey<String>(_legacySelectFocusKey(action.id)),
             tooltip: action.isCompleted
                 ? 'Foco indisponivel para acao concluida'
                 : (isSelectedForFocus
@@ -420,9 +586,12 @@ class _ActionTile extends StatelessWidget {
                       : 'Selecionar para foco'),
             onPressed: onSelectForFocus,
             icon: Icon(
-              isSelectedForFocus
-                  ? Icons.radio_button_checked
-                  : Icons.radio_button_unchecked,
+              action.isCompleted
+                  ? Icons.check_circle
+                  : (isSelectedForFocus
+                        ? Icons.radio_button_checked
+                        : Icons.radio_button_unchecked),
+              color: action.isCompleted ? Colors.green.shade600 : null,
             ),
           ),
           title: Text(
@@ -431,35 +600,44 @@ class _ActionTile extends StatelessWidget {
                 ? const TextStyle(decoration: TextDecoration.lineThrough)
                 : null,
           ),
-          subtitle: Text(
-            'Tempo de foco: ${_formatMinutes(action.totalFocusMinutes)}',
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Tempo de foco: ${_formatMinutes(action.totalFocusMinutes)}',
+              ),
+              Text(action.isCompleted ? 'Concluida' : 'Pendente'),
+            ],
           ),
-          trailing: PopupMenuButton<String>(
-            onSelected: (choice) {
-              if (choice == 'edit') {
-                onEdit();
-                return;
-              }
-              if (choice == 'delete') {
-                onDelete();
-              }
-            },
-            itemBuilder: (context) => const [
-              PopupMenuItem<String>(value: 'edit', child: Text('Editar')),
-              PopupMenuItem<String>(value: 'delete', child: Text('Excluir')),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.chevron_right_rounded, size: 18),
+              PopupMenuButton<String>(
+                key: ValueKey<String>('action-menu-${action.id}'),
+                onSelected: (choice) {
+                  if (choice == 'edit') {
+                    onEdit();
+                    return;
+                  }
+                  if (choice == 'delete') {
+                    onDelete();
+                  }
+                },
+                itemBuilder: (context) => const [
+                  PopupMenuItem<String>(value: 'edit', child: Text('Editar')),
+                  PopupMenuItem<String>(
+                    value: 'delete',
+                    child: Text('Excluir'),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
       ),
     );
-  }
-
-  String _formatMinutes(int totalMinutes) {
-    if (totalMinutes < 60) return '${totalMinutes}min';
-    final int hours = totalMinutes ~/ 60;
-    final int minutes = totalMinutes % 60;
-    if (minutes == 0) return '${hours}h';
-    return '${hours}h ${minutes.toString().padLeft(2, '0')}min';
   }
 }
 
@@ -654,33 +832,22 @@ class _FocusTimerDialogState extends State<_FocusTimerDialog> {
   }
 }
 
-class _GoalDescriptionSection extends StatelessWidget {
-  const _GoalDescriptionSection({required this.description});
+String _formatMinutes(int totalMinutes) {
+  if (totalMinutes < 60) return '${totalMinutes}min';
+  final int hours = totalMinutes ~/ 60;
+  final int minutes = totalMinutes % 60;
+  if (minutes == 0) return '${hours}h';
+  return '${hours}h ${minutes.toString().padLeft(2, '0')}min';
+}
 
-  final String? description;
+String _formatDays(int days) {
+  if (days == 1) return '1 dia';
+  return '$days dias';
+}
 
-  @override
-  Widget build(BuildContext context) {
-    final String descriptionText =
-        (description == null || description!.trim().isEmpty)
-        ? 'Sem descrição para esta meta.'
-        : description!.trim();
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Descrição da meta',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(descriptionText),
-          ],
-        ),
-      ),
-    );
-  }
+String _legacySelectFocusKey(String actionId) {
+  final String normalized = actionId.startsWith('action-')
+      ? actionId.substring('action-'.length)
+      : actionId;
+  return 'select-focus-action-$normalized';
 }

@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:quebrando_metas/app/onboarding_status.dart';
 import 'package:quebrando_metas/features/dashboard/presentation/dashboard_page.dart';
@@ -43,20 +42,12 @@ class AppRouter {
       GoRoute(
         path: AppRoutes.dashboard,
         name: 'dashboard',
-        pageBuilder: (context, state) => _buildTabTransitionPage(
-          state: state,
-          child: const DashboardPage(),
-          slideFromRight: false,
-        ),
+        builder: (context, state) => const DashboardPage(),
       ),
       GoRoute(
         path: AppRoutes.goals,
         name: 'goals',
-        pageBuilder: (context, state) => _buildTabTransitionPage(
-          state: state,
-          child: const GoalsListPage(),
-          slideFromRight: true,
-        ),
+        builder: (context, state) => const GoalsListPage(),
       ),
       GoRoute(
         path: AppRoutes.onboarding,
@@ -82,36 +73,4 @@ class AppRouter {
       ),
     ],
   );
-
-  static CustomTransitionPage<void> _buildTabTransitionPage({
-    required GoRouterState state,
-    required Widget child,
-    required bool slideFromRight,
-  }) {
-    final Offset beginOffset = slideFromRight
-        ? const Offset(0.03, 0)
-        : const Offset(-0.03, 0);
-
-    return CustomTransitionPage<void>(
-      key: state.pageKey,
-      child: child,
-      transitionDuration: const Duration(milliseconds: 180),
-      reverseTransitionDuration: const Duration(milliseconds: 160),
-      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final Animation<double> fade = CurvedAnimation(
-          parent: animation,
-          curve: Curves.easeOutCubic,
-        );
-        final Animation<Offset> slide =
-            Tween<Offset>(begin: beginOffset, end: Offset.zero).animate(
-              CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
-            );
-
-        return FadeTransition(
-          opacity: fade,
-          child: SlideTransition(position: slide, child: child),
-        );
-      },
-    );
-  }
 }

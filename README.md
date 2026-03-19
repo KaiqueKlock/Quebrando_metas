@@ -116,6 +116,52 @@ Permitir que o usuario execute uma acao com timer e registrar tempo real de dedi
 
 ---
 
+### Sprint 6 - UI/UX Definitiva (Em andamento)
+
+Documentacao resumida do que ja foi entregue e do que falta para encerrar o Sprint 6.
+
+## Etapas concluidas
+
+1. Etapa 6.1 - Consolidacao da navegacao principal
+- [x] App voltou para 1 experiencia principal de Home.
+- [x] Rotas existentes foram preservadas para compatibilidade (`/` e `/goals`).
+- [x] Fluxo de criacao de meta por FAB foi mantido.
+
+2. Etapa 6.2 - Refactor visual da Home
+- [x] Cabecalho com saudacao e chips de metricas (streak e horas investidas).
+- [x] Card `CONTINUE DE ONDE PAROU` com progresso linear, proxima acao e CTA.
+- [x] Secao `Suas Metas` com cards mais limpos, percentual e barra de progresso.
+- [x] Estado vazio amigavel sem quebrar o fluxo.
+
+3. Etapa 6.3 - Refactor visual do detalhe da meta
+- [x] Topo simplificado com foco em legibilidade.
+- [x] Progresso da meta exibido apenas com indicador linear + percentual.
+- [x] Informacoes principais da meta (titulo, descricao, tempo total e sequencia).
+- [x] Lista direta de acoes, sem introduzir conceito de `Etapas`.
+
+4. Etapa 6.4 - Estabilidade da UI
+- [x] Ajustes responsivos para telas menores.
+- [x] Correcao de cenarios de overflow em fluxos criticos.
+
+5. Etapa 6.5 - Testes
+- [x] Widget tests readaptados para a nova estrutura visual.
+- [x] Finders e seletores atualizados para os novos layouts/componentes.
+- [x] Suite completa validada com sucesso (`flutter test -r compact`).
+
+## Pendencias para finalizar o Sprint 6
+
+1. Etapa 6.4 (fechamento visual)
+- [ ] Revisao final de UI em breakpoints extremos (muito pequeno e tablet).
+
+2. Etapa 6.5 (ampliacao de cobertura visual)
+- [ ] Adicionar/atualizar golden tests da Home e do detalhe da meta.
+
+3. Etapa 6.6 (documentacao final)
+- [ ] Consolidar no README capturas finais da UI (antes/depois ou versao final).
+- [ ] Revisar texto de produto para refletir oficialmente a UX final do Sprint 6.
+
+---
+
 
 # Stack Tecnologica
 

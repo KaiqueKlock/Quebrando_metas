@@ -496,7 +496,71 @@ Etapas pequenas de implementacao:
 - [x] Widget test para conclusao manual de acao sem foco concluido (regra atual: bloquear e mostrar feedback).
 - [x] Regressao: foco concluido soma tempo e nao marca acao como concluida automaticamente.
 
-### Sprint 6 - Release MVP
+
+### Sprint 6  - UI/UX Definitiva
+- Status: Em andamento (atualizado em 19/03/2026)
+
+Objetivo do sprint:
+- Consolidar a UX principal em 1 home, com layout moderno/clean.
+- Refatorar a tela de detalhe da meta mantendo regras atuais.
+- Nao introduzir conceito de Etapas.
+
+Etapas pequenas de implementacao:
+
+1. Etapa 6.1 - Consolidacao da navegacao principal
+- [x] Voltar de 2 abas para 1 experiencia principal.
+- [x] Manter compatibilidade de rotas existentes (/ e /goals) sem quebrar fluxo.
+- [x] Manter FAB de criacao de meta no fluxo principal.
+
+2. Etapa 6.2 - Refactor visual da Home
+- [x] Cabecalho com saudacao + chips de streak e horas investidas.
+- [x] Card CONTINUE DE ONDE PAROU com progresso linear, proxima acao e CTA Continuar.
+- [x] Secao Suas Metas em cards compactos com percentual + barra linear.
+- [x] Estado vazio amigavel e fallback sem bloquear uso.
+
+3. Etapa 6.3 - Refactor visual da tela de detalhe da meta
+- [x] AppBar simplificada.
+- [x] Bloco superior com progresso linear e percentual numerico (sem grafico circular).
+- [x] Informacoes da meta (titulo + descricao) e metricas (Tempo total + Sequencia).
+- [x] Lista direta de acoes da meta (sem agrupamento por etapas).
+
+4. Etapa 6.4 - Responsividade e robustez visual
+- [x] Ajustes de layout para telas menores (modo compacto).
+- [x] Correcao de cenarios de overflow em fluxos de foco e lista.
+- [ ] Revisao visual final em breakpoints extremos (muito pequeno e tablet).
+
+5. Etapa 6.5 - Testes e regressao de UI
+- [x] Readaptar widget tests para a nova composicao visual.
+- [x] Atualizar finders/keys de cenarios de prioridade, foco e navegacao.
+- [x] Validar suite completa (flutter test -r compact) sem falhas.
+- [ ] Atualizar/introduzir golden tests da nova Home e detalhe da meta.
+
+6. Etapa 6.6 - Fechamento documental
+- [x] Registrar entregas e estado do sprint no Project.md.
+- [ ] Sincronizar README.md com a UI final do Sprint 6 (estrutura e imagens de referencia do resultado).
+
+7. Etapa 6.7 - Diagnostico e regras de exibicao
+- [x] Verificar e documentar a regra atual de exibicao da Proxima acao no card Continue de onde parou.
+- [x] Verificar escopo da metrica Sequencia: confirmar se reflete a meta atual ou o total geral de dias seguidos.
+- [x] Investigar por que as 3 metas prioritarias nao estao sendo exibidas e registrar causa raiz.
+
+8. Etapa 6.8 - Ajustes de UI na Tela de Meta
+- [ ] Reposicionar o bloco de progresso para ficar abaixo do card de descricao da meta.
+- [ ] Ajustar o FAB da tela de meta para icone-only, removendo o texto Nova acao.
+- [ ] Remover o icone > do card das acoes.
+- [ ] Melhorar a UI do botao Iniciar foco (ligeiramente maior, mantendo responsividade).
+
+9. Etapa 6.9 - Ajustes de UI na Tela Principal
+- [ ] Centralizar Ola!, dias seguidos e horas investidas no header.
+- [ ] Ajustar o header para manter composicao limpa com: Ola!, metricas e card Continue de onde parou.
+- [ ] Reduzir levemente o tamanho do titulo da meta dentro do card Continue de onde parou.
+- [ ] Reduzir o botao Continuar e posicionar ao lado da informacao de acao.
+- [x] Restaurar exibicao das 3 metas prioritarias no fluxo principal, mantendo a regra de prioridade existente.
+
+10. Etapa 6.10 - Tela do Modo Foco
+- Escopo em definicao (sem tasks ativas no momento).
+
+### Sprint 7 - Release MVP
 - Testes finais
 - Revisão
 - Build release
@@ -512,7 +576,7 @@ Etapas pequenas de implementacao:
 - Validação centralizada por `TitleValidator` com limite de caracteres também no input (`LengthLimitingTextInputFormatter`).
 - Tratamento de erro de UI padronizado com `SnackBar` em criação/edição de metas e ações.
 - Cobertura de testes ampliada para:
-- usuário com histórico longo (10 metas concluídas + 5 ativas),
+- usuário com histórico longo (10 metas concluídas + 5 ativas)
 - CRUD de ações,
 - input extremo (título e descrição longos),
 - estabilidade no retorno da tela de ações (10 ciclos sem estado de retry).
@@ -624,6 +688,42 @@ Etapas pequenas de implementacao:
   - exibicao de tempo por acao inclusive em `0min`.
 - Validacao executada com suite completa de testes (`flutter test -r compact`) sem falhas.
 
+### Atualizacao tecnica (19/03/2026 - Sprint 6)
+
+- Home principal consolidada em uma experiencia unica (sem abas visuais).
+- Compatibilidade de rotas preservada:
+  - / segue como entrada principal;
+  - /goals mantida por compatibilidade e apontando para a mesma experiencia da Home.
+- Dashboard refatorada para o novo padrao visual:
+  - cabecalho com Ola!, streak e horas investidas;
+  - card CONTINUE DE ONDE PAROU com progresso linear, proxima acao e CTA;
+  - secao Suas Metas com cards compactos e hierarquia visual simplificada.
+- Tela de detalhe da meta (goal-actions) refeita sem Etapas:
+  - bloco de progresso linear + percentual;
+  - informacoes da meta;
+  - metricas de tempo total e sequencia;
+  - lista direta de acoes.
+- Regras de negocio preservadas (prioridade ate 3 metas, foco, conclusao manual e persistencia).
+- Testes de widget readaptados para nova estrutura visual e seletores atualizados.
+- Validacao executada:
+  - flutter test test/widget_test.dart -r compact --concurrency=1
+  - flutter test -r compact
+  - Resultado: suite verde, sem falhas.
+
+### Atualizacao tecnica (19/03/2026 - Sprint 6.7)
+
+- Regra de exibicao da `Proxima acao` validada e documentada:
+  - o card `Continue de onde parou` usa a acao pendente com menor `totalFocusMinutes`;
+  - em empate de foco, a exibicao segue a menor `order`.
+- Escopo de `Sequencia` validado:
+  - na tela da meta, a metrica e calculada por `listFocusSessions(goalId: goal.id)`;
+  - portanto, a sequencia exibida e da meta atual (nao o total global).
+- Causa raiz registrada para "sumico" das 3 prioridades na home:
+  - no refactor do Sprint 6, o destaque `Continue de onde parou` passou a selecionar apenas 1 meta (`prioritizedGoals.first`);
+  - a regra de prioridade (0..3) continua ativa no dominio, mas a composicao visual atual do destaque mostra somente a primeira.
+- Cobertura de testes adicionada para 6.7:
+  - validacao da regra da `Proxima acao` (pendente com menor foco; desempate por ordem);
+  - validacao de escopo da `Sequencia` por meta.
 ## 20. Visão de Evolução (Pós-MVP)
 
 Possíveis evoluções:
@@ -648,3 +748,5 @@ Evoluir como desenvolvedor enquanto constrói um produto real.
 ## 22. Regra Final do Projeto
 
 Se uma decisão aumentar muito a complexidade do projeto sem aumentar o valor para o usuário, ela deve ser evitada.
+
+
