@@ -140,11 +140,11 @@ class _HeaderSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Wrap(
-          crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: 6,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.max,
           children: [
             Text(
               'Ola!',
@@ -152,6 +152,7 @@ class _HeaderSection extends StatelessWidget {
                 context,
               ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
             ),
+            const SizedBox(width: 6),
             Icon(
               Icons.waving_hand_outlined,
               size: 20,
@@ -161,6 +162,8 @@ class _HeaderSection extends StatelessWidget {
         ),
         SizedBox(height: isCompact ? 10 : 12),
         Wrap(
+          alignment: WrapAlignment.center,
+          runAlignment: WrapAlignment.center,
           spacing: 10,
           runSpacing: 10,
           children: [
@@ -308,10 +311,10 @@ class _ContinueGoalItem extends ConsumerWidget {
     final ColorScheme colors = Theme.of(context).colorScheme;
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(isCompact ? 12 : 14),
+      padding: EdgeInsets.all(isCompact ? 10 : 12),
       decoration: BoxDecoration(
         color: colors.surface.withValues(alpha: 0.7),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -321,22 +324,22 @@ class _ContinueGoalItem extends ConsumerWidget {
             key: isFirst ? _ContinueSection.continueGoalTitleKey : null,
             style: Theme.of(
               context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 4),
-          Text('${(goal.progress * 100).toStringAsFixed(0)}% completo'),
-          const SizedBox(height: 8),
+          Text('${(goal.progress * 100).toStringAsFixed(0)}%'),
+          const SizedBox(height: 6),
           ClipRRect(
             borderRadius: BorderRadius.circular(999),
             child: LinearProgressIndicator(
               value: goal.progress,
-              minHeight: 7,
+              minHeight: 6,
               backgroundColor: colors.surface.withValues(alpha: 0.9),
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           FutureBuilder<List<ActionItem>>(
             future: ref.read(goalsRepositoryProvider).listActions(goal.id),
             builder: (context, snapshot) {
@@ -370,6 +373,14 @@ class _ContinueGoalItem extends ConsumerWidget {
                   ),
                   const SizedBox(width: 10),
                   FilledButton(
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size(0, 34),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
                     onPressed: () => context.pushNamed(
                       'goal-actions',
                       pathParameters: {'goalId': goal.id},

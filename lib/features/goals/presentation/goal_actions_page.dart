@@ -51,9 +51,9 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
           return ListView(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
             children: [
-              _GoalProgressCard(goal: goal),
-              const SizedBox(height: 12),
               _GoalInfoSection(goal: goal),
+              const SizedBox(height: 12),
+              _GoalProgressCard(goal: goal),
               const SizedBox(height: 12),
               _GoalMetricsSection(goal: goal),
               const SizedBox(height: 18),
@@ -108,6 +108,9 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
             minimum: const EdgeInsets.fromLTRB(16, 0, 16, 12),
             child: FilledButton.icon(
               key: GoalActionsPage.startFocusButtonKey,
+              style: FilledButton.styleFrom(
+                minimumSize: const Size.fromHeight(54),
+              ),
               onPressed: canStartFocus
                   ? () => _startFocusFlow(goal: goal, action: selectedAction)
                   : null,
@@ -120,10 +123,9 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
         },
         orElse: () => null,
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton(
         onPressed: _createAction,
-        icon: const Icon(Icons.add),
-        label: const Text('Nova acao'),
+        child: const Icon(Icons.add),
       ),
     );
   }
@@ -613,7 +615,6 @@ class _ActionTile extends StatelessWidget {
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.chevron_right_rounded, size: 18),
               PopupMenuButton<String>(
                 key: ValueKey<String>('action-menu-${action.id}'),
                 onSelected: (choice) {

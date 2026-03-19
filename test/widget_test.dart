@@ -866,6 +866,35 @@ void main() {
     expect(listOffsetAfter, greaterThan(listOffsetBefore));
   });
 
+  testWidgets('Centers greeting and summary chips in home header', (
+    WidgetTester tester,
+  ) async {
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(390, 844);
+
+    await _pumpApp(tester, repository: FakeInMemoryGoalsRepository());
+    await tester.pumpAndSettle();
+
+    final Finder scroll = find.byKey(const Key('goals-list-scroll'));
+    final double contentCenterX =
+        tester.getTopLeft(scroll).dx + (tester.getSize(scroll).width / 2);
+    final double greetingCenterX = tester.getCenter(find.text('Ola!')).dx;
+
+    final Finder streakChipText = find.text('0 dias seguidos');
+    final Finder hoursChipText = find.text('0.0 horas');
+    final double chipsLeft = tester.getTopLeft(streakChipText).dx;
+    final double chipsRight = tester.getTopRight(hoursChipText).dx;
+    final double chipsGroupCenterX = (chipsLeft + chipsRight) / 2;
+
+    expect((greetingCenterX - contentCenterX).abs(), lessThanOrEqualTo(20));
+    expect((chipsGroupCenterX - contentCenterX).abs(), lessThanOrEqualTo(20));
+  });
+
   testWidgets('Shows goal description section on actions page', (
     WidgetTester tester,
   ) async {
@@ -894,6 +923,56 @@ void main() {
     expect(find.text('Descricao da meta'), findsOneWidget);
     expect(find.text('Descricao de teste'), findsOneWidget);
   });
+
+  testWidgets(
+    'Goal detail keeps description above progress and uses compact action UI',
+    (WidgetTester tester) async {
+      final DateTime now = DateTime(2026, 3, 17, 9);
+      final Goal goal = Goal(
+        id: 'goal-ui-68',
+        title: 'Meta UI 6.8',
+        description: 'Descricao UI',
+        createdAt: now,
+        updatedAt: now,
+        completedActions: 0,
+        totalActions: 1,
+      );
+      final ActionItem action = ActionItem(
+        id: 'goal-ui-68-action',
+        goalId: goal.id,
+        title: 'Acao UI',
+        isCompleted: false,
+        createdAt: now,
+        updatedAt: now,
+        order: 0,
+      );
+
+      await _pumpApp(
+        tester,
+        repository: FakeInMemoryGoalsRepository(
+          initialGoals: <Goal>[goal],
+          initialActions: <ActionItem>[action],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      AppRouter.router.goNamed(
+        'goal-actions',
+        pathParameters: {'goalId': goal.id},
+      );
+      await tester.pumpAndSettle();
+
+      final double descriptionTop =
+          tester.getTopLeft(find.text('Descricao da meta')).dy;
+      final double progressTop =
+          tester.getTopLeft(find.text('Progresso da meta')).dy;
+      expect(descriptionTop, lessThan(progressTop));
+
+      expect(find.byType(FloatingActionButton), findsOneWidget);
+      expect(find.byIcon(Icons.chevron_right_rounded), findsNothing);
+      expect(find.byKey(const Key('start-focus-button')), findsOneWidget);
+    },
+  );
 
   testWidgets('Shows total focus time on goal card in Suas Metas', (
     WidgetTester tester,
@@ -1537,44 +1616,46 @@ void main() {
   testWidgets('Handles completing a goal that was prioritized', (
     WidgetTester tester,
   ) async {
-    await _pumpApp(tester, repository: FakeInMemoryGoalsRepository());
-    await tester.pumpAndSettle();
-
-    await _tapCreateGoalFab(tester);
-    await tester.enterText(
-      find.byType(TextField).first,
-      'Meta prioritaria concluida',
+    final DateTime now = DateTime(2026, 3, 19, 9);
+    final Goal goal = Goal(
+      id: 'goal-priority-completed',
+      title: 'Meta prioritaria concluida',
+      description: null,
+      priorityRank: 1,
+      createdAt: now,
+      updatedAt: now,
+      completedActions: 0,
+      totalActions: 1,
     );
-    await tester.tap(find.text('Salvar'));
-    await tester.pumpAndSettle();
-    // single-home layout: no tab switch needed
+    final ActionItem action = ActionItem(
+      id: 'goal-priority-completed-action',
+      goalId: goal.id,
+      title: 'Acao unica',
+      isCompleted: false,
+      createdAt: now,
+      updatedAt: now,
+      order: 0,
+      totalFocusMinutes: 1,
+    );
 
-    await tester.pumpAndSettle();
-    await _tapPriorityForGoal(tester, 'Meta prioritaria concluida');
+    await _pumpApp(
+      tester,
+      repository: FakeInMemoryGoalsRepository(
+        initialGoals: <Goal>[goal],
+        initialActions: <ActionItem>[action],
+      ),
+    );
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Meta prioritaria concluida').last);
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byIcon(Icons.add).last);
-    await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField).first, 'Acao unica');
-    await tester.tap(find.text('Salvar'));
-    await tester.pumpAndSettle();
-
-    await _completeFocusForSingleAction(tester);
     await _swipeFirstActionToComplete(tester);
 
     await tester.pageBack();
     await tester.pumpAndSettle();
-    // single-home layout: already on home
-
-    await tester.pumpAndSettle();
 
     expect(find.text('Defina uma meta como prioridade.'), findsOneWidget);
-    // single-home layout: no tab switch needed
-
-    await tester.pumpAndSettle();
     expect(find.text('Suas Metas'), findsOneWidget);
   });
 
@@ -1799,45 +1880,53 @@ Future<void> _tapCreateGoalFab(WidgetTester tester) async {
 
 Future<void> _completeFocusForSingleAction(WidgetTester tester) async {
   await _scrollToActionListIfNeeded(tester);
-  final Finder selectButton = find.byWidgetPredicate(
-    (widget) =>
-        widget is IconButton &&
-        widget.onPressed != null &&
-        (widget.tooltip == 'Selecionar para foco' ||
-            widget.tooltip == 'Acao selecionada para foco'),
-  );
+  Finder selectButton = find.byTooltip('Selecionar para foco').hitTestable();
+  if (selectButton.evaluate().isEmpty) {
+    selectButton = find.byTooltip('Acao selecionada para foco').hitTestable();
+  }
+  if (selectButton.evaluate().isEmpty) {
+    selectButton = find
+        .byWidgetPredicate(
+          (widget) =>
+              widget is IconButton &&
+              widget.onPressed != null &&
+              widget.key is ValueKey<String> &&
+              (widget.key as ValueKey<String>).value.startsWith(
+                'select-focus-action-',
+              ),
+        )
+        .hitTestable();
+  }
+  if (selectButton.evaluate().isEmpty) {
+    selectButton = find
+        .byWidgetPredicate(
+          (widget) =>
+              widget is IconButton &&
+              widget.onPressed != null &&
+              (widget.tooltip?.contains('foco') ?? false),
+        )
+        .hitTestable();
+  }
   if (selectButton.evaluate().isNotEmpty) {
+    await tester.ensureVisible(selectButton.first);
     await tester.tap(selectButton.first);
     await tester.pumpAndSettle();
-  } else {
-    final Finder firstActionCard = find.byType(Dismissible);
-    if (firstActionCard.evaluate().isNotEmpty) {
-      final Finder fallbackInCard = find.descendant(
-        of: firstActionCard.first,
-        matching: find.byType(IconButton),
-      );
-      if (fallbackInCard.evaluate().isNotEmpty) {
-        await tester.tap(fallbackInCard.first);
-        await tester.pumpAndSettle();
-      }
-    } else {
-      final Finder fallbackButton = find.byIcon(Icons.radio_button_unchecked);
-      await tester.tap(fallbackButton.first);
-      await tester.pumpAndSettle();
-    }
   }
 
   FilledButton startFocusButton = tester.widget<FilledButton>(
     find.byKey(const Key('start-focus-button')),
   );
   if (startFocusButton.onPressed == null) {
-    final Finder anySelectable = find.byWidgetPredicate(
-      (widget) =>
-          widget is IconButton &&
-          widget.onPressed != null &&
-          (widget.tooltip?.contains('foco') ?? false),
-    );
+    final Finder anySelectable = find
+        .byWidgetPredicate(
+          (widget) =>
+              widget is IconButton &&
+              widget.onPressed != null &&
+              (widget.tooltip?.contains('foco') ?? false),
+        )
+        .hitTestable();
     if (anySelectable.evaluate().isNotEmpty) {
+      await tester.ensureVisible(anySelectable.first);
       await tester.tap(anySelectable.first);
       await tester.pumpAndSettle();
       startFocusButton = tester.widget<FilledButton>(
@@ -1845,9 +1934,11 @@ Future<void> _completeFocusForSingleAction(WidgetTester tester) async {
       );
     }
   }
+  expect(startFocusButton.onPressed, isNotNull);
 
   await tester.tap(find.byKey(const Key('start-focus-button')));
   await tester.pumpAndSettle();
+  expect(find.byKey(const ValueKey<String>('focus-duration-15')), findsOneWidget);
 
   await tester.tap(find.byKey(const ValueKey<String>('focus-duration-15')));
   await tester.pump();

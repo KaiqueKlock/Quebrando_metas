@@ -545,16 +545,17 @@ Etapas pequenas de implementacao:
 - [x] Investigar por que as 3 metas prioritarias nao estao sendo exibidas e registrar causa raiz.
 
 8. Etapa 6.8 - Ajustes de UI na Tela de Meta
-- [ ] Reposicionar o bloco de progresso para ficar abaixo do card de descricao da meta.
-- [ ] Ajustar o FAB da tela de meta para icone-only, removendo o texto Nova acao.
-- [ ] Remover o icone > do card das acoes.
-- [ ] Melhorar a UI do botao Iniciar foco (ligeiramente maior, mantendo responsividade).
+- [x] Reposicionar o bloco de progresso para ficar abaixo do card de descricao da meta.
+- [x] Ajustar o FAB da tela de meta para icone-only, removendo o texto Nova acao.
+- [x] Remover o icone > do card das acoes.
+- [x] Melhorar a UI do botao Iniciar foco (ligeiramente maior, mantendo responsividade).
 
 9. Etapa 6.9 - Ajustes de UI na Tela Principal
-- [ ] Centralizar Ola!, dias seguidos e horas investidas no header.
-- [ ] Ajustar o header para manter composicao limpa com: Ola!, metricas e card Continue de onde parou.
-- [ ] Reduzir levemente o tamanho do titulo da meta dentro do card Continue de onde parou.
-- [ ] Reduzir o botao Continuar e posicionar ao lado da informacao de acao.
+- [x] Centralizar Ola!, dias seguidos e horas investidas no header.
+- [x] Ajustar o header para manter composicao limpa com: Ola!, metricas e card Continue de onde parou.
+- [x] Reduzir levemente o tamanho dos meta cards dentro do card Continue de onde parou.
+- [x] Retirar apenas o texto "Completo" de 20% completo
+- [x] Reduzir o botao Continuar e posicionar ao lado da informacao de acao.
 - [x] Restaurar exibicao das 3 metas prioritarias no fluxo principal, mantendo a regra de prioridade existente.
 
 10. Etapa 6.10 - Tela do Modo Foco
@@ -724,6 +725,22 @@ Etapas pequenas de implementacao:
 - Cobertura de testes adicionada para 6.7:
   - validacao da regra da `Proxima acao` (pendente com menor foco; desempate por ordem);
   - validacao de escopo da `Sequencia` por meta.
+
+### Atualizacao tecnica (19/03/2026 - Sprint 6.8/6.9)
+
+- Tela de meta ajustada na ordem visual:
+  - descricao exibida antes do bloco de progresso linear;
+  - FAB de nova acao convertido para icone-only;
+  - icone de seta (`>`) removido dos cards de acao;
+  - botao `Iniciar foco` com altura ligeiramente maior para melhorar toque.
+- Home refinada para fechamento da 6.9:
+  - header centralizado com `Ola!`, dias seguidos e horas investidas;
+  - card `Continue de onde parou` com metas prioritarias mais compactas;
+  - percentual simplificado (`20%`, sem sufixo `completo`);
+  - botao `Continuar` mantido ao lado da proxima acao com tamanho reduzido.
+- Cobertura de testes ampliada:
+  - novo teste de centralizacao do header;
+  - novo teste da tela de meta para garantir descricao acima do progresso e ausencia do chevron.
 ## 20. Visão de Evolução (Pós-MVP)
 
 Possíveis evoluções:
