@@ -20,11 +20,17 @@ Future<void> showGoalFormDialog(
   String? titleErrorText;
   bool isSaving = false;
 
-  await showDialog<void>(
+  await showModalBottomSheet<void>(
     context: context,
-    builder: (dialogContext) {
+    isScrollControlled: true,
+    showDragHandle: true,
+    useSafeArea: true,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+    ),
+    builder: (sheetContext) {
       return StatefulBuilder(
-        builder: (dialogContext, setState) {
+        builder: (sheetContext, setState) {
           Future<void> onSave() async {
             try {
               final String validTitle = TitleValidator.validate(
@@ -52,8 +58,8 @@ Future<void> showGoalFormDialog(
                     );
               }
 
-              if (dialogContext.mounted) {
-                Navigator.of(dialogContext).pop();
+              if (sheetContext.mounted) {
+                Navigator.of(sheetContext).pop();
               }
             } on FormatException catch (error) {
               setState(() {
@@ -68,7 +74,7 @@ Future<void> showGoalFormDialog(
                 );
               }
             } finally {
-              if (dialogContext.mounted) {
+              if (sheetContext.mounted) {
                 setState(() {
                   isSaving = false;
                 });
@@ -76,58 +82,83 @@ Future<void> showGoalFormDialog(
             }
           }
 
-          return AlertDialog(
-            insetPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 12,
+          return AnimatedPadding(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOut,
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.viewInsetsOf(sheetContext).bottom,
             ),
-            scrollable: true,
-            title: Text(goal == null ? 'Nova Meta' : 'Editar Meta'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: titleController,
-                  autofocus: true,
-                  maxLength: TitleValidator.maxLength,
-                  inputFormatters: [
-                    LengthLimitingTextInputFormatter(
-                      TitleValidator.maxLength,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.sizeOf(sheetContext).height * 0.92,
+              ),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      goal == null ? 'Nova Meta' : 'Editar Meta',
+                      style: Theme.of(sheetContext).textTheme.titleLarge
+                          ?.copyWith(fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Defina um objetivo claro e pratico.',
+                      style: Theme.of(sheetContext).textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 14),
+                    TextField(
+                      controller: titleController,
+                      autofocus: true,
+                      maxLength: TitleValidator.maxLength,
+                      inputFormatters: [
+                        LengthLimitingTextInputFormatter(
+                          TitleValidator.maxLength,
+                        ),
+                      ],
+                      decoration: InputDecoration(
+                        labelText: 'Titulo',
+                        errorText: titleErrorText,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: descriptionController,
+                      maxLength: descriptionMaxLength,
+                      maxLines: 3,
+                      inputFormatters: [
+                        LengthLimitingTextInputFormatter(descriptionMaxLength),
+                      ],
+                      decoration: const InputDecoration(
+                        labelText: 'Descricao (opcional)',
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: isSaving
+                                ? null
+                                : () => Navigator.of(sheetContext).pop(),
+                            child: const Text('Cancelar'),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: FilledButton(
+                            onPressed: isSaving ? null : onSave,
+                            child: Text(isSaving ? 'Salvando...' : 'Salvar'),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
-                  decoration: InputDecoration(
-                    labelText: 'Titulo',
-                    errorText: titleErrorText,
-                  ),
                 ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: descriptionController,
-                  maxLength: descriptionMaxLength,
-                  maxLines: 3,
-                  inputFormatters: [
-                    LengthLimitingTextInputFormatter(descriptionMaxLength),
-                  ],
-                  decoration: const InputDecoration(
-                    labelText: 'Descricao (opcional)',
-                  ),
-                ),
-              ],
+              ),
             ),
-            actions: [
-              TextButton(
-                onPressed: isSaving
-                    ? null
-                    : () {
-                        Navigator.of(dialogContext).pop();
-                      },
-                child: const Text('Cancelar'),
-              ),
-              FilledButton(
-                onPressed: isSaving ? null : onSave,
-                child: Text(isSaving ? 'Salvando...' : 'Salvar'),
-              ),
-            ],
           );
         },
       );

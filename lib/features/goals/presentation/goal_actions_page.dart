@@ -324,56 +324,92 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
     );
     String? errorText;
 
-    return showDialog<String>(
+    return showModalBottomSheet<String>(
       context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      useSafeArea: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
-            return AlertDialog(
-              insetPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 12,
+            return AnimatedPadding(
+              duration: const Duration(milliseconds: 180),
+              curve: Curves.easeOut,
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.viewInsetsOf(context).bottom,
               ),
-              scrollable: true,
-              title: Text(title),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: controller,
-                    autofocus: true,
-                    maxLength: TitleValidator.maxLength,
-                    inputFormatters: [
-                      LengthLimitingTextInputFormatter(TitleValidator.maxLength),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.sizeOf(context).height * 0.85,
+                ),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Descreva uma acao simples para executar agora.',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      const SizedBox(height: 14),
+                      TextField(
+                        controller: controller,
+                        autofocus: true,
+                        maxLength: TitleValidator.maxLength,
+                        inputFormatters: [
+                          LengthLimitingTextInputFormatter(
+                            TitleValidator.maxLength,
+                          ),
+                        ],
+                        decoration: InputDecoration(
+                          labelText: 'Titulo da acao',
+                          errorText: errorText,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: const Text('Cancelar'),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: FilledButton(
+                              onPressed: () {
+                                try {
+                                  final String value = TitleValidator.validate(
+                                    controller.text,
+                                  );
+                                  Navigator.of(context).pop(value);
+                                } on FormatException catch (error) {
+                                  setState(() {
+                                    errorText = error.message;
+                                  });
+                                }
+                              },
+                              child: const Text('Salvar'),
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
-                    decoration: InputDecoration(
-                      labelText: 'Titulo da acao',
-                      errorText: errorText,
-                    ),
                   ),
-                ],
+                ),
               ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Cancelar'),
-                ),
-                FilledButton(
-                  onPressed: () {
-                    try {
-                      final String value = TitleValidator.validate(
-                        controller.text,
-                      );
-                      Navigator.of(context).pop(value);
-                    } on FormatException catch (error) {
-                      setState(() {
-                        errorText = error.message;
-                      });
-                    }
-                  },
-                  child: const Text('Salvar'),
-                ),
-              ],
             );
           },
         );
