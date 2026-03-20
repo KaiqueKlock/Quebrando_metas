@@ -228,13 +228,20 @@ class _ContinueSection extends ConsumerWidget {
         key: contentSwitcherKey,
         color: colors.primaryContainer,
         child: Padding(
-          padding: EdgeInsets.all(isCompact ? 14 : 16),
+          padding: EdgeInsets.fromLTRB(
+            isCompact ? 12 : 14,
+            isCompact ? 14 : 16,
+            isCompact ? 12 : 14,
+            isCompact ? 14 : 16,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 'CONTINUE DE ONDE PAROU',
-                style: Theme.of(context).textTheme.labelLarge,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 10),
               const Text('Defina uma meta como prioridade.'),
@@ -249,7 +256,12 @@ class _ContinueSection extends ConsumerWidget {
       color: colors.primaryContainer,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       child: Padding(
-        padding: EdgeInsets.all(isCompact ? 14 : 18),
+        padding: EdgeInsets.fromLTRB(
+          isCompact ? 12 : 14,
+          isCompact ? 14 : 16,
+          isCompact ? 12 : 14,
+          isCompact ? 14 : 16,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -258,7 +270,9 @@ class _ContinueSection extends ConsumerWidget {
                 Expanded(
                   child: Text(
                     'CONTINUE DE ONDE PAROU',
-                    style: Theme.of(context).textTheme.labelLarge,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
                 Container(
@@ -278,8 +292,8 @@ class _ContinueSection extends ConsumerWidget {
               return Padding(
                 key: ValueKey<String>('continue-goal-item-${currentGoal.id}'),
                 padding: EdgeInsets.only(
-                  top: 8,
-                  bottom: index == goals.length - 1 ? 0 : 10,
+                  top: 6,
+                  bottom: index == goals.length - 1 ? 0 : 6,
                 ),
                 child: _ContinueGoalItem(
                   goal: currentGoal,

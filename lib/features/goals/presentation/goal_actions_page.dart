@@ -260,6 +260,7 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
           goalTitle: goal.title,
           durationMinutes: durationMinutes,
           sessionStartedAt: session.startedAt,
+          actionTotalFocusMinutes: action.totalFocusMinutes,
           onCompleted: (elapsedMinutes) => controller.completeFocusSession(
             session,
             elapsedMinutes: elapsedMinutes,
@@ -712,6 +713,7 @@ class _FocusTimerPage extends StatefulWidget {
     required this.goalTitle,
     required this.durationMinutes,
     required this.sessionStartedAt,
+    required this.actionTotalFocusMinutes,
     this.onCompleted,
     this.onCanceled,
   });
@@ -720,6 +722,7 @@ class _FocusTimerPage extends StatefulWidget {
   final String goalTitle;
   final int durationMinutes;
   final DateTime sessionStartedAt;
+  final int actionTotalFocusMinutes;
   final Future<int> Function(int elapsedMinutes)? onCompleted;
   final Future<int> Function(int elapsedMinutes)? onCanceled;
 
@@ -879,12 +882,18 @@ class _FocusTimerPageState extends State<_FocusTimerPage>
   @override
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final int currentSessionMinutes = _completed
+        ? _completedMinutes
+        : _elapsedMinutes();
+    final int investedActionMinutes =
+        widget.actionTotalFocusMinutes + currentSessionMinutes;
 
     return WillPopScope(
       onWillPop: () async => false,
       child: Scaffold(
         appBar: AppBar(
           automaticallyImplyLeading: false,
+          centerTitle: true,
           title: const Text('Modo foco'),
         ),
         body: SafeArea(
@@ -920,13 +929,29 @@ class _FocusTimerPageState extends State<_FocusTimerPage>
                                   Row(
                                     children: [
                                       Expanded(
-                                        child: Text(
-                                          _completed
-                                              ? 'SESSAO CONCLUIDA'
-                                              : 'SESSAO DE FOCO',
-                                          style: Theme.of(
-                                            context,
-                                          ).textTheme.labelLarge,
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              widget.actionTitle,
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .titleMedium
+                                                  ?.copyWith(
+                                                    fontWeight: FontWeight.w700,
+                                                  ),
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              'Tempo investido total: ${_formatMinutes(investedActionMinutes)}',
+                                              style: Theme.of(
+                                                context,
+                                              ).textTheme.bodyMedium,
+                                            ),
+                                          ],
                                         ),
                                       ),
                                       Container(
@@ -941,89 +966,91 @@ class _FocusTimerPageState extends State<_FocusTimerPage>
                                           ),
                                         ),
                                         child: Icon(
-                                          _completed
-                                              ? Icons.check_circle_outline
-                                              : Icons.timer_outlined,
+                                          Icons.auto_awesome_sharp,
                                           color: colorScheme.primary,
                                         ),
                                       ),
                                     ],
                                   ),
                                   const SizedBox(height: 12),
-                                  _FocusInfoLine(
-                                    label: 'Meta',
-                                    value: widget.goalTitle,
-                                  ),
-                                  const SizedBox(height: 10),
-                                  _FocusInfoLine(
-                                    label: 'Acao',
-                                    value: widget.actionTitle,
+                                  Text(
+                                    widget.goalTitle,
+                                    style: Theme.of(context).textTheme.bodyLarge,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ],
                               ),
                             ),
                           ),
                           const SizedBox(height: 16),
-                          AnimatedContainer(
-                            duration: const Duration(milliseconds: 260),
-                            curve: Curves.easeOut,
-                            decoration: BoxDecoration(
-                              color: (_completed
-                                      ? colorScheme.secondaryContainer
-                                      : colorScheme.primaryContainer)
-                                  .withValues(alpha: 0.75),
-                              borderRadius: BorderRadius.circular(24),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 20,
                             ),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 20,
-                              ),
-                              child: Column(
-                                children: [
-                                  if (_completed) ...[
-                                    Text(
-                                      'Sessao concluida',
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.titleSmall,
+                            child: Column(
+                              children: [
+                                if (_completed) ...[
+                                  Text(
+                                    'Sessao concluida',
+                                    style: Theme.of(context).textTheme.titleSmall,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Tempo investido: $_completedMinutes min',
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.w700,
                                     ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      'Tempo investido: $_completedMinutes min',
-                                      style: Theme.of(context).textTheme
-                                          .titleMedium
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.w700,
+                                  ),
+                                ] else ...[
+                                  Text(
+                                    'Tempo restante',
+                                    style: Theme.of(context).textTheme.titleSmall,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  SizedBox(
+                                    width: 164,
+                                    height: 164,
+                                    child: Stack(
+                                      alignment: Alignment.center,
+                                      children: [
+                                        SizedBox.expand(
+                                          child: CircularProgressIndicator(
+                                            value: _sessionProgress(),
+                                            strokeWidth: 6,
+                                            backgroundColor: colorScheme
+                                                .outlineVariant
+                                                .withValues(alpha: 0.6),
+                                            valueColor:
+                                                AlwaysStoppedAnimation<Color>(
+                                                  _progressColor(colorScheme),
+                                                ),
                                           ),
+                                        ),
+                                        AnimatedScale(
+                                          scale: _pulseUp ? 1.03 : 1.0,
+                                          duration: const Duration(
+                                            milliseconds: 580,
+                                          ),
+                                          curve: Curves.easeInOut,
+                                          child: Text(
+                                            _formatDuration(_remainingSeconds),
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .displaySmall
+                                                ?.copyWith(
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ] else ...[
-                                    Text(
-                                      'Tempo restante',
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.titleSmall,
-                                    ),
-                                    const SizedBox(height: 8),
-                                    AnimatedScale(
-                                      scale: _pulseUp ? 1.03 : 1.0,
-                                      duration: const Duration(
-                                        milliseconds: 580,
-                                      ),
-                                      curve: Curves.easeInOut,
-                                      child: Text(
-                                        _formatDuration(_remainingSeconds),
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .displaySmall
-                                            ?.copyWith(
-                                              fontWeight: FontWeight.w700,
-                                            ),
-                                      ),
-                                    ),
-                                  ],
+                                  ),
                                 ],
-                              ),
+                              ],
                             ),
                           ),
                         ],
@@ -1087,39 +1114,21 @@ class _FocusTimerPageState extends State<_FocusTimerPage>
   int _elapsedSeconds() {
     return _durationSeconds - _remainingSeconds;
   }
-}
 
-class _FocusInfoLine extends StatelessWidget {
-  const _FocusInfoLine({required this.label, required this.value});
+  double _sessionProgress() {
+    if (_durationSeconds <= 0) return 0;
+    if (_completed) return 0;
+    final double progress = _remainingSeconds / _durationSeconds;
+    if (progress <= 0) return 0;
+    if (progress >= 1) return 1;
+    return progress;
+  }
 
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 52,
-          child: Text(
-            label,
-            style: Theme.of(
-              context,
-            ).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w700),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            value,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.bodyLarge,
-          ),
-        ),
-      ],
-    );
+  Color _progressColor(ColorScheme colorScheme) {
+    final double elapsedProgress = 1 - _sessionProgress();
+    if (elapsedProgress >= 0.9) return colorScheme.error;
+    if (elapsedProgress >= 0.6) return colorScheme.tertiary;
+    return colorScheme.primary;
   }
 }
 
