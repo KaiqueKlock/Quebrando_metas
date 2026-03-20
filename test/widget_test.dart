@@ -569,7 +569,7 @@ void main() {
     await tester.pump(const Duration(minutes: 15));
     await tester.pump();
 
-    expect(find.text('Foco concluido!'), findsOneWidget);
+    expect(find.text('Parabens, foco concluido!'), findsOneWidget);
     expect(find.text('Tempo gasto: 15 min'), findsOneWidget);
 
     await tester.tap(find.text('Fechar'));
@@ -946,6 +946,67 @@ void main() {
       await tester.tap(find.text('Fechar'));
       await tester.pumpAndSettle();
       expect(find.text('Acoes da meta'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'Recalculates focus timer after returning from background',
+    (WidgetTester tester) async {
+      final DateTime now = DateTime(2026, 3, 18, 14, 0);
+      final Goal goal = Goal(
+        id: 'goal-focus-background-resume',
+        title: 'Meta foco background',
+        description: null,
+        createdAt: now,
+        updatedAt: now,
+        completedActions: 0,
+        totalActions: 1,
+      );
+      final ActionItem action = ActionItem(
+        id: 'action-focus-background-resume',
+        goalId: goal.id,
+        title: 'Acao foco background',
+        isCompleted: false,
+        createdAt: now,
+        updatedAt: now,
+        order: 0,
+        completedAt: null,
+      );
+
+      await _pumpApp(
+        tester,
+        repository: FakeInMemoryGoalsRepository(
+          initialGoals: <Goal>[goal],
+          initialActions: <ActionItem>[action],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      AppRouter.router.goNamed(
+        'goal-actions',
+        pathParameters: {'goalId': goal.id},
+      );
+      await tester.pumpAndSettle();
+
+      await _selectFocusForAction(tester, action.id);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('start-focus-button')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey<String>('focus-duration-15')));
+      await tester.pumpAndSettle();
+
+      final int beforeBackground = _readFocusCountdownSeconds(tester);
+
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      await tester.runAsync(() async {
+        await Future<void>.delayed(const Duration(seconds: 3));
+      });
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pumpAndSettle();
+
+      final int afterResume = _readFocusCountdownSeconds(tester);
+      expect(afterResume, lessThan(beforeBackground));
+      expect(find.text('Modo foco'), findsOneWidget);
     },
   );
 
@@ -2137,6 +2198,20 @@ FocusSession _completedSession({
 Future<void> _tapCreateGoalFab(WidgetTester tester) async {
   await tester.tap(find.byKey(const Key('create-goal-fab')));
   await tester.pumpAndSettle();
+}
+
+int _readFocusCountdownSeconds(WidgetTester tester) {
+  final Finder timerFinder = find.byWidgetPredicate(
+    (widget) =>
+        widget is Text && RegExp(r'^\d{2}:\d{2}$').hasMatch(widget.data ?? ''),
+  );
+  expect(timerFinder, findsOneWidget);
+  final Text timerText = tester.widget<Text>(timerFinder);
+  final String value = timerText.data!;
+  final List<String> parts = value.split(':');
+  final int minutes = int.parse(parts[0]);
+  final int seconds = int.parse(parts[1]);
+  return (minutes * 60) + seconds;
 }
 
 Future<void> _completeFocusForSingleAction(WidgetTester tester) async {

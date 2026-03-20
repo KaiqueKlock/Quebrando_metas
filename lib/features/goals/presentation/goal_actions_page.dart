@@ -723,6 +723,8 @@ class _FocusTimerPageState extends State<_FocusTimerPage>
   late int _durationSeconds;
   late DateTime _expectedEndAt;
   Timer? _timer;
+  bool _contentVisible = false;
+  bool _pulseUp = false;
   bool _completed = false;
   bool _busy = false;
   int _completedMinutes = 0;
@@ -738,6 +740,12 @@ class _FocusTimerPageState extends State<_FocusTimerPage>
     _remainingSeconds = _durationSeconds;
     _syncRemainingTimeFromClock(now: DateTime.now());
     _timer = Timer.periodic(const Duration(seconds: 1), _onTick);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(() {
+        _contentVisible = true;
+      });
+    });
     if (_remainingSeconds == 0) {
       unawaited(_handleCompleted());
     }
@@ -755,6 +763,7 @@ class _FocusTimerPageState extends State<_FocusTimerPage>
 
     setState(() {
       _remainingSeconds -= 1;
+      _pulseUp = !_pulseUp;
     });
   }
 
@@ -831,6 +840,8 @@ class _FocusTimerPageState extends State<_FocusTimerPage>
 
   @override
   Widget build(BuildContext context) {
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
     return WillPopScope(
       onWillPop: () async => false,
       child: Scaffold(
@@ -839,36 +850,163 @@ class _FocusTimerPageState extends State<_FocusTimerPage>
           title: const Text('Modo foco'),
         ),
         body: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Meta: ${widget.goalTitle}'),
-                      const SizedBox(height: 4),
-                      Text('Acao: ${widget.actionTitle}'),
-                      const SizedBox(height: 24),
-                      Center(
-                        child: Text(
-                          _formatDuration(_remainingSeconds),
-                          style: Theme.of(context).textTheme.displaySmall,
-                        ),
+          child: AnimatedOpacity(
+            opacity: _contentVisible ? 1 : 0,
+            duration: const Duration(milliseconds: 260),
+            curve: Curves.easeOut,
+            child: AnimatedSlide(
+              offset: _contentVisible ? Offset.zero : const Offset(0, 0.03),
+              duration: const Duration(milliseconds: 260),
+              curve: Curves.easeOut,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight,
                       ),
-                      const SizedBox(height: 24),
-                      if (_completed) ...[
-                        const Text('Foco concluido!'),
-                        const SizedBox(height: 4),
-                        Text('Tempo gasto: $_completedMinutes min'),
-                      ],
-                    ],
-                  ),
-                ),
-              );
-            },
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Card(
+                            color: colorScheme.surfaceContainerHighest
+                                .withValues(alpha: 0.45),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  AnimatedSwitcher(
+                                    duration: const Duration(milliseconds: 220),
+                                    child: Text(
+                                      _completed
+                                          ? 'Sessao finalizada'
+                                          : 'Sessao de foco',
+                                      key: ValueKey<bool>(_completed),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .labelLarge
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  _FocusInfoLine(
+                                    label: 'Meta',
+                                    value: widget.goalTitle,
+                                  ),
+                                  const SizedBox(height: 10),
+                                  _FocusInfoLine(
+                                    label: 'Acao',
+                                    value: widget.actionTitle,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text('Meta: ${widget.goalTitle}'),
+                                  const SizedBox(height: 2),
+                                  Text('Acao: ${widget.actionTitle}'),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          AnimatedContainer(
+                            duration: const Duration(milliseconds: 260),
+                            curve: Curves.easeOut,
+                            decoration: BoxDecoration(
+                              color: (_completed
+                                      ? colorScheme.secondaryContainer
+                                      : colorScheme.primaryContainer)
+                                  .withValues(alpha: 0.75),
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 20,
+                              ),
+                              child: Column(
+                                children: [
+                                  Text(
+                                    _completed
+                                        ? 'Sessao concluida'
+                                        : 'Tempo restante',
+                                    style: Theme.of(context).textTheme.titleSmall,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  _completed
+                                      ? Text(
+                                          _formatDuration(_remainingSeconds),
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .displaySmall
+                                              ?.copyWith(
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                        )
+                                      : AnimatedScale(
+                                          scale: _pulseUp ? 1.03 : 1.0,
+                                          duration: const Duration(
+                                            milliseconds: 580,
+                                          ),
+                                          curve: Curves.easeInOut,
+                                          child: Text(
+                                            _formatDuration(_remainingSeconds),
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .displaySmall
+                                                ?.copyWith(
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                          ),
+                                        ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 240),
+                            switchInCurve: Curves.easeOut,
+                            switchOutCurve: Curves.easeIn,
+                            child: _completed
+                                ? Card(
+                                    key: const ValueKey<String>(
+                                      'focus-completed-card',
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(18),
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(14),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          const Text(
+                                            'Parabens, foco concluido!',
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            'Tempo gasto: $_completedMinutes min',
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  )
+                                : const SizedBox.shrink(),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
           ),
         ),
         bottomNavigationBar: SafeArea(
@@ -916,6 +1054,40 @@ class _FocusTimerPageState extends State<_FocusTimerPage>
     final int elapsedSeconds = _durationSeconds - _remainingSeconds;
     if (elapsedSeconds <= 0) return 0;
     return elapsedSeconds ~/ 60;
+  }
+}
+
+class _FocusInfoLine extends StatelessWidget {
+  const _FocusInfoLine({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 52,
+          child: Text(
+            label,
+            style: Theme.of(
+              context,
+            ).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w700),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            value,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.bodyLarge,
+          ),
+        ),
+      ],
+    );
   }
 }
 

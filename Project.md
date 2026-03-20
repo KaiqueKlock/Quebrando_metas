@@ -586,22 +586,22 @@ Etapas pequenas de implementacao:
 - [x] Em `Cancelar` com `< 1 minuto`, nao somar tempo.
 
 6. Etapa 6.10.6 - UI dedicada e animacoes leves
-- [ ] Criar layout de foco dedicado com:
+- [x] Criar layout de foco dedicado com:
   - nome da meta,
   - nome da acao,
   - timer,
   - botoes `Cancelar` / `Concluir agora` / `Fechar` (estado final).
-- [ ] No estado concluido, exibir `Foco concluido!` + `Tempo gasto: X min`.
-- [ ] Aplicar animacoes leves:
+- [x] No estado concluido, exibir `Parabéns, foco concluido!` + `Tempo gasto: X min`.
+- [x] Aplicar animacoes leves:
   - entrada da tela (fade + slide curto),
   - pulso suave no contador,
   - transicao visual no estado concluido.
 
 7. Etapa 6.10.7 - Testes e regressao
-- [ ] Atualizar widget tests para o novo fluxo em page dedicada.
-- [ ] Cobrir bloqueio de saida por back/gesture.
-- [ ] Cobrir timer com base em relogio real no retorno de background.
-- [ ] Cobrir cancelamento com `< 1 min` (nao soma) e `>= 1 min` (soma).
+- [x] Atualizar widget tests para o novo fluxo em page dedicada.
+- [x] Cobrir bloqueio de saida por back/gesture.
+- [x] Cobrir timer com base em relogio real no retorno de background.
+- [x] Cobrir cancelamento com `< 1 min` (nao soma) e `>= 1 min` (soma).
 
 ### Sprint 7 - Release MVP
 - Testes finais
