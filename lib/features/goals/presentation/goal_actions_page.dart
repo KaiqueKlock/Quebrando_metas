@@ -258,11 +258,15 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
           actionTitle: action.title,
           goalTitle: goal.title,
           durationMinutes: durationMinutes,
+          sessionStartedAt: session.startedAt,
           onCompleted: (elapsedMinutes) => controller.completeFocusSession(
             session,
             elapsedMinutes: elapsedMinutes,
           ),
-          onCanceled: () => controller.cancelFocusSession(session),
+          onCanceled: (elapsedMinutes) => controller.cancelFocusSession(
+            session,
+            elapsedMinutes: elapsedMinutes,
+          ),
         ),
       ),
     );
@@ -287,7 +291,7 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: const [15, 25, 45]
+                  children: const [15, 30, 60]
                       .map((minutes) => _FocusDurationButton(minutes: minutes))
                       .toList(),
                 ),
@@ -697,6 +701,7 @@ class _FocusTimerPage extends StatefulWidget {
     required this.actionTitle,
     required this.goalTitle,
     required this.durationMinutes,
+    required this.sessionStartedAt,
     this.onCompleted,
     this.onCanceled,
   });
@@ -704,15 +709,19 @@ class _FocusTimerPage extends StatefulWidget {
   final String actionTitle;
   final String goalTitle;
   final int durationMinutes;
+  final DateTime sessionStartedAt;
   final Future<int> Function(int elapsedMinutes)? onCompleted;
-  final Future<void> Function()? onCanceled;
+  final Future<int> Function(int elapsedMinutes)? onCanceled;
 
   @override
   State<_FocusTimerPage> createState() => _FocusTimerPageState();
 }
 
-class _FocusTimerPageState extends State<_FocusTimerPage> {
+class _FocusTimerPageState extends State<_FocusTimerPage>
+    with WidgetsBindingObserver {
   late int _remainingSeconds;
+  late int _durationSeconds;
+  late DateTime _expectedEndAt;
   Timer? _timer;
   bool _completed = false;
   bool _busy = false;
@@ -721,25 +730,68 @@ class _FocusTimerPageState extends State<_FocusTimerPage> {
   @override
   void initState() {
     super.initState();
-    _remainingSeconds = widget.durationMinutes * 60;
+    WidgetsBinding.instance.addObserver(this);
+    _durationSeconds = widget.durationMinutes * 60;
+    _expectedEndAt = widget.sessionStartedAt.add(
+      Duration(seconds: _durationSeconds),
+    );
+    _remainingSeconds = _durationSeconds;
+    _syncRemainingTimeFromClock(now: DateTime.now());
     _timer = Timer.periodic(const Duration(seconds: 1), _onTick);
+    if (_remainingSeconds == 0) {
+      unawaited(_handleCompleted());
+    }
   }
 
   void _onTick(Timer timer) {
+    if (_completed || _busy) return;
     if (_remainingSeconds <= 1) {
-      _remainingSeconds = 0;
-      _handleCompleted();
+      setState(() {
+        _remainingSeconds = 0;
+      });
+      unawaited(_handleCompleted());
       return;
     }
+
     setState(() {
       _remainingSeconds -= 1;
     });
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _syncRemainingTimeFromClock(now: DateTime.now());
+    }
+  }
+
+  void _syncRemainingTimeFromClock({required DateTime now}) {
+    if (_completed || _busy) return;
+    final int updatedRemaining = _computeRemainingSeconds(now: now);
+    if (updatedRemaining <= 0) {
+      if (_remainingSeconds != 0) {
+        setState(() {
+          _remainingSeconds = 0;
+        });
+      }
+      unawaited(_handleCompleted());
+      return;
+    }
+
+    final int reducedRemaining = updatedRemaining < _remainingSeconds
+        ? updatedRemaining
+        : _remainingSeconds;
+    if (_remainingSeconds != reducedRemaining) {
+      setState(() {
+        _remainingSeconds = reducedRemaining;
+      });
+    }
+  }
+
   Future<void> _handleCompleted() async {
     if (_completed || _busy) return;
     _timer?.cancel();
-    final int elapsedMinutes = _elapsedMinutes(_remainingSeconds);
+    final int elapsedMinutes = _elapsedMinutes();
     setState(() {
       _remainingSeconds = 0;
       _busy = true;
@@ -759,11 +811,12 @@ class _FocusTimerPageState extends State<_FocusTimerPage> {
   Future<void> _cancelFocus() async {
     if (_completed || _busy) return;
     _timer?.cancel();
+    final int elapsedMinutes = _elapsedMinutes();
     setState(() {
       _busy = true;
     });
     if (widget.onCanceled != null) {
-      await widget.onCanceled!();
+      await widget.onCanceled!(elapsedMinutes);
     }
     if (!mounted) return;
     Navigator.of(context).pop();
@@ -771,6 +824,7 @@ class _FocusTimerPageState extends State<_FocusTimerPage> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _timer?.cancel();
     super.dispose();
   }
@@ -852,9 +906,14 @@ class _FocusTimerPageState extends State<_FocusTimerPage> {
     return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 
-  int _elapsedMinutes(int remainingSeconds) {
-    final int durationSeconds = widget.durationMinutes * 60;
-    final int elapsedSeconds = durationSeconds - remainingSeconds;
+  int _computeRemainingSeconds({required DateTime now}) {
+    final int remaining = _expectedEndAt.difference(now).inSeconds;
+    if (remaining <= 0) return 0;
+    return remaining;
+  }
+
+  int _elapsedMinutes() {
+    final int elapsedSeconds = _durationSeconds - _remainingSeconds;
     if (elapsedSeconds <= 0) return 0;
     return elapsedSeconds ~/ 60;
   }

@@ -571,19 +571,19 @@ Etapas pequenas de implementacao:
 - [x] Bloquear retorno por back button/gesture durante sessao ativa.
 
 3. Etapa 6.10.3 - Seletor de duracao
-- [ ] Manter seletor em `bottom sheet` antes de iniciar foco.
-- [ ] Atualizar opcoes para `15`, `30` e `60` minutos.
+- [x] Manter seletor em `bottom sheet` antes de iniciar foco.
+- [x] Atualizar opcoes para `15`, `30` e `60` minutos.
 
 4. Etapa 6.10.4 - Timer e contagem real
-- [ ] Rodar timer com base no relogio real (persistindo comportamento em background/retorno ao app).
-- [ ] Exibir contador regressivo em `mm:ss` na page de foco.
-- [ ] Recalcular tempo restante corretamente ao voltar para o app.
+- [x] Rodar timer com base no relogio real (persistindo comportamento em background/retorno ao app).
+- [x] Exibir contador regressivo em `mm:ss` na page de foco.
+- [x] Recalcular tempo restante corretamente ao voltar para o app.
 
 5. Etapa 6.10.5 - Regras de concluir/cancelar
-- [ ] Manter regra atual de `Concluir agora` (tempo realmente decorrido).
-- [ ] Manter regra atual ao zerar contador (conclusao + resumo final).
-- [ ] Em `Cancelar`, somar tempo apenas quando houver `>= 1 minuto` decorrido.
-- [ ] Em `Cancelar` com `< 1 minuto`, nao somar tempo.
+- [x] Manter regra atual de `Concluir agora` (tempo realmente decorrido).
+- [x] Manter regra atual ao zerar contador (conclusao + resumo final).
+- [x] Em `Cancelar`, somar tempo apenas quando houver `>= 1 minuto` decorrido.
+- [x] Em `Cancelar` com `< 1 minuto`, nao somar tempo.
 
 6. Etapa 6.10.6 - UI dedicada e animacoes leves
 - [ ] Criar layout de foco dedicado com:

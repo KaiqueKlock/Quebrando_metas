@@ -151,9 +151,42 @@ class GoalActionsController
     return minutesToAccumulate;
   }
 
-  Future<void> cancelFocusSession(FocusSession session) async {
+  Future<int> cancelFocusSession(
+    FocusSession session, {
+    int? elapsedMinutes,
+  }) async {
     final FocusSession canceled = session.markCanceled();
-    await ref.read(goalsRepositoryProvider).saveFocusSession(canceled);
+    final repository = ref.read(goalsRepositoryProvider);
+    await repository.saveFocusSession(canceled);
+
+    final int minutesToAccumulate = _normalizeElapsedMinutes(
+      sessionDurationMinutes: canceled.durationMinutes,
+      elapsedMinutes: elapsedMinutes,
+    );
+    if (minutesToAccumulate < 1) {
+      return 0;
+    }
+
+    final List<ActionItem> actions = await repository.listActions(session.goalId);
+    ActionItem? currentAction;
+    for (final ActionItem action in actions) {
+      if (action.id == session.actionId) {
+        currentAction = action;
+        break;
+      }
+    }
+    if (currentAction == null) {
+      return 0;
+    }
+
+    final ActionItem focusedAction = currentAction.registerFocus(
+      durationMinutes: minutesToAccumulate,
+      startedAt: canceled.startedAt,
+      now: DateTime.now(),
+    );
+    await repository.updateAction(focusedAction);
+    await _reload();
+    return minutesToAccumulate;
   }
 
   Future<void> _reload() async {
