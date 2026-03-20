@@ -330,18 +330,28 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
+              insetPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
+              scrollable: true,
               title: Text(title),
-              content: TextField(
-                controller: controller,
-                autofocus: true,
-                maxLength: TitleValidator.maxLength,
-                inputFormatters: [
-                  LengthLimitingTextInputFormatter(TitleValidator.maxLength),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: controller,
+                    autofocus: true,
+                    maxLength: TitleValidator.maxLength,
+                    inputFormatters: [
+                      LengthLimitingTextInputFormatter(TitleValidator.maxLength),
+                    ],
+                    decoration: InputDecoration(
+                      labelText: 'Titulo da acao',
+                      errorText: errorText,
+                    ),
+                  ),
                 ],
-                decoration: InputDecoration(
-                  labelText: 'Titulo da acao',
-                  errorText: errorText,
-                ),
               ),
               actions: [
                 TextButton(

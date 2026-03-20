@@ -77,39 +77,42 @@ Future<void> showGoalFormDialog(
           }
 
           return AlertDialog(
+            insetPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
+            scrollable: true,
             title: Text(goal == null ? 'Nova Meta' : 'Editar Meta'),
-            content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: titleController,
-                    autofocus: true,
-                    maxLength: TitleValidator.maxLength,
-                    inputFormatters: [
-                      LengthLimitingTextInputFormatter(
-                        TitleValidator.maxLength,
-                      ),
-                    ],
-                    decoration: InputDecoration(
-                      labelText: 'Titulo',
-                      errorText: titleErrorText,
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: titleController,
+                  autofocus: true,
+                  maxLength: TitleValidator.maxLength,
+                  inputFormatters: [
+                    LengthLimitingTextInputFormatter(
+                      TitleValidator.maxLength,
                     ),
+                  ],
+                  decoration: InputDecoration(
+                    labelText: 'Titulo',
+                    errorText: titleErrorText,
                   ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: descriptionController,
-                    maxLength: descriptionMaxLength,
-                    maxLines: 3,
-                    inputFormatters: [
-                      LengthLimitingTextInputFormatter(descriptionMaxLength),
-                    ],
-                    decoration: const InputDecoration(
-                      labelText: 'Descricao (opcional)',
-                    ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: descriptionController,
+                  maxLength: descriptionMaxLength,
+                  maxLines: 3,
+                  inputFormatters: [
+                    LengthLimitingTextInputFormatter(descriptionMaxLength),
+                  ],
+                  decoration: const InputDecoration(
+                    labelText: 'Descricao (opcional)',
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
             actions: [
               TextButton(

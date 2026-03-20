@@ -1925,12 +1925,14 @@ void main() {
       tester.view.devicePixelRatio = 1.0;
       tester.view.physicalSize = const Size(900, 500);
       await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
 
       expect(find.text('Meta rotacao'), findsOneWidget);
       expect(find.text('Descricao rotacao'), findsOneWidget);
 
       tester.view.physicalSize = const Size(500, 900);
       await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
 
       await tester.tap(find.text('Salvar'));
       await tester.pumpAndSettle();
@@ -1938,6 +1940,51 @@ void main() {
       AppRouter.router.go(AppRoutes.goals);
       await tester.pumpAndSettle();
       expect(find.text('Meta rotacao'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'Keeps new action dialog stable after screen rotation',
+    (WidgetTester tester) async {
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(500, 900);
+
+      final DateTime now = DateTime(2026, 3, 20, 10);
+      final Goal goal = Goal(
+        id: 'goal-action-dialog-rotation',
+        title: 'Meta rotacao acao',
+        createdAt: now,
+        updatedAt: now,
+        completedActions: 0,
+        totalActions: 0,
+      );
+
+      await _pumpApp(
+        tester,
+        repository: FakeInMemoryGoalsRepository(initialGoals: <Goal>[goal]),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Meta rotacao acao'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(FloatingActionButton));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Nova acao'), findsOneWidget);
+      await tester.enterText(find.byType(TextField).first, 'Acao rotacao');
+      await tester.pump();
+
+      tester.view.physicalSize = const Size(900, 360);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Nova acao'), findsOneWidget);
+      expect(tester.takeException(), isNull);
     },
   );
 
