@@ -252,18 +252,18 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
 
     if (!mounted) return;
 
-    await showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => _FocusTimerDialog(
-        actionTitle: action.title,
-        goalTitle: goal.title,
-        durationMinutes: durationMinutes,
-        onCompleted: (elapsedMinutes) => controller.completeFocusSession(
-          session,
-          elapsedMinutes: elapsedMinutes,
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (context) => _FocusTimerPage(
+          actionTitle: action.title,
+          goalTitle: goal.title,
+          durationMinutes: durationMinutes,
+          onCompleted: (elapsedMinutes) => controller.completeFocusSession(
+            session,
+            elapsedMinutes: elapsedMinutes,
+          ),
+          onCanceled: () => controller.cancelFocusSession(session),
         ),
-        onCanceled: () => controller.cancelFocusSession(session),
       ),
     );
   }
@@ -692,8 +692,8 @@ class _FocusDurationButton extends StatelessWidget {
   }
 }
 
-class _FocusTimerDialog extends StatefulWidget {
-  const _FocusTimerDialog({
+class _FocusTimerPage extends StatefulWidget {
+  const _FocusTimerPage({
     required this.actionTitle,
     required this.goalTitle,
     required this.durationMinutes,
@@ -708,10 +708,10 @@ class _FocusTimerDialog extends StatefulWidget {
   final Future<void> Function()? onCanceled;
 
   @override
-  State<_FocusTimerDialog> createState() => _FocusTimerDialogState();
+  State<_FocusTimerPage> createState() => _FocusTimerPageState();
 }
 
-class _FocusTimerDialogState extends State<_FocusTimerDialog> {
+class _FocusTimerPageState extends State<_FocusTimerPage> {
   late int _remainingSeconds;
   Timer? _timer;
   bool _completed = false;
@@ -777,45 +777,72 @@ class _FocusTimerDialogState extends State<_FocusTimerDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Modo foco'),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Meta: ${widget.goalTitle}'),
-            const SizedBox(height: 4),
-            Text('Acao: ${widget.actionTitle}'),
-            const SizedBox(height: 16),
-            Center(
-              child: Text(
-                _formatDuration(_remainingSeconds),
-                style: Theme.of(context).textTheme.displaySmall,
-              ),
-            ),
-            if (_completed) ...[
-              const SizedBox(height: 12),
-              const Text('Foco concluido!'),
-              const SizedBox(height: 4),
-              Text('Tempo gasto: $_completedMinutes min'),
-            ],
-          ],
+    return WillPopScope(
+      onWillPop: () async => false,
+      child: Scaffold(
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          title: const Text('Modo foco'),
+        ),
+        body: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Meta: ${widget.goalTitle}'),
+                      const SizedBox(height: 4),
+                      Text('Acao: ${widget.actionTitle}'),
+                      const SizedBox(height: 24),
+                      Center(
+                        child: Text(
+                          _formatDuration(_remainingSeconds),
+                          style: Theme.of(context).textTheme.displaySmall,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      if (_completed) ...[
+                        const Text('Foco concluido!'),
+                        const SizedBox(height: 4),
+                        Text('Tempo gasto: $_completedMinutes min'),
+                      ],
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        bottomNavigationBar: SafeArea(
+          minimum: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          child: _completed
+              ? FilledButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Fechar'),
+                )
+              : Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: _busy ? null : _cancelFocus,
+                        child: const Text('Cancelar'),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: FilledButton(
+                        onPressed: _busy ? null : _handleCompleted,
+                        child: const Text('Concluir agora'),
+                      ),
+                    ),
+                  ],
+                ),
         ),
       ),
-      actions: [
-        if (!_completed)
-          TextButton(
-            onPressed: _busy ? null : _cancelFocus,
-            child: const Text('Cancelar'),
-          ),
-        FilledButton(
-          onPressed: _completed
-              ? () => Navigator.of(context).pop()
-              : (_busy ? null : _handleCompleted),
-          child: Text(_completed ? 'Fechar' : 'Concluir agora'),
-        ),
-      ],
     );
   }
 

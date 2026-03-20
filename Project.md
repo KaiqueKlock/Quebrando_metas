@@ -1,98 +1,98 @@
-# PROJECT.md - Quebrando Metas
+﻿# PROJECT.md - Quebrando Metas
 
-## 1. Visão do Produto
+## 1. VisÃ£o do Produto
 
-**Quebrando Metas** é um aplicativo mobile que ajuda o usuário a transformar objetivos grandes em pequenas ações executáveis, permitindo visualizar progresso e manter clareza sobre o próximo passo.
+**Quebrando Metas** Ã© um aplicativo mobile que ajuda o usuÃ¡rio a transformar objetivos grandes em pequenas aÃ§Ãµes executÃ¡veis, permitindo visualizar progresso e manter clareza sobre o prÃ³ximo passo.
 
-O objetivo central é reduzir a sensação de sobrecarga causada por metas grandes e abstratas, tornando o progresso visível, simples e motivador.
+O objetivo central Ã© reduzir a sensaÃ§Ã£o de sobrecarga causada por metas grandes e abstratas, tornando o progresso visÃ­vel, simples e motivador.
 
 ### Exemplo de Uso
 
 **Meta:**  
 Emagrecer
 
-**Ações:**
+**AÃ§Ãµes:**
 - Treinar 3 vezes por semana
-- Melhorar alimentação
+- Melhorar alimentaÃ§Ã£o
 - Dormir melhor
-- Reduzir açúcar
+- Reduzir aÃ§Ãºcar
 
-O usuário pode acompanhar o progresso de cada meta conforme conclui suas ações.
+O usuÃ¡rio pode acompanhar o progresso de cada meta conforme conclui suas aÃ§Ãµes.
 
 ## 2. Problema que o App Resolve
 
 Muitas pessoas:
 - Definem metas grandes
-- Não sabem por onde começar
-- Perdem motivação ao longo do caminho
+- NÃ£o sabem por onde comeÃ§ar
+- Perdem motivaÃ§Ã£o ao longo do caminho
 
 Isso acontece porque:
-- Metas são abstratas
-- Não existe divisão clara em pequenas ações
-- Progresso não é visível
+- Metas sÃ£o abstratas
+- NÃ£o existe divisÃ£o clara em pequenas aÃ§Ãµes
+- Progresso nÃ£o Ã© visÃ­vel
 
 O app resolve isso ao permitir:
-- Quebrar metas em ações pequenas
+- Quebrar metas em aÃ§Ãµes pequenas
 - Visualizar progresso
-- Manter foco na próxima ação
+- Manter foco na prÃ³xima aÃ§Ã£o
 
-## 3. Público-alvo (MVP)
+## 3. PÃºblico-alvo (MVP)
 
-Usuários que:
+UsuÃ¡rios que:
 - Querem organizar objetivos pessoais
-- Buscam melhorar hábitos
+- Buscam melhorar hÃ¡bitos
 - Gostam de ferramentas simples de produtividade
 
 ### Exemplos
 - Quem quer emagrecer
 - Quem quer estudar algo novo
 - Quem quer organizar projetos pessoais
-- Quem quer melhorar hábitos
+- Quem quer melhorar hÃ¡bitos
 
 ## 4. Escopo do MVP
 
-O MVP será **local-first**, sem backend.
+O MVP serÃ¡ **local-first**, sem backend.
 
 ### Funcionalidades do MVP
 
-Usuário pode:
+UsuÃ¡rio pode:
 - Criar uma meta
 - Editar uma meta
 - Excluir uma meta
-- Adicionar ações à meta
-- Editar ações
-- Excluir ações
-- Marcar ações como concluídas
+- Adicionar aÃ§Ãµes Ã  meta
+- Editar aÃ§Ãµes
+- Excluir aÃ§Ãµes
+- Marcar aÃ§Ãµes como concluÃ­das
 - Visualizar progresso da meta
 - Ver lista de metas ativas
 
 ## 5. Fora do Escopo do MVP
 
-Estas funcionalidades não fazem parte do MVP:
+Estas funcionalidades nÃ£o fazem parte do MVP:
 - Login
-- Sincronização em nuvem
-- Gamificação
+- SincronizaÃ§Ã£o em nuvem
+- GamificaÃ§Ã£o
 - Ranking
 - Compartilhamento social
-- Notificações inteligentes
-- Sugestão automática de ações com IA
+- NotificaÃ§Ãµes inteligentes
+- SugestÃ£o automÃ¡tica de aÃ§Ãµes com IA
 
-Essas ideias ficam para versões futuras.
+Essas ideias ficam para versÃµes futuras.
 
-## 6. Stack Tecnológica
+## 6. Stack TecnolÃ³gica
 
 Este projeto utiliza:
 - Flutter
 - Dart
 - Riverpod (gerenciamento de estado)
-- GoRouter (navegação)
-- Hive ou Isar (persistência local)
+- GoRouter (navegaÃ§Ã£o)
+- Hive ou Isar (persistÃªncia local)
 - `flutter_test`
 - `integration_test`
 
 ## 7. Estrutura do Projeto
 
-A estrutura segue organização por features.
+A estrutura segue organizaÃ§Ã£o por features.
 
 ```text
 lib/
@@ -123,7 +123,7 @@ Cada feature pode conter:
 - `domain`
 - `presentation`
 
-Mas abstrações desnecessárias devem ser evitadas no MVP.
+Mas abstraÃ§Ãµes desnecessÃ¡rias devem ser evitadas no MVP.
 
 ## 8. Modelo de Dados (MVP)
 
@@ -139,7 +139,7 @@ Campos:
 - `totalActions`
 - `progress` (derivado)
 
-### Action (Ação)
+### Action (AÃ§Ã£o)
 
 Campos:
 - `id`
@@ -160,92 +160,92 @@ progress = acoes_concluidas / total_de_acoes
 ```
 
 Exemplo:
-- 4 ações
-- 2 concluídas
+- 4 aÃ§Ãµes
+- 2 concluÃ­das
 - Progresso = 50%
 
-## 9. Fluxo Principal do Usuário
+## 9. Fluxo Principal do UsuÃ¡rio
 
-Fluxo básico do app:
-1. Usuário abre o app
+Fluxo bÃ¡sico do app:
+1. UsuÃ¡rio abre o app
 2. Visualiza lista de metas
 3. Cria uma nova meta
-4. Adiciona ações
-5. Marca ações como concluídas
+4. Adiciona aÃ§Ãµes
+5. Marca aÃ§Ãµes como concluÃ­das
 6. Visualiza progresso da meta
 
-Esse é o core loop do produto.
+Esse Ã© o core loop do produto.
 
-### 9.1 Especificação da Home (MVP)
+### 9.1 EspecificaÃ§Ã£o da Home (MVP)
 
 #### Topo
-- Saudação curta
+- SaudaÃ§Ã£o curta
 - Quantidade de metas ativas
-- Progresso médio das metas ativas
+- Progresso mÃ©dio das metas ativas
 
-Fórmula de progresso médio:
+FÃ³rmula de progresso mÃ©dio:
 
 ```text
 progresso_medio = soma(progress_das_metas) / quantidade_de_metas_ativas
 ```
 
 Regra para estado vazio:
-- Se não houver metas ativas, exibir `0 metas ativas` e `Progresso médio: 0%`
+- Se nÃ£o houver metas ativas, exibir `0 metas ativas` e `Progresso mÃ©dio: 0%`
 
 #### Card de destaque: Continue de onde parou
 - Exibe meta em andamento
 - Exibe progresso da meta
-- Exibe próxima ação pendente
-- Botão `Continuar`
+- Exibe prÃ³xima aÃ§Ã£o pendente
+- BotÃ£o `Continuar`
 
-Regra inicial de seleção da meta destacada:
+Regra inicial de seleÃ§Ã£o da meta destacada:
 - Escolher a primeira meta ativa da lista ordenada
-- Ordenação padrão da Home:
-- Primeiro metas com ações pendentes
+- OrdenaÃ§Ã£o padrÃ£o da Home:
+- Primeiro metas com aÃ§Ãµes pendentes
 - Depois metas com menor progresso
 - Em empate, meta mais antiga (`createdAt`)
 
-#### Seção: Suas metas
+#### SeÃ§Ã£o: Suas metas
 Cada card de meta deve mostrar:
 - Nome da meta
 - Barra de progresso
 - Percentual
-- `x de y ações concluídas`
-- Próxima ação pendente
+- `x de y aÃ§Ãµes concluÃ­das`
+- PrÃ³xima aÃ§Ã£o pendente
 
-#### Ação principal da tela
-- Botão flutuante: `+ Nova Meta`
+#### AÃ§Ã£o principal da tela
+- BotÃ£o flutuante: `+ Nova Meta`
 
-#### Estados obrigatórios da Home
+#### Estados obrigatÃ³rios da Home
 - `loading`
 - `withData`
 - `empty`
-- `error` (com ação de tentar novamente)
+- `error` (com aÃ§Ã£o de tentar novamente)
 
-#### Critérios de aceite da Home
-- Usuário entende em poucos segundos quantas metas ativas possui
-- Usuário visualiza progresso médio e progresso por meta
-- Usuário identifica a próxima ação a executar
-- Usuário consegue iniciar criação de meta pela ação principal
-- Interface mantém linguagem orientada a `ações`, nunca `etapas`
+#### CritÃ©rios de aceite da Home
+- UsuÃ¡rio entende em poucos segundos quantas metas ativas possui
+- UsuÃ¡rio visualiza progresso mÃ©dio e progresso por meta
+- UsuÃ¡rio identifica a prÃ³xima aÃ§Ã£o a executar
+- UsuÃ¡rio consegue iniciar criaÃ§Ã£o de meta pela aÃ§Ã£o principal
+- Interface mantÃ©m linguagem orientada a `aÃ§Ãµes`, nunca `etapas`
 
-### 9.2 Navegação inicial com GoRouter
+### 9.2 NavegaÃ§Ã£o inicial com GoRouter
 - O app usa `MaterialApp.router`
 - Rotas base:
 - `/` para Dashboard (Home)
 - `/onboarding` para Onboarding
 - Redirect inicial:
-- Se onboarding não concluído, abrir `/onboarding`
-- Se onboarding concluído, abrir `/`
-- No Sprint 0, a flag de onboarding pode ser mock/local até a persistência ser implementada
+- Se onboarding nÃ£o concluÃ­do, abrir `/onboarding`
+- Se onboarding concluÃ­do, abrir `/`
+- No Sprint 0, a flag de onboarding pode ser mock/local atÃ© a persistÃªncia ser implementada
 
-## 10. Princípios de Arquitetura
+## 10. PrincÃ­pios de Arquitetura
 
 ### 1. Simplicidade
 Evitar overengineering.
 
-### 2. Separação de responsabilidades
-Evitar lógica de negócio dentro de widgets.
+### 2. SeparaÃ§Ã£o de responsabilidades
+Evitar lÃ³gica de negÃ³cio dentro de widgets.
 
 ### 3. Widgets pequenos
 Preferir componentes como:
@@ -255,16 +255,16 @@ Preferir componentes como:
 - `GoalForm`
 
 ### 4. Feature-first
-Organizar código por feature, não por camada global.
+Organizar cÃ³digo por feature, nÃ£o por camada global.
 
-## 11. Regras de Código
+## 11. Regras de CÃ³digo
 
-Convenções:
-- Nomes em inglês
-- Variáveis descritivas
-- Métodos pequenos
+ConvenÃ§Ãµes:
+- Nomes em inglÃªs
+- VariÃ¡veis descritivas
+- MÃ©todos pequenos
 - Evitar widgets muito grandes
-- Evitar lógica complexa no `build()`
+- Evitar lÃ³gica complexa no `build()`
 
 Exemplo correto:
 - `GoalProgressCalculator`
@@ -274,35 +274,35 @@ Exemplo correto:
 Evitar:
 - `UtilsHelperServiceManager`
 
-## 12. Estratégia de Testes
+## 12. EstratÃ©gia de Testes
 
 ### Unit Tests
-Testar regras de negócio:
-- Cálculo de progresso
-- Validação de meta
-- Validação de ações
+Testar regras de negÃ³cio:
+- CÃ¡lculo de progresso
+- ValidaÃ§Ã£o de meta
+- ValidaÃ§Ã£o de aÃ§Ãµes
 
 ### Widget Tests
 Testar interface:
-- Renderização da lista
-- Formulário de criação
+- RenderizaÃ§Ã£o da lista
+- FormulÃ¡rio de criaÃ§Ã£o
 - Barra de progresso
 
 ### Integration Tests
-Fluxo mínimo:
+Fluxo mÃ­nimo:
 - Criar meta
-- Adicionar ações
-- Concluir ação
+- Adicionar aÃ§Ãµes
+- Concluir aÃ§Ã£o
 - Progresso atualizado
 
-## 13. Critérios de Pronto
+## 13. CritÃ©rios de Pronto
 
-Uma feature é considerada pronta quando:
+Uma feature Ã© considerada pronta quando:
 - Funciona corretamente
-- Não quebra análise estática
+- NÃ£o quebra anÃ¡lise estÃ¡tica
 - Possui testes adequados
-- Segue padrão do projeto
-- Não adiciona complexidade desnecessária
+- Segue padrÃ£o do projeto
+- NÃ£o adiciona complexidade desnecessÃ¡ria
 
 ## 14. Workflow de Desenvolvimento
 
@@ -312,33 +312,33 @@ Cada feature segue:
 3. Implementar em pequenos blocos
 4. Testar
 5. Revisar arquitetura
-6. Atualizar `PROJECT.md` se necessário
+6. Atualizar `PROJECT.md` se necessÃ¡rio
 7. Commit pequeno
 
 ## 15. Uso da IA no Projeto
 
-A IA atua como par de programação.
+A IA atua como par de programaÃ§Ã£o.
 
 Pode ajudar com:
 - Boilerplate
 - Widgets
 - Testes
 - Refactors
-- Análise de código
+- AnÃ¡lise de cÃ³digo
 
-Não deve decidir sozinha:
+NÃ£o deve decidir sozinha:
 - Arquitetura grande
-- Mudanças de stack
+- MudanÃ§as de stack
 - Escopo do produto
 
-## 16. Regras para Interação com IA
+## 16. Regras para InteraÃ§Ã£o com IA
 
 Sempre pedir:
 - Plano curto
 - Arquivos a alterar
 - Modelo de dados
-- Testes necessários
-- Ordem de implementação
+- Testes necessÃ¡rios
+- Ordem de implementaÃ§Ã£o
 
 Evitar pedidos como:
 - "Crie o app inteiro"
@@ -346,7 +346,7 @@ Evitar pedidos como:
 Preferir:
 - "Vamos implementar a feature X em pequenos passos"
 
-## 17. Estratégia de Branches
+## 17. EstratÃ©gia de Branches
 
 Branches principais:
 - `main`
@@ -357,7 +357,7 @@ Branches de feature:
 - `feature/goal-actions`
 - `feature/goal-progress`
 
-## 18. Convenção de Commits - pode ser em portugues
+## 18. ConvenÃ§Ã£o de Commits - pode ser em portugues
 
 - `feat: add goal creation flow`
 - `feat: implement goal actions`
@@ -367,42 +367,42 @@ Branches de feature:
 
 ## 19. Roadmap do MVP
 
-### Sprint 0 - Fundação
-- Status: Concluído em 11/03/2026
-- Criar projeto ✅
-- Configurar estrutura ✅
-- Criar `PROJECT.md` ✅
-- Configurar router ✅
-- Criar home inicial ✅
+### Sprint 0 - FundaÃ§Ã£o
+- Status: ConcluÃ­do em 11/03/2026
+- Criar projeto âœ…
+- Configurar estrutura âœ…
+- Criar `PROJECT.md` âœ…
+- Configurar router âœ…
+- Criar home inicial âœ…
 
 Entregas registradas:
 - Estrutura base `app/core/features` criada
-- Navegação inicial com `GoRouter` configurada
+- NavegaÃ§Ã£o inicial com `GoRouter` configurada
 - Home MVP inicial implementada (topo, destaque, lista e CTA principal)
 
 ### Sprint 1 - Metas
-- Status: Concluído em 11/03/2026
-- Lista de metas ✅
-- Criar meta ✅ (fluxo inicial)
-- Editar meta ✅
-- Excluir meta ✅ 
-- Persistência local ✅ (metas com Hive)
+- Status: ConcluÃ­do em 11/03/2026
+- Lista de metas âœ…
+- Criar meta âœ… (fluxo inicial)
+- Editar meta âœ…
+- Excluir meta âœ… 
+- PersistÃªncia local âœ… (metas com Hive)
 
-### Sprint 2 - Ações
-- Status: Concluído em 11/03/2026
-- Adicionar ações ✅
-- Listar ações ✅
-- Editar ações ✅
-- Excluir ações ✅
+### Sprint 2 - AÃ§Ãµes
+- Status: ConcluÃ­do em 11/03/2026
+- Adicionar aÃ§Ãµes âœ…
+- Listar aÃ§Ãµes âœ…
+- Editar aÃ§Ãµes âœ…
+- Excluir aÃ§Ãµes âœ…
 
 
 ### Sprint 3 - Progresso
-- Status: Concluído em 12/03/2026
-- Concluir ações ✅
-- Calcular progresso ✅
-- Exibir progresso ✅
-- Metas -> retorno da tela de meta sem estado "Tentar novamente" ✅ (teste com 10 ciclos de ida e volta)
-- Ações e Metas -> input extremo tratado com `inputFormatter` + `validator` + feedback visual ✅
+- Status: ConcluÃ­do em 12/03/2026
+- Concluir aÃ§Ãµes âœ…
+- Calcular progresso âœ…
+- Exibir progresso âœ…
+- Metas -> retorno da tela de meta sem estado "Tentar novamente" âœ… (teste com 10 ciclos de ida e volta)
+- AÃ§Ãµes e Metas -> input extremo tratado com `inputFormatter` + `validator` + feedback visual âœ…
 
 ### Sprint 4 - Polimento
 - Status: Concluido em 18/03/2026
@@ -475,7 +475,7 @@ Etapas pequenas de implementacao:
 - [ ] Ao cancelar, o tempo acumulado conta se for a partir de 5 minutos de foco. 
 
 5. Etapa 5.5 - Conclusao manual da acao
-- [x] Implementar conclusao manual por gesto (ex: swipe lateral). remover bolinha de seleção e manter a seleção onde hoje é a conclusão da ação. Conclusão passa a ser por swipe lateral.
+- [x] Implementar conclusao manual por gesto (ex: swipe lateral). remover bolinha de seleÃ§Ã£o e manter a seleÃ§Ã£o onde hoje Ã© a conclusÃ£o da aÃ§Ã£o. ConclusÃ£o passa a ser por swipe lateral.
 - [x] Registrar `completedAt` na acao ao concluir.
 - [x] Recalcular progresso da meta apos conclusao.
 
@@ -558,29 +558,71 @@ Etapas pequenas de implementacao:
 - [x] Reduzir o botao Continuar e posicionar ao lado da informacao de acao.
 - [x] Restaurar exibicao das 3 metas prioritarias no fluxo principal, mantendo a regra de prioridade existente.
 
-10. Etapa 6.10 - Tela do Modo Foco
-- Escopo em definicao (sem tasks ativas no momento).
+10. Etapa 6.10 - Novo Modo Foco (mini tarefas)
+
+1. Etapa 6.10.1 - Entrada no foco e navegacao
+- [x] Manter inicio do foco em `GoalActionsPage` pelo botao fixo inferior `Iniciar foco`.
+- [x] Manter habilitacao do botao apenas com 1 acao selecionada e pendente.
+- [x] Migrar experiencia de foco de `AlertDialog` para `Page` dedicada.
+
+2. Etapa 6.10.2 - Regras de bloqueio de saida
+- [x] Bloquear qualquer saida da page de foco enquanto a sessao estiver ativa.
+- [x] Permitir sair da page apenas pelos botoes `Cancelar` (durante foco) e `Fechar` (apos conclusao).
+- [x] Bloquear retorno por back button/gesture durante sessao ativa.
+
+3. Etapa 6.10.3 - Seletor de duracao
+- [ ] Manter seletor em `bottom sheet` antes de iniciar foco.
+- [ ] Atualizar opcoes para `15`, `30` e `60` minutos.
+
+4. Etapa 6.10.4 - Timer e contagem real
+- [ ] Rodar timer com base no relogio real (persistindo comportamento em background/retorno ao app).
+- [ ] Exibir contador regressivo em `mm:ss` na page de foco.
+- [ ] Recalcular tempo restante corretamente ao voltar para o app.
+
+5. Etapa 6.10.5 - Regras de concluir/cancelar
+- [ ] Manter regra atual de `Concluir agora` (tempo realmente decorrido).
+- [ ] Manter regra atual ao zerar contador (conclusao + resumo final).
+- [ ] Em `Cancelar`, somar tempo apenas quando houver `>= 1 minuto` decorrido.
+- [ ] Em `Cancelar` com `< 1 minuto`, nao somar tempo.
+
+6. Etapa 6.10.6 - UI dedicada e animacoes leves
+- [ ] Criar layout de foco dedicado com:
+  - nome da meta,
+  - nome da acao,
+  - timer,
+  - botoes `Cancelar` / `Concluir agora` / `Fechar` (estado final).
+- [ ] No estado concluido, exibir `Foco concluido!` + `Tempo gasto: X min`.
+- [ ] Aplicar animacoes leves:
+  - entrada da tela (fade + slide curto),
+  - pulso suave no contador,
+  - transicao visual no estado concluido.
+
+7. Etapa 6.10.7 - Testes e regressao
+- [ ] Atualizar widget tests para o novo fluxo em page dedicada.
+- [ ] Cobrir bloqueio de saida por back/gesture.
+- [ ] Cobrir timer com base em relogio real no retorno de background.
+- [ ] Cobrir cancelamento com `< 1 min` (nao soma) e `>= 1 min` (soma).
 
 ### Sprint 7 - Release MVP
 - Testes finais
-- Revisão
+- RevisÃ£o
 - Build release
 - Roadmap V2
 
-## Decisões técnicas (12/03/2026)
+## DecisÃµes tÃ©cnicas (12/03/2026)
 
-- Navegação de edição/ações de metas refatorada para `goalId` em path params, removendo dependência de `state.extra`.
+- NavegaÃ§Ã£o de ediÃ§Ã£o/aÃ§Ãµes de metas refatorada para `goalId` em path params, removendo dependÃªncia de `state.extra`.
 - Estado de onboarding movido para storage local com Hive + `ChangeNotifier` (`refreshListenable` no `GoRouter`).
-- Persistência local tipada com `Map<String, dynamic>` em mappers e repositório.
-- Home ajustada para considerar apenas metas ativas no topo e no progresso médio.
-- Fluxo de ações estabilizado com atualização explícita da Home após mutações.
-- Validação centralizada por `TitleValidator` com limite de caracteres também no input (`LengthLimitingTextInputFormatter`).
-- Tratamento de erro de UI padronizado com `SnackBar` em criação/edição de metas e ações.
+- PersistÃªncia local tipada com `Map<String, dynamic>` em mappers e repositÃ³rio.
+- Home ajustada para considerar apenas metas ativas no topo e no progresso mÃ©dio.
+- Fluxo de aÃ§Ãµes estabilizado com atualizaÃ§Ã£o explÃ­cita da Home apÃ³s mutaÃ§Ãµes.
+- ValidaÃ§Ã£o centralizada por `TitleValidator` com limite de caracteres tambÃ©m no input (`LengthLimitingTextInputFormatter`).
+- Tratamento de erro de UI padronizado com `SnackBar` em criaÃ§Ã£o/ediÃ§Ã£o de metas e aÃ§Ãµes.
 - Cobertura de testes ampliada para:
-- usuário com histórico longo (10 metas concluídas + 5 ativas)
-- CRUD de ações,
-- input extremo (título e descrição longos),
-- estabilidade no retorno da tela de ações (10 ciclos sem estado de retry).
+- usuÃ¡rio com histÃ³rico longo (10 metas concluÃ­das + 5 ativas)
+- CRUD de aÃ§Ãµes,
+- input extremo (tÃ­tulo e descriÃ§Ã£o longos),
+- estabilidade no retorno da tela de aÃ§Ãµes (10 ciclos sem estado de retry).
 
 ### Atualizacao tecnica (13/03/2026)
 
@@ -639,7 +681,7 @@ Etapas pequenas de implementacao:
 - Etapa 5.5 concluida:
   - conclusao manual da acao migrou para gesto de `swipe` lateral;
   - controle de selecao para foco foi reposicionado para a area da antiga conclusao;
-  - `completedAt` e recálculo de progresso seguem pelo fluxo de atualizacao da acao;
+  - `completedAt` e recÃ¡lculo de progresso seguem pelo fluxo de atualizacao da acao;
   - testes de widget atualizados para validar conclusao por `swipe`.
 - Etapa 5.6 concluida:
   - streak passa a ser calculada por dias com inicio de foco (`startedAt`);
@@ -754,29 +796,29 @@ Etapas pequenas de implementacao:
 - Cobertura de testes ampliada:
   - novo teste de centralizacao do header;
   - novo teste da tela de meta para garantir descricao acima do progresso e ausencia do chevron.
-## 20. Visão de Evolução (Pós-MVP)
+## 20. VisÃ£o de EvoluÃ§Ã£o (PÃ³s-MVP)
 
-Possíveis evoluções:
-- Sincronização na nuvem
-- Conta do usuário
+PossÃ­veis evoluÃ§Ãµes:
+- SincronizaÃ§Ã£o na nuvem
+- Conta do usuÃ¡rio
 - Metas compartilhadas
-- Gamificação
+- GamificaÃ§Ã£o
 - IA sugerindo planos
-- Análise de hábitos
+- AnÃ¡lise de hÃ¡bitos
 
 ## 21. Filosofia do Projeto
 
-### 1. Entregar valor rápido
+### 1. Entregar valor rÃ¡pido
 Pequenas releases funcionais.
 
 ### 2. Simplicidade acima de complexidade
 O MVP deve ser simples.
 
-### 3. Aprendizado através da construção
-Evoluir como desenvolvedor enquanto constrói um produto real.
+### 3. Aprendizado atravÃ©s da construÃ§Ã£o
+Evoluir como desenvolvedor enquanto constrÃ³i um produto real.
 
 ## 22. Regra Final do Projeto
 
-Se uma decisão aumentar muito a complexidade do projeto sem aumentar o valor para o usuário, ela deve ser evitada.
+Se uma decisÃ£o aumentar muito a complexidade do projeto sem aumentar o valor para o usuÃ¡rio, ela deve ser evitada.
 
 
