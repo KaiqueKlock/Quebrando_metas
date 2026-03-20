@@ -79,86 +79,83 @@ O aplicativo funciona inicialmente de forma **local-first**, sem backend ou sinc
 
 ---
 
-### Nova Feature Planejada - Modo Foco (Sprint 5)
+### Modo Foco (Sprint 5 - Entregue)
 
-O proximo passo do produto e integrar um fluxo de **Modo Foco** (inspirado em Pomodoro) diretamente nas acoes das metas.
+O fluxo de Modo Foco foi implementado e esta integrado na tela de acoes da meta.
 
 ## Objetivo
 
-Permitir que o usuario execute uma acao com timer e registrar tempo real de dedicacao, criando historico de esforco e consistencia.
+Registrar tempo real investido em cada acao e refletir isso em progresso de consistencia (streak) e metricas de tempo.
 
-## Fluxo esperado
+## Fluxo atual
 
-1. O usuario seleciona uma acao e inicia foco.
-2. Escolhe a duracao (15, 25 ou 45 minutos).
-3. Durante foco, visualiza:
-- nome da meta
-- nome da acao
-- tempo restante
-- botao para cancelar
-4. Ao terminar, o app:
-- registra a sessao de foco
-- incrementa tempo acumulado da acao
-- atualiza tempo total agregado da meta
-5. A acao **nao** e concluida automaticamente. Conclusao continua manual pelo usuario.
+1. Usuario seleciona uma acao pendente.
+2. Toca em `Iniciar foco`.
+3. Escolhe a duracao (`15`, `30` ou `60` minutos) em bottom sheet.
+4. App abre uma page dedicada de foco com:
+- titulo da acao e nome da meta
+- contador regressivo `mm:ss`
+- progresso circular regressivo (de 100% para 0%)
+- botoes `Cancelar` e `Concluir agora`
+5. Ao concluir:
+- sessao e registrada como `completed`
+- minutos reais decorridos sao acumulados na acao/meta
+- acao **nao** e concluida automaticamente
+6. Ao cancelar:
+- sessao e registrada como `canceled`
+- soma minutos apenas com `>= 1 min`
+- com `< 1 min`, nao soma tempo
 
-## Regra oficial de streak
+## Regras oficiais
 
-- O streak conta **somente** quando o usuario inicia foco em uma acao.
+- Streak conta somente quando usuario inicia foco.
 - Conclusao manual da acao nao incrementa streak.
-- Se passar 1 dia sem iniciar foco, streak zera.
-
-## Resultado esperado da feature
-
-- Progresso mais visivel (tempo por acao e por meta)
-- Melhor consistencia de execucao diaria (streak)
-- Fluxo natural de uso, sem excesso de cliques
+- Quebra de 1 dia sem inicio de foco zera streak atual.
+- `Concluir agora` habilita somente apos `>= 5` minutos decorridos.
+- Navegacao de retorno/gesture e bloqueada durante foco ativo; saida apenas por `Cancelar` ou `Fechar`.
 
 ---
 
 ### Sprint 6 - UI/UX Definitiva (Em andamento)
 
-Documentacao resumida do que ja foi entregue e do que falta para encerrar o Sprint 6.
+Resumo do estado atual (atualizado em 20/03/2026).
 
 ## Etapas concluidas
 
 1. Etapa 6.1 - Consolidacao da navegacao principal
-- [x] App voltou para 1 experiencia principal de Home.
-- [x] Rotas existentes foram preservadas para compatibilidade (`/` e `/goals`).
-- [x] Fluxo de criacao de meta por FAB foi mantido.
+- [x] App voltou para 1 experiencia principal.
+- [x] Compatibilidade mantida com `/` e `/goals` (mesmo layout da home).
+- [x] FAB de criacao preservado.
 
 2. Etapa 6.2 - Refactor visual da Home
-- [x] Cabecalho com saudacao e chips de metricas (streak e horas investidas).
-- [x] Card `CONTINUE DE ONDE PAROU` com progresso linear, proxima acao e CTA.
-- [x] Secao `Suas Metas` com cards mais limpos, percentual e barra de progresso.
-- [x] Estado vazio amigavel sem quebrar o fluxo.
+- [x] Header centralizado com `Ola!`, streak e horas investidas.
+- [x] Card `CONTINUE DE ONDE PAROU` com ate 3 metas prioritarias.
+- [x] Regra de `Proxima acao` baseada em menor `totalFocusMinutes` (desempate por `order`).
+- [x] Secao `Suas Metas` compacta, limpa e com progresso linear.
 
 3. Etapa 6.3 - Refactor visual do detalhe da meta
-- [x] Topo simplificado com foco em legibilidade.
-- [x] Progresso da meta exibido apenas com indicador linear + percentual.
-- [x] Informacoes principais da meta (titulo, descricao, tempo total e sequencia).
-- [x] Lista direta de acoes, sem introduzir conceito de `Etapas`.
+- [x] Layout sem `Etapas`.
+- [x] Descricao da meta acima do bloco de progresso linear.
+- [x] FAB de nova acao em icone-only.
+- [x] Lista direta de acoes com foco no fluxo de execucao.
 
-4. Etapa 6.4 - Estabilidade da UI
-- [x] Ajustes responsivos para telas menores.
-- [x] Correcao de cenarios de overflow em fluxos criticos.
+4. Etapa 6.4 - Responsividade e robustez
+- [x] Ajustes para telas pequenas e cenarios de overflow.
+- [x] Cobertura para overflow no fluxo de foco e conclusao de foco.
 
-5. Etapa 6.5 - Testes
-- [x] Widget tests readaptados para a nova estrutura visual.
-- [x] Finders e seletores atualizados para os novos layouts/componentes.
-- [x] Suite completa validada com sucesso (`flutter test -r compact`).
+5. Etapa 6.5 - Testes e cobertura visual
+- [x] Widget tests readaptados para nova UI.
+- [x] Finders/keys atualizados para foco, prioridade e navegacao.
+- [x] Golden tests ativos:
+  - `test/goldens/dashboard_home_sprint6.png`
+  - `test/goldens/goal_detail_sprint6.png`
 
-## Pendencias para finalizar o Sprint 6
+6. Etapa 6.6 - Fechamento documental
+- [x] `Project.md` e `README.md` sincronizados com regras e estado atual.
 
-1. Etapa 6.4 (fechamento visual)
-- [ ] Revisao final de UI em breakpoints extremos (muito pequeno e tablet).
+## Pendencias abertas
 
-2. Etapa 6.5 (ampliacao de cobertura visual)
-- [ ] Adicionar/atualizar golden tests da Home e do detalhe da meta.
-
-3. Etapa 6.6 (documentacao final)
-- [ ] Consolidar no README capturas finais da UI (antes/depois ou versao final).
-- [ ] Revisar texto de produto para refletir oficialmente a UX final do Sprint 6.
+1. Revisao visual final em breakpoints extremos (muito pequeno e tablet).
 
 ---
 
@@ -226,18 +223,34 @@ A organização do projeto é orientada por funcionalidades em vez de camadas gl
 A interface é construída utilizando widgets pequenos e reutilizáveis.
 
 ---
-# Decisões Técnicas
+# Decisoes Tecnicas
 
-Decisões atuais de arquitetura e implementação (alinhadas ao `Project.md`):
+Decisoes atuais de arquitetura e implementacao (alinhadas ao `Project.md`):
 
-- Navegação de metas e ações por `goalId` em path params, sem depender de `state.extra`.
-- Estado de onboarding persistido localmente com Hive e aplicado no redirect via `refreshListenable` do GoRouter.
-- Persistência local tipada com `Map<String, dynamic>` na camada de dados.
-- Progresso de meta derivado de ações concluídas (`completedActions / totalActions`), sem edição manual de progresso.
-- Home com foco em metas ativas (contagem e progresso médio considerando apenas metas não concluídas).
-- Validação centralizada de título com `TitleValidator`, incluindo bloqueio de entrada com `LengthLimitingTextInputFormatter`.
-- Tratamento de erros de UI com feedback visual (`SnackBar`) em criação/edição/exclusão.
-- Cobertura de testes ampliada para cenários de uso real (histórico longo, CRUD de ações, input extremo e estabilidade de navegação).
+- Navegacao de metas e acoes por `goalId` em path params, sem dependencia de `state.extra`.
+- Onboarding persistido localmente em Hive e aplicado no redirect do GoRouter (`refreshListenable`).
+- Persistencia local em Hive com mappers tipados (`Map<String, dynamic>`), incluindo metas, acoes, sessoes de foco e estatisticas de streak.
+- Home unificada: rota `/goals` mantida por compatibilidade, reutilizando `DashboardPage`.
+- Prioridades de metas com regra 0..3:
+  - apenas metas ativas podem ser priorizadas;
+  - normalizacao automatica de ranking;
+  - card `Continue de onde parou` exibe ate 3 prioridades.
+- Regra da `Proxima acao` no card de destaque:
+  - acao pendente com menor `totalFocusMinutes`;
+  - em empate, menor `order`.
+- Modo foco em page dedicada:
+  - duracoes `15/30/60`;
+  - timer por relogio real (recalcula ao voltar de background);
+  - bloqueio de saida via back/gesture durante sessao ativa.
+- Regras finais do foco:
+  - `Concluir agora` habilita apos `>= 5 min`;
+  - `Cancelar` acumula apenas com `>= 1 min`;
+  - concluir foco nao conclui acao automaticamente.
+- Conclusao manual de acao por `swipe`, bloqueada sem foco registrado (`Sem tempo gasto na acao.`).
+- Tema com Drawer de aparencia:
+  - alternancia claro/escuro por icone unico;
+  - selecao de cor principal com filtro WCAG.
+- Estrategia de testes combinando unit, widget e golden tests para cobertura de regra e regressao visual.
 
 ---
 # Testes
@@ -299,6 +312,7 @@ O projeto também funciona como um laboratório de aprendizado prático em desen
 # Autor
 
 Projeto desenvolvido por **Kaique Klock**
+
 
 
 

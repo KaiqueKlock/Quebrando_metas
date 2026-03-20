@@ -440,10 +440,10 @@ Entregas registradas:
 
 
 ### Sprint 5 - Modo Foco (Pomodoro)
-- Status: Em andamento (atualizado em 18/03/2026 - etapas 5.1 a 5.4 concluidas, com 1 regra pendente de cancelamento)
+- Status: Concluido (atualizado em 20/03/2026)
 
 Referencia funcional detalhada:
-- Ver `README.md` -> `Nova Feature Planejada - Modo Foco (Sprint 5)`
+- Ver `README.md` -> `Modo Foco (Sprint 5 - Entregue)`
 
 Regra oficial de streak:
 - O streak conta somente quando o usuario inicia foco em uma acao.
@@ -459,20 +459,20 @@ Etapas pequenas de implementacao:
 
 2. Etapa 5.2 - Fluxo de inicio do foco
 - [x] Habilitar CTA `Iniciar foco` ao selecionar uma acao.
-- [x] Permitir escolher duracao pre-definida (15, 25, 45 minutos).
+- [x] Permitir escolher duracao pre-definida (15, 30, 60 minutos).
 - [x] Iniciar timer em tela dedicada/modal com estado reativo.
 
 3. Etapa 5.3 - Tela durante foco
 - [x] Exibir nome da meta, nome da acao, tempo restante e botao de cancelar.
 - [x] Manter experiencia direta, sem exigir navegacao extra.
-- [x] Em cancelamento, registrar sessao cancelada sem somar tempo acumulado.
+- [x] Em cancelamento, registrar sessao cancelada e aplicar regra de acumulacao real de tempo.
 
 4. Etapa 5.4 - Finalizacao do foco
 - [x] Ao concluir timer, registrar sessao concluida e mostra tempo gasto.
 - [x] Incrementar automaticamente `totalFocusMinutes` da acao.
 - [x] Atualizar agregado de tempo da meta (soma das acoes da meta).
 - [x] Nao concluir acao automaticamente.
-- [ ] Ao cancelar, o tempo acumulado conta se for a partir de 5 minutos de foco. 
+- [x] Ao cancelar, o tempo acumulado conta somente com `>= 1 minuto` de foco; abaixo disso nao soma. 
 
 5. Etapa 5.5 - Conclusao manual da acao
 - [x] Implementar conclusao manual por gesto (ex: swipe lateral). remover bolinha de seleÃ§Ã£o e manter a seleÃ§Ã£o onde hoje Ã© a conclusÃ£o da aÃ§Ã£o. ConclusÃ£o passa a ser por swipe lateral.
@@ -498,7 +498,7 @@ Etapas pequenas de implementacao:
 
 
 ### Sprint 6  - UI/UX Definitiva
-- Status: Em andamento (atualizado em 19/03/2026)
+- Status: Em andamento (atualizado em 20/03/2026)
 
 Objetivo do sprint:
 - Consolidar a UX principal em 1 home, com layout moderno/clean.
@@ -537,7 +537,7 @@ Etapas pequenas de implementacao:
 
 6. Etapa 6.6 - Fechamento documental
 - [x] Registrar entregas e estado do sprint no Project.md.
-- [ ] Sincronizar README.md com a UI final do Sprint 6 (estrutura e imagens de referencia do resultado).
+- [x] Sincronizar README.md com a UI final do Sprint 6 (estrutura, regras e estado atual de testes).
 
 7. Etapa 6.7 - Diagnostico e regras de exibicao
 - [x] Verificar e documentar a regra atual de exibicao da Proxima acao no card Continue de onde parou.
@@ -591,7 +591,7 @@ Etapas pequenas de implementacao:
   - nome da acao,
   - timer,
   - botoes `Cancelar` / `Concluir agora` / `Fechar` (estado final).
-- [x] No estado concluido, exibir `Parabéns, foco concluido!` + `Tempo gasto: X min`.
+- [x] No estado concluido, exibir `Sessao concluida` + `Tempo investido: X min`.
 - [x] Aplicar animacoes leves:
   - entrada da tela (fade + slide curto),
   - pulso suave no contador,
@@ -796,6 +796,31 @@ Etapas pequenas de implementacao:
 - Cobertura de testes ampliada:
   - novo teste de centralizacao do header;
   - novo teste da tela de meta para garantir descricao acima do progresso e ausencia do chevron.
+
+### Atualizacao tecnica (20/03/2026 - Consolidacao do estado atual)
+
+- Home consolidada em 1 experiencia real:
+  - rota `/goals` mantida por compatibilidade, apontando para o mesmo layout de `DashboardPage`.
+- Regra final do card `Continue de onde parou` estabilizada:
+  - exibe ate 3 metas prioritarias (`priorityRank`) em ordem de prioridade;
+  - regra de `Proxima acao` usa pendente com menor `totalFocusMinutes`;
+  - em empate, usa menor `order`.
+- Modo foco consolidado em page dedicada com bloqueio de saida:
+  - back button/gesture bloqueados durante sessao ativa;
+  - saida permitida apenas por `Cancelar` (durante foco) e `Fechar` (apos concluir).
+- Regras finais de foco documentadas conforme implementacao atual:
+  - duracoes disponiveis: `15`, `30`, `60` minutos;
+  - contador baseado em relogio real com recalculo no retorno de background;
+  - `Concluir agora` habilita somente apos `>= 5` minutos decorridos;
+  - `Cancelar` acumula tempo somente com `>= 1` minuto (menos que isso nao soma);
+  - ao cancelar depois de mais de 2 minutos, UI informa minutos contabilizados.
+- Refinos de UI da Home aplicados no card `Continue de onde parou`:
+  - titulo com maior destaque tipografico;
+  - menor espacamento vertical entre cards priorizados;
+  - menor padding lateral do card de fundo para ampliar largura util dos cards internos.
+- Testes seguem cobrindo as regras acima:
+  - widget tests para prioridade (0..3), regra da proxima acao, foco, bloqueio de navegacao e overflows;
+  - golden tests da Home e detalhe da meta (`test/ui_golden_test.dart`).
 ## 20. VisÃ£o de EvoluÃ§Ã£o (PÃ³s-MVP)
 
 PossÃ­veis evoluÃ§Ãµes:
