@@ -1064,16 +1064,24 @@ class _FocusTimerPageState extends State<_FocusTimerPage>
                                       alignment: Alignment.center,
                                       children: [
                                         SizedBox.expand(
-                                          child: CircularProgressIndicator(
-                                            value: _sessionProgress(),
-                                            strokeWidth: 6,
-                                            backgroundColor: colorScheme
-                                                .outlineVariant
-                                                .withValues(alpha: 0.6),
-                                            valueColor:
-                                                AlwaysStoppedAnimation<Color>(
-                                                  _progressColor(colorScheme),
-                                                ),
+                                          child: Transform(
+                                            alignment: Alignment.center,
+                                            transform: Matrix4.diagonal3Values(
+                                              -1,
+                                              1,
+                                              1,
+                                            ),
+                                            child: CircularProgressIndicator(
+                                              value: _sessionProgress(),
+                                              strokeWidth: 6,
+                                              backgroundColor: colorScheme
+                                                  .outlineVariant
+                                                  .withValues(alpha: 0.6),
+                                              valueColor:
+                                                  AlwaysStoppedAnimation<Color>(
+                                                    _progressColor(colorScheme),
+                                                  ),
+                                            ),
                                           ),
                                         ),
                                         AnimatedScale(
