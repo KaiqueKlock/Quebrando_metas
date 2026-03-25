@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:quebrando_metas/core/utils/line_limit_text_input_formatter.dart';
 import 'package:quebrando_metas/features/goals/domain/goal.dart';
 import 'package:quebrando_metas/features/goals/domain/title_validator.dart';
 import 'package:quebrando_metas/features/goals/presentation/goals_controller.dart';
@@ -10,7 +11,7 @@ Future<void> showGoalFormDialog(
   WidgetRef ref, {
   Goal? goal,
 }) async {
-  const int descriptionMaxLength = 240;
+  const int descriptionMaxLength = 150;
   final TextEditingController titleController = TextEditingController(
     text: goal?.title ?? '',
   );
@@ -127,9 +128,10 @@ Future<void> showGoalFormDialog(
                     TextField(
                       controller: descriptionController,
                       maxLength: descriptionMaxLength,
-                      maxLines: 3,
+                      maxLines: 5,
                       inputFormatters: [
                         LengthLimitingTextInputFormatter(descriptionMaxLength),
+                        const LineLimitTextInputFormatter(maxLines: 5),
                       ],
                       decoration: const InputDecoration(
                         labelText: 'Descricao (opcional)',

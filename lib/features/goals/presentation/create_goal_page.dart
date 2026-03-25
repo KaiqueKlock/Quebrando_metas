@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:quebrando_metas/core/utils/line_limit_text_input_formatter.dart';
 import 'package:quebrando_metas/features/goals/domain/goal.dart';
 import 'package:quebrando_metas/features/goals/domain/title_validator.dart';
 import 'package:quebrando_metas/features/goals/presentation/goals_controller.dart';
@@ -18,7 +19,7 @@ class CreateGoalPage extends ConsumerStatefulWidget {
 }
 
 class _CreateGoalPageState extends ConsumerState<CreateGoalPage> {
-  static const int _descriptionMaxLength = 240;
+  static const int _descriptionMaxLength = 150;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
@@ -146,8 +147,11 @@ class _CreateGoalPageState extends ConsumerState<CreateGoalPage> {
                                   LengthLimitingTextInputFormatter(
                                     _descriptionMaxLength,
                                   ),
+                                  const LineLimitTextInputFormatter(
+                                    maxLines: 5,
+                                  ),
                                 ],
-                                maxLines: 3,
+                                maxLines: 5,
                               ),
                               const SizedBox(height: 8),
                               Row(

@@ -1,7 +1,7 @@
 class TitleValidator {
   const TitleValidator._();
 
-  static const int maxLength = 80;
+  static const int maxLength = 50;
 
   static String validate(String value) {
     final String trimmed = value.trim();

@@ -2012,6 +2012,27 @@ void main() {
     },
   );
 
+  testWidgets('Limits goal description to five lines', (
+    WidgetTester tester,
+  ) async {
+    await _pumpApp(tester, repository: FakeInMemoryGoalsRepository());
+    await tester.pumpAndSettle();
+
+    await _tapCreateGoalFab(tester);
+    final Finder descriptionFieldFinder = find.byType(TextField).at(1);
+    const String sixLines = 'L1\nL2\nL3\nL4\nL5\nL6';
+    await tester.enterText(descriptionFieldFinder, sixLines);
+    await tester.pumpAndSettle();
+
+    final TextField descriptionField = tester.widget<TextField>(
+      descriptionFieldFinder,
+    );
+    final String currentText = descriptionField.controller?.text ?? '';
+    final int lines = currentText.split('\n').length;
+    expect(lines, lessThanOrEqualTo(5));
+    expect(currentText, 'L1\nL2\nL3\nL4\nL5');
+  });
+
   testWidgets('Does not overflow pixels on small goals list with long title', (
     WidgetTester tester,
   ) async {
