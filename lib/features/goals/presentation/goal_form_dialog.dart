@@ -70,7 +70,7 @@ Future<void> showGoalFormDialog(
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('Nao foi possivel salvar a meta.'),
+                    content: Text('Não foi possível salvar a meta.'),
                   ),
                 );
               }
@@ -106,7 +106,7 @@ Future<void> showGoalFormDialog(
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Defina um objetivo claro e pratico.',
+                      'Defina um objetivo claro e prático.',
                       style: Theme.of(sheetContext).textTheme.bodyMedium,
                     ),
                     const SizedBox(height: 14),
@@ -120,7 +120,7 @@ Future<void> showGoalFormDialog(
                         ),
                       ],
                       decoration: InputDecoration(
-                        labelText: 'Titulo',
+                        labelText: 'Título',
                         errorText: titleErrorText,
                       ),
                     ),
@@ -134,7 +134,7 @@ Future<void> showGoalFormDialog(
                         const LineLimitTextInputFormatter(maxLines: 5),
                       ],
                       decoration: const InputDecoration(
-                        labelText: 'Descricao (opcional)',
+                        labelText: 'Descrição (opcional)',
                       ),
                     ),
                     const SizedBox(height: 8),

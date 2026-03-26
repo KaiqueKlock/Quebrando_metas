@@ -127,5 +127,40 @@ void main() {
       expect(completed.status, FocusSessionStatus.completed);
       expect(completed.endedAt, endedAt);
     });
+
+    test('accountedMinutes should use elapsed time for canceled sessions', () {
+      final DateTime startedAt = DateTime(2026, 3, 18, 9, 0);
+      final FocusSession running = FocusSession.start(
+        actionId: 'action-1',
+        goalId: 'goal-1',
+        durationMinutes: 25,
+        now: startedAt,
+      );
+      final FocusSession canceled = running.markCanceled(
+        now: DateTime(2026, 3, 18, 9, 4),
+      );
+
+      expect(canceled.accountedMinutes(), 4);
+      expect(canceled.qualifiesForStreak(), isFalse);
+    });
+
+    test(
+      'qualifiesForStreak should be true only when accounted minutes >= 5',
+      () {
+        final DateTime startedAt = DateTime(2026, 3, 18, 9, 0);
+        final FocusSession running = FocusSession.start(
+          actionId: 'action-1',
+          goalId: 'goal-1',
+          durationMinutes: 25,
+          now: startedAt,
+        );
+        final FocusSession completed = running.markCompleted(
+          now: DateTime(2026, 3, 18, 9, 5),
+        );
+
+        expect(completed.accountedMinutes(), 5);
+        expect(completed.qualifiesForStreak(), isTrue);
+      },
+    );
   });
 }

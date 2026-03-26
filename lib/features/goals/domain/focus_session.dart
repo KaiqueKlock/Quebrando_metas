@@ -3,6 +3,8 @@ import 'package:quebrando_metas/core/utils/simple_id.dart';
 enum FocusSessionStatus { running, completed, canceled }
 
 class FocusSession {
+  static const int streakMinimumMinutes = 5;
+
   const FocusSession({
     required this.id,
     required this.actionId,
@@ -86,5 +88,26 @@ class FocusSession {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
+  }
+
+  int accountedMinutes() {
+    if (status == FocusSessionStatus.running) return 0;
+
+    if (endedAt != null) {
+      final int elapsed = endedAt!.difference(startedAt).inMinutes;
+      if (elapsed <= 0) return 0;
+      if (elapsed > durationMinutes) return durationMinutes;
+      return elapsed;
+    }
+
+    if (status == FocusSessionStatus.completed) {
+      return durationMinutes;
+    }
+
+    return 0;
+  }
+
+  bool qualifiesForStreak({int minimumMinutes = streakMinimumMinutes}) {
+    return accountedMinutes() >= minimumMinutes;
   }
 }

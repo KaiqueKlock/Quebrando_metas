@@ -4,13 +4,42 @@ import 'package:quebrando_metas/features/goals/domain/focus_streak_calculator.da
 
 void main() {
   group('FocusStreakCalculator', () {
-    test('returns zero when there are no focus starts', () {
+    test('returns zero when there are no eligible focus sessions', () {
       final int streak = FocusStreakCalculator.currentStreakFromSessions(
         const <FocusSession>[],
         now: DateTime(2026, 3, 18, 12),
       );
 
       expect(streak, 0);
+    });
+
+    test('ignores sessions shorter than five minutes', () {
+      final DateTime now = DateTime(2026, 3, 18, 20);
+      final List<FocusSession> sessions = <FocusSession>[
+        _sessionAt(DateTime(2026, 3, 18, 8), accountedMinutes: 4),
+        _sessionAt(DateTime(2026, 3, 17, 8), accountedMinutes: 4),
+      ];
+
+      final int streak = FocusStreakCalculator.currentStreakFromSessions(
+        sessions,
+        now: now,
+      );
+
+      expect(streak, 0);
+    });
+
+    test('uses duration as fallback for completed legacy sessions', () {
+      final DateTime now = DateTime(2026, 3, 18, 20);
+      final List<FocusSession> sessions = <FocusSession>[
+        _legacySessionWithoutEndedAt(DateTime(2026, 3, 18, 8)),
+      ];
+
+      final int streak = FocusStreakCalculator.currentStreakFromSessions(
+        sessions,
+        now: now,
+      );
+
+      expect(streak, 1);
     });
 
     test('counts unique consecutive days including today', () {
@@ -145,16 +174,34 @@ void main() {
   });
 }
 
-FocusSession _sessionAt(DateTime startedAt) {
-  final DateTime stamp = startedAt.add(const Duration(minutes: 1));
+FocusSession _sessionAt(DateTime startedAt, {int accountedMinutes = 15}) {
+  final int safeMinutes = accountedMinutes < 0 ? 0 : accountedMinutes;
+  final int sessionDuration = safeMinutes > 60 ? safeMinutes : 60;
+  final DateTime endedAt = startedAt.add(Duration(minutes: safeMinutes));
+  final DateTime stamp = endedAt;
   return FocusSession(
-    id: 'session-${startedAt.microsecondsSinceEpoch}',
+    id: 'session-${startedAt.microsecondsSinceEpoch}-$safeMinutes',
+    actionId: 'action-1',
+    goalId: 'goal-1',
+    startedAt: startedAt,
+    endedAt: endedAt,
+    durationMinutes: sessionDuration,
+    status: FocusSessionStatus.completed,
+    createdAt: stamp,
+    updatedAt: stamp,
+  );
+}
+
+FocusSession _legacySessionWithoutEndedAt(DateTime startedAt) {
+  final DateTime stamp = startedAt.add(const Duration(minutes: 15));
+  return FocusSession(
+    id: 'legacy-session-${startedAt.microsecondsSinceEpoch}',
     actionId: 'action-1',
     goalId: 'goal-1',
     startedAt: startedAt,
     endedAt: null,
-    durationMinutes: 25,
-    status: FocusSessionStatus.running,
+    durationMinutes: 15,
+    status: FocusSessionStatus.completed,
     createdAt: stamp,
     updatedAt: stamp,
   );

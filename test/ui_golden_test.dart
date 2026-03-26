@@ -238,7 +238,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Acoes da meta'), findsOneWidget);
+    expect(find.text('Ações da meta'), findsOneWidget);
     await expectLater(
       find.byType(Scaffold).first,
       matchesGoldenFile('goldens/goal_detail_sprint6.png'),

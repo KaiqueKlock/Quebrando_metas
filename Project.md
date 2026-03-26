@@ -446,9 +446,9 @@ Referencia funcional detalhada:
 - Ver `README.md` -> `Modo Foco (Sprint 5 - Entregue)`
 
 Regra oficial de streak:
-- O streak conta somente quando o usuario inicia foco em uma acao.
+- O streak conta somente quando uma sessao de foco contabiliza `>= 5 minutos`.
 - Conclusao manual da acao nao incrementa streak.
-- Se passar 1 dia sem iniciar foco, streak zera.
+- Se passar 1 dia sem foco elegivel, streak zera.
 
 Etapas pequenas de implementacao:
 
@@ -498,7 +498,7 @@ Etapas pequenas de implementacao:
 
 
 ### Sprint 6  - UI/UX Definitiva
-- Status: Em andamento (atualizado em 20/03/2026)
+- Status: Em andamento (atualizado em 26/03/2026)
 
 Objetivo do sprint:
 - Consolidar a UX principal em 1 home, com layout moderno/clean.
@@ -602,6 +602,40 @@ Etapas pequenas de implementacao:
 - [x] Cobrir bloqueio de saida por back/gesture.
 - [x] Cobrir timer com base em relogio real no retorno de background.
 - [x] Cobrir cancelamento com `< 1 min` (nao soma) e `>= 1 min` (soma).
+
+11. Etapa 6.11 - Refinos de UX no Modo Foco (novo)
+
+1. Etapa 6.11.1 - Correcao de regra do streak
+- [x] Ajustar regra para nao incrementar streak quando o usuario iniciar foco e cancelar antes de 5 minuto.
+- [x] Definir incremento de streak somente quando houver tempo de foco contabilizado na sessao (>= 5 minuto).
+- [x] Garantir consistencia com `bestStreak` e sem regressao nas regras atuais.
+- [x] Incluir testes que asseguram a funcionalidade.
+
+2. Etapa 6.11.2 - Padronizacao de linguagem PT-BR
+- [x] Corrigir textos sem acentuacao na UI (ex: `Acao` -> `Ação`, `Descricao` -> `Descrição`).
+- [x] Padronizar nomenclaturas de foco/meta/acao em labels, mensagens e feedbacks.
+- [x] Revisar textos de estados vazios e erro para tom consistente.
+
+3. Etapa 6.11.3 - Botao para aumentar tempo de foco (+5 min)
+- [ ] Adicionar botao ao lado do relogio no Modo Foco para incrementar +5 minutos por toque.
+- [ ] Atualizar `remaining`, `duration` e `expectedEndAt` mantendo o timer por relogio real.
+- [ ] Preservar comportamento de UI em rotacao/background sem overflow.
+
+4. Etapa 6.11.4 - Regra de contabilizacao com tempo estendido
+- [ ] Garantir que minutos adicionados por +5 sejam considerados no calculo final ao concluir foco.
+- [ ] Garantir que minutos adicionados sejam considerados nas regras de cancelamento (>= 1 min).
+- [ ] Validar acumulacao correta em meta/acao apos sessoes com extensao de tempo.
+
+5. Etapa 6.11.5 - Mensagens motivacionais por marcos de foco
+- [ ] Exibir mensagem acima do relogio com base em marcos de minutos focados (ex: 5, 10, 15...).
+- [ ] Definir copy inicial de mensagens motivacionais curtas e nao intrusivas.
+- [ ] Garantir atualizacao correta das mensagens quando houver extensao de tempo (+5).
+
+6. Etapa 6.11.6 - Testes e regressao dos novos refinamentos
+- [ ] Widget tests para streak sem incremento em cancelamento < 5 min.
+- [ ] Widget tests para botao +5 min refletindo no timer e no acumulado final.
+- [ ] Widget tests para exibicao de mensagens motivacionais por marco.
+- [ ] Revalidar `flutter test -r compact` e atualizar goldens apenas se houver impacto visual esperado.
 
 ### Sprint 7 - Release MVP
 - Testes finais
@@ -821,6 +855,20 @@ Etapas pequenas de implementacao:
 - Testes seguem cobrindo as regras acima:
   - widget tests para prioridade (0..3), regra da proxima acao, foco, bloqueio de navegacao e overflows;
   - golden tests da Home e detalhe da meta (`test/ui_golden_test.dart`).
+
+### Atualizacao tecnica (26/03/2026 - Sprint 6.11.1)
+
+- Regra de streak corrigida para contabilizar apenas sessoes com `>= 5 minutos` efetivos.
+- `startFocusSession` nao incrementa mais streak nem `bestStreak`.
+- Recalculo de `streak` e `bestStreak` acontece ao finalizar sessao (`completed`/`canceled`), com persistencia consistente.
+- Elegibilidade do streak passou a usar minutos contabilizados da sessao:
+  - sessoes em andamento (`running`) nao contam;
+  - sessoes finalizadas usam tempo efetivo (`endedAt - startedAt`) limitado a `durationMinutes`;
+  - compatibilidade legada: sessao `completed` sem `endedAt` usa `durationMinutes`.
+- Cobertura de testes adicionada/atualizada para:
+  - calculadora de streak com corte `< 5 min` e fallback legado;
+  - persistencia de streak/bestStreak com foco concluido/cancelado;
+  - widget test garantindo que cancelamento com `< 5 min` nao incrementa streak na UI.
 ## 20. VisÃ£o de EvoluÃ§Ã£o (PÃ³s-MVP)
 
 PossÃ­veis evoluÃ§Ãµes:

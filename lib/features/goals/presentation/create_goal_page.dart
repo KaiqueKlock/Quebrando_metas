@@ -47,7 +47,7 @@ class _CreateGoalPageState extends ConsumerState<CreateGoalPage> {
 
       if (widget.isEditMode) {
         if (currentGoal == null) {
-          _showError('Meta nao encontrada para edicao.');
+          _showError('Meta não encontrada para edição.');
           return;
         }
         await ref
@@ -70,7 +70,7 @@ class _CreateGoalPageState extends ConsumerState<CreateGoalPage> {
     } on FormatException catch (error) {
       _showError(error.message);
     } catch (_) {
-      _showError('Nao foi possivel salvar a meta.');
+      _showError('Não foi possível salvar a meta.');
     } finally {
       if (mounted) {
         setState(() {
@@ -101,7 +101,7 @@ class _CreateGoalPageState extends ConsumerState<CreateGoalPage> {
       body: isEditMode && goalsAsync.isLoading
           ? const Center(child: CircularProgressIndicator())
           : isEditMode && editingGoal == null
-          ? const Center(child: Text('Meta nao encontrada.'))
+          ? const Center(child: Text('Meta não encontrada.'))
           : SafeArea(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
@@ -119,7 +119,7 @@ class _CreateGoalPageState extends ConsumerState<CreateGoalPage> {
                               TextFormField(
                                 controller: _titleController,
                                 decoration: const InputDecoration(
-                                  labelText: 'Titulo',
+                                  labelText: 'Título',
                                 ),
                                 maxLength: TitleValidator.maxLength,
                                 inputFormatters: [
@@ -140,7 +140,7 @@ class _CreateGoalPageState extends ConsumerState<CreateGoalPage> {
                               TextFormField(
                                 controller: _descriptionController,
                                 decoration: const InputDecoration(
-                                  labelText: 'Descricao (opcional)',
+                                  labelText: 'Descrição (opcional)',
                                 ),
                                 maxLength: _descriptionMaxLength,
                                 inputFormatters: [

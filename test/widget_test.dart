@@ -16,14 +16,14 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Quebrando Metas'), findsOneWidget);
-    expect(find.text('Ola!'), findsOneWidget);
+    expect(find.text('Olá!'), findsOneWidget);
     expect(find.text('Defina uma meta como prioridade.'), findsOneWidget);
     expect(find.byKey(const Key('create-goal-fab')), findsOneWidget);
     expect(find.byKey(const Key('priority-content-switcher')), findsOneWidget);
     // single-home layout: no tab switch needed
 
     await tester.pumpAndSettle();
-    expect(find.text('Ola!'), findsOneWidget);
+    expect(find.text('Olá!'), findsOneWidget);
     expect(find.text('Suas Metas'), findsOneWidget);
   });
 
@@ -207,8 +207,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining('Meta com acoes'), findsOneWidget);
-    expect(find.text('Descricao da meta'), findsOneWidget);
-    expect(find.text('Sem descricao para esta meta.'), findsOneWidget);
+    expect(find.text('Descrição da meta'), findsOneWidget);
+    expect(find.text('Sem descrição para esta meta.'), findsOneWidget);
 
     await tester.tap(find.byIcon(Icons.add).last);
     await tester.pumpAndSettle();
@@ -287,12 +287,12 @@ void main() {
 
     await tester.tap(find.byKey(const Key('start-focus-button')));
     await tester.pumpAndSettle();
-    expect(find.text('Escolha a duracao do foco'), findsOneWidget);
+    expect(find.text('Escolha a duração do foco'), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey<String>('focus-duration-15')));
     await tester.pumpAndSettle();
 
-    expect(find.text('Modo foco'), findsOneWidget);
+    expect(find.text('Modo Foco'), findsOneWidget);
     expect(find.byType(AlertDialog), findsNothing);
     expect(find.text('Acao para foco'), findsOneWidget);
     expect(find.text('Meta com foco'), findsOneWidget);
@@ -518,7 +518,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey<String>('focus-duration-60')));
     await tester.pumpAndSettle();
 
-    expect(find.text('Modo foco'), findsOneWidget);
+    expect(find.text('Modo Foco'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -633,7 +633,7 @@ void main() {
     await tester.pump(const Duration(minutes: 15));
     await tester.pump();
 
-    expect(find.text('Sessao concluida'), findsOneWidget);
+    expect(find.text('Sessão concluída'), findsOneWidget);
     expect(find.text('Tempo investido: 15 min'), findsOneWidget);
 
     await tester.tap(find.text('Fechar'));
@@ -692,7 +692,7 @@ void main() {
 
     await _swipeFirstActionToComplete(tester);
 
-    expect(find.text('Sem tempo gasto na acao.'), findsOneWidget);
+    expect(find.text('Sem tempo gasto na ação.'), findsOneWidget);
 
     final List<ActionItem> actions = await repository.listActions(goal.id);
     expect(actions, hasLength(1));
@@ -748,7 +748,7 @@ void main() {
     await tester.pumpAndSettle();
 
     await _swipeFirstActionToComplete(tester);
-    expect(find.text('Sem tempo gasto na acao.'), findsOneWidget);
+    expect(find.text('Sem tempo gasto na ação.'), findsOneWidget);
 
     final List<ActionItem> actions = await repository.listActions(goal.id);
     expect(actions, hasLength(1));
@@ -822,6 +822,65 @@ void main() {
   });
 
   testWidgets(
+    'Does not increment streak when canceled focus is below five minutes',
+    (WidgetTester tester) async {
+      final DateTime now = DateTime(2026, 3, 18, 10, 46);
+      final Goal goal = Goal(
+        id: 'goal-canceled-focus-under-five-streak',
+        title: 'Meta streak abaixo de cinco',
+        description: null,
+        createdAt: now,
+        updatedAt: now,
+        completedActions: 0,
+        totalActions: 1,
+      );
+      final ActionItem action = ActionItem(
+        id: 'action-canceled-focus-under-five-streak',
+        goalId: goal.id,
+        title: 'Acao streak abaixo de cinco',
+        isCompleted: false,
+        createdAt: now,
+        updatedAt: now,
+        order: 0,
+        completedAt: null,
+      );
+      final FakeInMemoryGoalsRepository repository =
+          FakeInMemoryGoalsRepository(
+            initialGoals: <Goal>[goal],
+            initialActions: <ActionItem>[action],
+          );
+
+      await _pumpApp(tester, repository: repository);
+      await tester.pumpAndSettle();
+
+      AppRouter.router.goNamed(
+        'goal-actions',
+        pathParameters: {'goalId': goal.id},
+      );
+      await tester.pumpAndSettle();
+
+      await _selectFocusForAction(tester, action.id);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('start-focus-button')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey<String>('focus-duration-15')));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(minutes: 4));
+
+      await tester.tap(find.text('Cancelar'));
+      await tester.pumpAndSettle();
+
+      AppRouter.router.go(AppRoutes.dashboard);
+      await tester.pumpAndSettle();
+
+      expect(find.text('0 dias seguidos'), findsOneWidget);
+
+      final List<ActionItem> actions = await repository.listActions(goal.id);
+      expect(actions.first.totalFocusMinutes, 4);
+    },
+  );
+
+  testWidgets(
     'Shows calculated focus minutes when canceling after more than two minutes',
     (WidgetTester tester) async {
       final DateTime now = DateTime(2026, 3, 18, 10, 48);
@@ -878,68 +937,70 @@ void main() {
     },
   );
 
-  testWidgets('Does not accumulate focus time when canceled before one minute', (
-    WidgetTester tester,
-  ) async {
-    final DateTime now = DateTime(2026, 3, 18, 10, 50);
-    final Goal goal = Goal(
-      id: 'goal-canceled-focus-under-one-minute',
-      title: 'Meta foco cancelado menos de 1 minuto',
-      description: null,
-      createdAt: now,
-      updatedAt: now,
-      completedActions: 0,
-      totalActions: 1,
-    );
-    final ActionItem action = ActionItem(
-      id: 'action-canceled-focus-under-one-minute',
-      goalId: goal.id,
-      title: 'Acao cancelada menos de 1 minuto',
-      isCompleted: false,
-      createdAt: now,
-      updatedAt: now,
-      order: 0,
-      completedAt: null,
-    );
-    final FakeInMemoryGoalsRepository repository = FakeInMemoryGoalsRepository(
-      initialGoals: <Goal>[goal],
-      initialActions: <ActionItem>[action],
-    );
+  testWidgets(
+    'Does not accumulate focus time when canceled before one minute',
+    (WidgetTester tester) async {
+      final DateTime now = DateTime(2026, 3, 18, 10, 50);
+      final Goal goal = Goal(
+        id: 'goal-canceled-focus-under-one-minute',
+        title: 'Meta foco cancelado menos de 1 minuto',
+        description: null,
+        createdAt: now,
+        updatedAt: now,
+        completedActions: 0,
+        totalActions: 1,
+      );
+      final ActionItem action = ActionItem(
+        id: 'action-canceled-focus-under-one-minute',
+        goalId: goal.id,
+        title: 'Acao cancelada menos de 1 minuto',
+        isCompleted: false,
+        createdAt: now,
+        updatedAt: now,
+        order: 0,
+        completedAt: null,
+      );
+      final FakeInMemoryGoalsRepository repository =
+          FakeInMemoryGoalsRepository(
+            initialGoals: <Goal>[goal],
+            initialActions: <ActionItem>[action],
+          );
 
-    await _pumpApp(tester, repository: repository);
-    await tester.pumpAndSettle();
+      await _pumpApp(tester, repository: repository);
+      await tester.pumpAndSettle();
 
-    AppRouter.router.goNamed(
-      'goal-actions',
-      pathParameters: {'goalId': goal.id},
-    );
-    await tester.pumpAndSettle();
+      AppRouter.router.goNamed(
+        'goal-actions',
+        pathParameters: {'goalId': goal.id},
+      );
+      await tester.pumpAndSettle();
 
-    await tester.tap(
-      find.byKey(
-        const ValueKey<String>(
-          'select-focus-action-canceled-focus-under-one-minute',
+      await tester.tap(
+        find.byKey(
+          const ValueKey<String>(
+            'select-focus-action-canceled-focus-under-one-minute',
+          ),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('start-focus-button')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey<String>('focus-duration-15')));
-    await tester.pumpAndSettle();
-    await tester.pump(const Duration(seconds: 45));
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('start-focus-button')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey<String>('focus-duration-15')));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 45));
 
-    await tester.tap(find.text('Cancelar'));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text('Cancelar'));
+      await tester.pumpAndSettle();
 
-    final List<ActionItem> actions = await repository.listActions(goal.id);
-    expect(actions, hasLength(1));
-    expect(actions.first.totalFocusMinutes, 0);
-    expect(actions.first.isCompleted, isFalse);
+      final List<ActionItem> actions = await repository.listActions(goal.id);
+      expect(actions, hasLength(1));
+      expect(actions.first.totalFocusMinutes, 0);
+      expect(actions.first.isCompleted, isFalse);
 
-    await _swipeFirstActionToComplete(tester);
-    expect(find.text('Sem tempo gasto na acao.'), findsOneWidget);
-  });
+      await _swipeFirstActionToComplete(tester);
+      expect(find.text('Sem tempo gasto na ação.'), findsOneWidget);
+    },
+  );
 
   testWidgets(
     'Blocks back navigation during active focus and exits only with Cancelar',
@@ -986,17 +1047,17 @@ void main() {
       await tester.tap(find.byKey(const ValueKey<String>('focus-duration-15')));
       await tester.pumpAndSettle();
 
-      expect(find.text('Modo foco'), findsOneWidget);
+      expect(find.text('Modo Foco'), findsOneWidget);
 
       await tester.binding.handlePopRoute();
       await tester.pumpAndSettle();
 
-      expect(find.text('Modo foco'), findsOneWidget);
+      expect(find.text('Modo Foco'), findsOneWidget);
       expect(find.text('Cancelar'), findsOneWidget);
 
       await tester.tap(find.text('Cancelar'));
       await tester.pumpAndSettle();
-      expect(find.text('Acoes da meta'), findsOneWidget);
+      expect(find.text('Ações da meta'), findsOneWidget);
 
       final List<FocusSession> sessions = await repository.listFocusSessions(
         goalId: goal.id,
@@ -1061,75 +1122,74 @@ void main() {
       await tester.binding.handlePopRoute();
       await tester.pumpAndSettle();
 
-      expect(find.text('Modo foco'), findsOneWidget);
+      expect(find.text('Modo Foco'), findsOneWidget);
       expect(find.text('Fechar'), findsOneWidget);
 
       await tester.tap(find.text('Fechar'));
       await tester.pumpAndSettle();
-      expect(find.text('Acoes da meta'), findsOneWidget);
+      expect(find.text('Ações da meta'), findsOneWidget);
     },
   );
 
-  testWidgets(
-    'Recalculates focus timer after returning from background',
-    (WidgetTester tester) async {
-      final DateTime now = DateTime(2026, 3, 18, 14, 0);
-      final Goal goal = Goal(
-        id: 'goal-focus-background-resume',
-        title: 'Meta foco background',
-        description: null,
-        createdAt: now,
-        updatedAt: now,
-        completedActions: 0,
-        totalActions: 1,
-      );
-      final ActionItem action = ActionItem(
-        id: 'action-focus-background-resume',
-        goalId: goal.id,
-        title: 'Acao foco background',
-        isCompleted: false,
-        createdAt: now,
-        updatedAt: now,
-        order: 0,
-        completedAt: null,
-      );
+  testWidgets('Recalculates focus timer after returning from background', (
+    WidgetTester tester,
+  ) async {
+    final DateTime now = DateTime(2026, 3, 18, 14, 0);
+    final Goal goal = Goal(
+      id: 'goal-focus-background-resume',
+      title: 'Meta foco background',
+      description: null,
+      createdAt: now,
+      updatedAt: now,
+      completedActions: 0,
+      totalActions: 1,
+    );
+    final ActionItem action = ActionItem(
+      id: 'action-focus-background-resume',
+      goalId: goal.id,
+      title: 'Acao foco background',
+      isCompleted: false,
+      createdAt: now,
+      updatedAt: now,
+      order: 0,
+      completedAt: null,
+    );
 
-      await _pumpApp(
-        tester,
-        repository: FakeInMemoryGoalsRepository(
-          initialGoals: <Goal>[goal],
-          initialActions: <ActionItem>[action],
-        ),
-      );
-      await tester.pumpAndSettle();
+    await _pumpApp(
+      tester,
+      repository: FakeInMemoryGoalsRepository(
+        initialGoals: <Goal>[goal],
+        initialActions: <ActionItem>[action],
+      ),
+    );
+    await tester.pumpAndSettle();
 
-      AppRouter.router.goNamed(
-        'goal-actions',
-        pathParameters: {'goalId': goal.id},
-      );
-      await tester.pumpAndSettle();
+    AppRouter.router.goNamed(
+      'goal-actions',
+      pathParameters: {'goalId': goal.id},
+    );
+    await tester.pumpAndSettle();
 
-      await _selectFocusForAction(tester, action.id);
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('start-focus-button')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey<String>('focus-duration-15')));
-      await tester.pumpAndSettle();
+    await _selectFocusForAction(tester, action.id);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('start-focus-button')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey<String>('focus-duration-15')));
+    await tester.pumpAndSettle();
 
-      final int beforeBackground = _readFocusCountdownSeconds(tester);
+    final int beforeBackground = _readFocusCountdownSeconds(tester);
 
-      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
-      await tester.runAsync(() async {
-        await Future<void>.delayed(const Duration(seconds: 3));
-      });
-      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
-      await tester.pumpAndSettle();
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await tester.runAsync(() async {
+      await Future<void>.delayed(const Duration(seconds: 3));
+    });
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pumpAndSettle();
 
-      final int afterResume = _readFocusCountdownSeconds(tester);
-      expect(afterResume, lessThan(beforeBackground));
-      expect(find.text('Modo foco'), findsOneWidget);
-    },
-  );
+    final int afterResume = _readFocusCountdownSeconds(tester);
+    expect(afterResume, lessThan(beforeBackground));
+    expect(find.text('Modo Foco'), findsOneWidget);
+  });
 
   testWidgets(
     'Shows correct summary for long-time user with many completed and active goals',
@@ -1286,7 +1346,7 @@ void main() {
       repository: FakeInMemoryGoalsRepository(initialGoals: seededGoals),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Ola!'), findsOneWidget);
+    expect(find.text('Olá!'), findsOneWidget);
     final ScrollableState scrollableBefore = tester.state<ScrollableState>(
       find.byType(Scrollable).first,
     );
@@ -1303,7 +1363,7 @@ void main() {
     );
     final double listOffsetAfter = scrollableAfter.position.pixels;
 
-    expect(find.text('Ola!'), findsNothing);
+    expect(find.text('Olá!'), findsNothing);
     expect(listOffsetAfter, greaterThan(listOffsetBefore));
   });
 
@@ -1324,7 +1384,7 @@ void main() {
     final Finder scroll = find.byKey(const Key('goals-list-scroll'));
     final double contentCenterX =
         tester.getTopLeft(scroll).dx + (tester.getSize(scroll).width / 2);
-    final double greetingCenterX = tester.getCenter(find.text('Ola!')).dx;
+    final double greetingCenterX = tester.getCenter(find.text('Olá!')).dx;
 
     final Finder streakChipText = find.text('0 dias seguidos');
     final Finder hoursChipText = find.text('0.0 horas');
@@ -1361,7 +1421,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Descricao da meta'), findsOneWidget);
+    expect(find.text('Descrição da meta'), findsOneWidget);
     expect(find.text('Descricao de teste'), findsOneWidget);
   });
 
@@ -1404,7 +1464,7 @@ void main() {
       await tester.pumpAndSettle();
 
       final double descriptionTop = tester
-          .getTopLeft(find.text('Descricao da meta'))
+          .getTopLeft(find.text('Descrição da meta'))
           .dy;
       final double progressTop = tester
           .getTopLeft(find.text('Progresso da meta'))
@@ -1614,7 +1674,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Sequencia'), findsOneWidget);
+    expect(find.text('Sequência'), findsOneWidget);
     expect(find.text('2 dias'), findsOneWidget);
     expect(find.text('4 dias'), findsNothing);
   });
@@ -1943,50 +2003,49 @@ void main() {
     },
   );
 
-  testWidgets(
-    'Keeps new action dialog stable after screen rotation',
-    (WidgetTester tester) async {
-      addTearDown(() {
-        tester.view.resetPhysicalSize();
-        tester.view.resetDevicePixelRatio();
-      });
+  testWidgets('Keeps new action dialog stable after screen rotation', (
+    WidgetTester tester,
+  ) async {
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
 
-      tester.view.devicePixelRatio = 1.0;
-      tester.view.physicalSize = const Size(500, 900);
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(500, 900);
 
-      final DateTime now = DateTime(2026, 3, 20, 10);
-      final Goal goal = Goal(
-        id: 'goal-action-dialog-rotation',
-        title: 'Meta rotacao acao',
-        createdAt: now,
-        updatedAt: now,
-        completedActions: 0,
-        totalActions: 0,
-      );
+    final DateTime now = DateTime(2026, 3, 20, 10);
+    final Goal goal = Goal(
+      id: 'goal-action-dialog-rotation',
+      title: 'Meta rotacao acao',
+      createdAt: now,
+      updatedAt: now,
+      completedActions: 0,
+      totalActions: 0,
+    );
 
-      await _pumpApp(
-        tester,
-        repository: FakeInMemoryGoalsRepository(initialGoals: <Goal>[goal]),
-      );
-      await tester.pumpAndSettle();
+    await _pumpApp(
+      tester,
+      repository: FakeInMemoryGoalsRepository(initialGoals: <Goal>[goal]),
+    );
+    await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Meta rotacao acao'));
-      await tester.pumpAndSettle();
+    await tester.tap(find.text('Meta rotacao acao'));
+    await tester.pumpAndSettle();
 
-      await tester.tap(find.byType(FloatingActionButton));
-      await tester.pumpAndSettle();
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pumpAndSettle();
 
-      expect(find.text('Nova acao'), findsOneWidget);
-      await tester.enterText(find.byType(TextField).first, 'Acao rotacao');
-      await tester.pump();
+    expect(find.text('Nova ação'), findsOneWidget);
+    await tester.enterText(find.byType(TextField).first, 'Acao rotacao');
+    await tester.pump();
 
-      tester.view.physicalSize = const Size(900, 360);
-      await tester.pumpAndSettle();
+    tester.view.physicalSize = const Size(900, 360);
+    await tester.pumpAndSettle();
 
-      expect(find.text('Nova acao'), findsOneWidget);
-      expect(tester.takeException(), isNull);
-    },
-  );
+    expect(find.text('Nova ação'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets(
     'Does not overflow pixels on create goal page with small screen height',
@@ -2280,7 +2339,7 @@ void main() {
 
     await tester.pageBack();
     await tester.pumpAndSettle();
-    expect(find.text('1 de 1 acoes'), findsOneWidget);
+    expect(find.text('1 de 1 ações'), findsOneWidget);
 
     await tester.tap(find.text('Meta reaberta').first);
     await tester.pumpAndSettle();
@@ -2294,7 +2353,7 @@ void main() {
     await tester.pageBack();
     await tester.pumpAndSettle();
 
-    expect(find.text('1 de 2 acoes'), findsOneWidget);
+    expect(find.text('1 de 2 ações'), findsOneWidget);
     expect(find.text('Meta reaberta'), findsOneWidget);
   });
 
@@ -2350,7 +2409,7 @@ void main() {
       for (int i = 0; i < 10; i++) {
         await tester.tap(find.text('Meta estabilidade').first);
         await tester.pumpAndSettle();
-        expect(find.text('Acoes da meta'), findsOneWidget);
+        expect(find.text('Ações da meta'), findsOneWidget);
         await tester.pageBack();
         await tester.pumpAndSettle();
         expect(find.text('Tentar novamente'), findsNothing);
@@ -2407,7 +2466,7 @@ Future<void> _completeFocusForSingleAction(WidgetTester tester) async {
   await _scrollToActionListIfNeeded(tester);
   Finder selectButton = find.byTooltip('Selecionar para foco').hitTestable();
   if (selectButton.evaluate().isEmpty) {
-    selectButton = find.byTooltip('Acao selecionada para foco').hitTestable();
+    selectButton = find.byTooltip('Ação selecionada para foco').hitTestable();
   }
   if (selectButton.evaluate().isEmpty) {
     selectButton = find

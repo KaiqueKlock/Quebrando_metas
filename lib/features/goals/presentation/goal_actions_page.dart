@@ -39,7 +39,7 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
     }
 
     if (goal == null) {
-      return const Scaffold(body: Center(child: Text('Meta nao encontrada.')));
+      return const Scaffold(body: Center(child: Text('Meta não encontrada.')));
     }
 
     return Scaffold(
@@ -58,7 +58,7 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
               _GoalMetricsSection(goal: goal),
               const SizedBox(height: 18),
               Text(
-                'Acoes da meta',
+                'Ações da meta',
                 style: Theme.of(
                   context,
                 ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
@@ -68,7 +68,7 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
                 const Card(
                   child: Padding(
                     padding: EdgeInsets.all(16),
-                    child: Text('Nenhuma acao cadastrada para esta meta.'),
+                    child: Text('Nenhuma ação cadastrada para esta meta.'),
                   ),
                 )
               else
@@ -97,7 +97,7 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, __) => const Center(child: Text('Erro ao carregar acoes.')),
+        error: (_, __) => const Center(child: Text('Erro ao carregar ações.')),
       ),
       bottomNavigationBar: actionsAsync.maybeWhen(
         data: (actions) {
@@ -116,7 +116,7 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
                   : null,
               icon: const Icon(Icons.timer_outlined),
               label: Text(
-                canStartFocus ? 'Iniciar foco' : 'Selecione uma acao para foco',
+                canStartFocus ? 'Iniciar foco' : 'Selecione uma ação para foco',
               ),
             ),
           );
@@ -153,7 +153,7 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
       if (!mounted) return;
 
       if (result == ToggleActionResult.blockedNoFocusTime) {
-        _showMessage(context, 'Sem tempo gasto na acao.');
+        _showMessage(context, 'Sem tempo gasto na ação.');
         return;
       }
 
@@ -164,13 +164,13 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
       }
     } catch (_) {
       if (mounted) {
-        _showError(context, 'Nao foi possivel atualizar a acao.');
+        _showError(context, 'Não foi possível atualizar a ação.');
       }
     }
   }
 
   Future<void> _createAction() async {
-    final String? title = await _showActionDialog(context, title: 'Nova acao');
+    final String? title = await _showActionDialog(context, title: 'Nova ação');
     if (title == null) return;
 
     try {
@@ -179,7 +179,7 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
           .createAction(goalId: widget.goalId, title: title);
     } catch (_) {
       if (mounted) {
-        _showError(context, 'Nao foi possivel criar a acao.');
+        _showError(context, 'Não foi possível criar a ação.');
       }
     }
   }
@@ -187,7 +187,7 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
   Future<void> _editAction(ActionItem action) async {
     final String? updatedTitle = await _showActionDialog(
       context,
-      title: 'Editar acao',
+      title: 'Editar ação',
       initialValue: action.title,
     );
     if (updatedTitle == null) return;
@@ -202,7 +202,7 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
           );
     } catch (_) {
       if (mounted) {
-        _showError(context, 'Nao foi possivel editar a acao.');
+        _showError(context, 'Não foi possível editar a ação.');
       }
     }
   }
@@ -220,7 +220,7 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
           .deleteAction(goalId: widget.goalId, actionId: action.id);
     } catch (_) {
       if (mounted) {
-        _showError(context, 'Nao foi possivel excluir a acao.');
+        _showError(context, 'Não foi possível excluir a ação.');
       }
     }
   }
@@ -245,7 +245,7 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
       );
     } catch (_) {
       if (mounted) {
-        _showError(context, 'Nao foi possivel iniciar o foco.');
+        _showError(context, 'Não foi possível iniciar o foco.');
       }
       return;
     }
@@ -295,7 +295,7 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Escolha a duracao do foco',
+                  'Escolha a duração do foco',
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: 12),
@@ -359,7 +359,7 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Descreva uma acao simples para executar agora.',
+                        'Descreva uma ação simples para executar agora.',
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                       const SizedBox(height: 14),
@@ -373,7 +373,7 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
                           ),
                         ],
                         decoration: InputDecoration(
-                          labelText: 'Titulo da acao',
+                          labelText: 'Título da ação',
                           errorText: errorText,
                         ),
                       ),
@@ -485,7 +485,7 @@ class _GoalInfoSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final String description =
         (goal.description == null || goal.description!.trim().isEmpty)
-        ? 'Sem descricao para esta meta.'
+        ? 'Sem descrição para esta meta.'
         : goal.description!.trim();
 
     return Card(
@@ -502,7 +502,7 @@ class _GoalInfoSection extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Descricao da meta',
+              'Descrição da meta',
               style: Theme.of(context).textTheme.labelLarge,
             ),
             const SizedBox(height: 6),
@@ -536,7 +536,7 @@ class _GoalMetricsSection extends ConsumerWidget {
             builder: (context, snapshot) {
               final int streak = snapshot.data ?? 0;
               return _MetricCard(
-                title: 'Sequencia',
+                title: 'Sequência',
                 value: _formatDays(streak),
               );
             },
@@ -622,13 +622,13 @@ class _ActionTile extends StatelessWidget {
         alignment: Alignment.centerLeft,
         color: Colors.green.shade600,
         icon: Icons.check_circle_outline,
-        label: 'Concluir acao',
+        label: 'Concluir ação',
       ),
       secondaryBackground: _SwipeActionBackground(
         alignment: Alignment.centerRight,
         color: Colors.orange.shade700,
         icon: Icons.undo,
-        label: 'Reabrir acao',
+        label: 'Reabrir ação',
       ),
       child: Card(
         key: ValueKey<String>('action-card-${action.id}'),
@@ -643,9 +643,9 @@ class _ActionTile extends StatelessWidget {
           leading: IconButton(
             key: ValueKey<String>(_legacySelectFocusKey(action.id)),
             tooltip: action.isCompleted
-                ? 'Foco indisponivel para acao concluida'
+                ? 'Foco indisponível para ação concluída'
                 : (isSelectedForFocus
-                      ? 'Acao selecionada para foco'
+                      ? 'Ação selecionada para foco'
                       : 'Selecionar para foco'),
             onPressed: onSelectForFocus,
             icon: Icon(
@@ -670,7 +670,7 @@ class _ActionTile extends StatelessWidget {
               Text(
                 'Tempo de foco: ${_formatMinutes(action.totalFocusMinutes)}',
               ),
-              Text(action.isCompleted ? 'Concluida' : 'Pendente'),
+              Text(action.isCompleted ? 'Concluída' : 'Pendente'),
             ],
           ),
           trailing: Row(
@@ -940,7 +940,7 @@ class _FocusTimerPageState extends State<_FocusTimerPage>
         appBar: AppBar(
           automaticallyImplyLeading: false,
           centerTitle: true,
-          title: const Text('Modo foco'),
+          title: const Text('Modo Foco'),
         ),
         body: SafeArea(
           child: AnimatedOpacity(
@@ -1039,7 +1039,7 @@ class _FocusTimerPageState extends State<_FocusTimerPage>
                               children: [
                                 if (_completed) ...[
                                   Text(
-                                    'Sessao concluida',
+                                    'Sessão concluída',
                                     style: Theme.of(context).textTheme.titleSmall,
                                   ),
                                   const SizedBox(height: 8),

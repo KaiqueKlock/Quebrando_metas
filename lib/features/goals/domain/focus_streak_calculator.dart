@@ -6,17 +6,27 @@ class FocusStreakCalculator {
   static int currentStreakFromSessions(
     Iterable<FocusSession> sessions, {
     DateTime? now,
+    int minimumSessionMinutes = FocusSession.streakMinimumMinutes,
   }) {
-    final Iterable<DateTime> startDates = sessions.map(
-      (session) => session.startedAt,
-    );
+    final Iterable<DateTime> startDates = sessions
+        .where(
+          (session) =>
+              session.qualifiesForStreak(minimumMinutes: minimumSessionMinutes),
+        )
+        .map((session) => session.startedAt);
     return currentStreakFromDates(startDates, now: now);
   }
 
-  static int bestStreakFromSessions(Iterable<FocusSession> sessions) {
-    final Iterable<DateTime> startDates = sessions.map(
-      (session) => session.startedAt,
-    );
+  static int bestStreakFromSessions(
+    Iterable<FocusSession> sessions, {
+    int minimumSessionMinutes = FocusSession.streakMinimumMinutes,
+  }) {
+    final Iterable<DateTime> startDates = sessions
+        .where(
+          (session) =>
+              session.qualifiesForStreak(minimumMinutes: minimumSessionMinutes),
+        )
+        .map((session) => session.startedAt);
     return bestStreakFromDates(startDates);
   }
 
@@ -50,11 +60,9 @@ class FocusStreakCalculator {
   }
 
   static int bestStreakFromDates(Iterable<DateTime> startDates) {
-    final List<DateTime> sortedUniqueDays = startDates
-        .map(_toLocalDay)
-        .toSet()
-        .toList()
-      ..sort((a, b) => a.compareTo(b));
+    final List<DateTime> sortedUniqueDays =
+        startDates.map(_toLocalDay).toSet().toList()
+          ..sort((a, b) => a.compareTo(b));
     if (sortedUniqueDays.isEmpty) return 0;
 
     int best = 1;

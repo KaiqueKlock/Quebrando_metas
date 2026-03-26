@@ -97,28 +97,19 @@ class GoalActionsController
       durationMinutes: durationMinutes,
       now: startedAt,
     );
-    final repository = ref.read(goalsRepositoryProvider);
-    await repository.saveFocusSession(session);
-    final List<FocusSession> sessions = await repository.listFocusSessions();
-    final int currentStreak = FocusStreakCalculator.currentStreakFromSessions(
-      sessions,
-      now: startedAt,
-    );
-    final int bestStreak = await repository.getBestFocusStreak();
-    if (currentStreak > bestStreak) {
-      await repository.saveBestFocusStreak(currentStreak);
-    }
-    ref.invalidate(focusStreakProvider);
-    ref.invalidate(bestFocusStreakProvider);
+    await ref.read(goalsRepositoryProvider).saveFocusSession(session);
     return session;
   }
 
   Future<int> completeFocusSession(
     FocusSession session, {
     int? elapsedMinutes,
+    DateTime? now,
   }) async {
-    final FocusSession completed = session.markCompleted();
-    await ref.read(goalsRepositoryProvider).saveFocusSession(completed);
+    final DateTime timestamp = now ?? DateTime.now();
+    final FocusSession completed = session.markCompleted(now: timestamp);
+    final repository = ref.read(goalsRepositoryProvider);
+    await repository.saveFocusSession(completed);
     final List<ActionItem> actions = await ref
         .read(goalsRepositoryProvider)
         .listActions(session.goalId);
@@ -129,33 +120,31 @@ class GoalActionsController
         break;
       }
     }
-    if (currentAction == null) {
-      return 0;
-    }
-
     final int minutesToAccumulate = _normalizeElapsedMinutes(
       sessionDurationMinutes: completed.durationMinutes,
       elapsedMinutes: elapsedMinutes,
     );
-    if (minutesToAccumulate <= 0) {
-      return 0;
+    if (currentAction != null && minutesToAccumulate > 0) {
+      final ActionItem focusedAction = currentAction.registerFocus(
+        durationMinutes: minutesToAccumulate,
+        startedAt: completed.startedAt,
+        now: timestamp,
+      );
+      await repository.updateAction(focusedAction);
     }
 
-    final ActionItem focusedAction = currentAction.registerFocus(
-      durationMinutes: minutesToAccumulate,
-      startedAt: completed.startedAt,
-      now: DateTime.now(),
-    );
-    await ref.read(goalsRepositoryProvider).updateAction(focusedAction);
+    await _refreshStreakStats();
     await _reload();
-    return minutesToAccumulate;
+    return currentAction == null ? 0 : minutesToAccumulate;
   }
 
   Future<int> cancelFocusSession(
     FocusSession session, {
     int? elapsedMinutes,
+    DateTime? now,
   }) async {
-    final FocusSession canceled = session.markCanceled();
+    final DateTime timestamp = now ?? DateTime.now();
+    final FocusSession canceled = session.markCanceled(now: timestamp);
     final repository = ref.read(goalsRepositoryProvider);
     await repository.saveFocusSession(canceled);
 
@@ -163,30 +152,32 @@ class GoalActionsController
       sessionDurationMinutes: canceled.durationMinutes,
       elapsedMinutes: elapsedMinutes,
     );
-    if (minutesToAccumulate < 1) {
-      return 0;
-    }
-
-    final List<ActionItem> actions = await repository.listActions(session.goalId);
-    ActionItem? currentAction;
-    for (final ActionItem action in actions) {
-      if (action.id == session.actionId) {
-        currentAction = action;
-        break;
+    int accumulatedMinutes = 0;
+    if (minutesToAccumulate >= 1) {
+      final List<ActionItem> actions = await repository.listActions(
+        session.goalId,
+      );
+      ActionItem? currentAction;
+      for (final ActionItem action in actions) {
+        if (action.id == session.actionId) {
+          currentAction = action;
+          break;
+        }
+      }
+      if (currentAction != null) {
+        final ActionItem focusedAction = currentAction.registerFocus(
+          durationMinutes: minutesToAccumulate,
+          startedAt: canceled.startedAt,
+          now: timestamp,
+        );
+        await repository.updateAction(focusedAction);
+        accumulatedMinutes = minutesToAccumulate;
       }
     }
-    if (currentAction == null) {
-      return 0;
-    }
 
-    final ActionItem focusedAction = currentAction.registerFocus(
-      durationMinutes: minutesToAccumulate,
-      startedAt: canceled.startedAt,
-      now: DateTime.now(),
-    );
-    await repository.updateAction(focusedAction);
+    await _refreshStreakStats();
     await _reload();
-    return minutesToAccumulate;
+    return accumulatedMinutes;
   }
 
   Future<void> _reload() async {
@@ -207,5 +198,24 @@ class GoalActionsController
       return sessionDurationMinutes;
     }
     return rawElapsed;
+  }
+
+  Future<void> _refreshStreakStats() async {
+    final repository = ref.read(goalsRepositoryProvider);
+    final List<FocusSession> sessions = await repository.listFocusSessions();
+
+    final int bestStreakFromSessions =
+        FocusStreakCalculator.bestStreakFromSessions(sessions);
+    final int persistedBestStreak = await repository.getBestFocusStreak();
+    final int resolvedBestStreak = bestStreakFromSessions > persistedBestStreak
+        ? bestStreakFromSessions
+        : persistedBestStreak;
+
+    if (resolvedBestStreak != persistedBestStreak) {
+      await repository.saveBestFocusStreak(resolvedBestStreak);
+    }
+
+    ref.invalidate(focusStreakProvider);
+    ref.invalidate(bestFocusStreakProvider);
   }
 }

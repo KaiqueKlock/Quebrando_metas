@@ -113,7 +113,7 @@ class _DashboardContent extends ConsumerWidget {
             child: Padding(
               padding: EdgeInsets.all(isCompact ? 14 : 16),
               child: const Text(
-                'Nenhuma meta criada ainda. Toque em + para comecar.',
+                'Nenhuma meta criada ainda. Toque em + para começar.',
               ),
             ),
           )
@@ -147,7 +147,7 @@ class _HeaderSection extends StatelessWidget {
           mainAxisSize: MainAxisSize.max,
           children: [
             Text(
-              'Ola!',
+              'Olá!',
               style: Theme.of(
                 context,
               ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
@@ -363,7 +363,7 @@ class _ContinueGoalItem extends ConsumerWidget {
                 actions,
               );
               final String nextActionTitle =
-                  nextAction?.title ?? 'Sem acao pendente';
+                  nextAction?.title ?? 'Sem ação pendente';
 
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -373,7 +373,7 @@ class _ContinueGoalItem extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Proxima acao',
+                          'Próxima ação',
                           style: Theme.of(context).textTheme.labelMedium,
                         ),
                         const SizedBox(height: 2),
@@ -514,7 +514,7 @@ class _GoalListCard extends ConsumerWidget {
                           message = 'Meta removida das prioridades.';
                           break;
                         case GoalPriorityResult.limitReached:
-                          message = 'Voce pode priorizar no maximo 3 metas.';
+                          message = 'Você pode priorizar no máximo 3 metas.';
                           break;
                         case GoalPriorityResult.completedGoalNotAllowed:
                           message =
@@ -560,7 +560,7 @@ class _GoalListCard extends ConsumerWidget {
                     ],
                   );
                   final Widget actionCountText = Text(
-                    '${goal.completedActions} de ${goal.totalActions} acoes',
+                    '${goal.completedActions} de ${goal.totalActions} ações',
                     style: Theme.of(context).textTheme.bodySmall,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
