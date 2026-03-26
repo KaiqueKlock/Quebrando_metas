@@ -104,6 +104,7 @@ class GoalActionsController
   Future<int> completeFocusSession(
     FocusSession session, {
     int? elapsedMinutes,
+    int? sessionDurationMinutes,
     DateTime? now,
   }) async {
     final DateTime timestamp = now ?? DateTime.now();
@@ -121,7 +122,8 @@ class GoalActionsController
       }
     }
     final int minutesToAccumulate = _normalizeElapsedMinutes(
-      sessionDurationMinutes: completed.durationMinutes,
+      sessionDurationMinutes:
+          sessionDurationMinutes ?? completed.durationMinutes,
       elapsedMinutes: elapsedMinutes,
     );
     if (currentAction != null && minutesToAccumulate > 0) {
@@ -141,6 +143,7 @@ class GoalActionsController
   Future<int> cancelFocusSession(
     FocusSession session, {
     int? elapsedMinutes,
+    int? sessionDurationMinutes,
     DateTime? now,
   }) async {
     final DateTime timestamp = now ?? DateTime.now();
@@ -149,7 +152,8 @@ class GoalActionsController
     await repository.saveFocusSession(canceled);
 
     final int minutesToAccumulate = _normalizeElapsedMinutes(
-      sessionDurationMinutes: canceled.durationMinutes,
+      sessionDurationMinutes:
+          sessionDurationMinutes ?? canceled.durationMinutes,
       elapsedMinutes: elapsedMinutes,
     );
     int accumulatedMinutes = 0;

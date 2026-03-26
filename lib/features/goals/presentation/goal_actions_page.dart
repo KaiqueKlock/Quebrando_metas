@@ -252,26 +252,32 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
 
     if (!mounted) return;
 
-    final _FocusPageExit? focusResult = await Navigator.of(context)
-        .push<_FocusPageExit>(
-          MaterialPageRoute<_FocusPageExit>(
-            builder: (context) => _FocusTimerPage(
-              actionTitle: action.title,
-              goalTitle: goal.title,
-              durationMinutes: durationMinutes,
-              sessionStartedAt: session.startedAt,
-              actionTotalFocusMinutes: action.totalFocusMinutes,
-              onCompleted: (elapsedMinutes) => controller.completeFocusSession(
-                session,
-                elapsedMinutes: elapsedMinutes,
-              ),
-              onCanceled: (elapsedMinutes) => controller.cancelFocusSession(
-                session,
-                elapsedMinutes: elapsedMinutes,
-              ),
-            ),
-          ),
-        );
+    final _FocusPageExit?
+    focusResult = await Navigator.of(context).push<_FocusPageExit>(
+      MaterialPageRoute<_FocusPageExit>(
+        builder: (context) => _FocusTimerPage(
+          actionTitle: action.title,
+          goalTitle: goal.title,
+          durationMinutes: durationMinutes,
+          sessionStartedAt: session.startedAt,
+          actionTotalFocusMinutes: action.totalFocusMinutes,
+          onCompleted:
+              ({required elapsedMinutes, required sessionDurationMinutes}) =>
+                  controller.completeFocusSession(
+                    session,
+                    elapsedMinutes: elapsedMinutes,
+                    sessionDurationMinutes: sessionDurationMinutes,
+                  ),
+          onCanceled:
+              ({required elapsedMinutes, required sessionDurationMinutes}) =>
+                  controller.cancelFocusSession(
+                    session,
+                    elapsedMinutes: elapsedMinutes,
+                    sessionDurationMinutes: sessionDurationMinutes,
+                  ),
+        ),
+      ),
+    );
 
     if (!mounted || focusResult == null || !focusResult.wasCanceled) return;
 
@@ -769,8 +775,16 @@ class _FocusTimerPage extends StatefulWidget {
   final int durationMinutes;
   final DateTime sessionStartedAt;
   final int actionTotalFocusMinutes;
-  final Future<int> Function(int elapsedMinutes)? onCompleted;
-  final Future<int> Function(int elapsedMinutes)? onCanceled;
+  final Future<int> Function({
+    required int elapsedMinutes,
+    required int sessionDurationMinutes,
+  })?
+  onCompleted;
+  final Future<int> Function({
+    required int elapsedMinutes,
+    required int sessionDurationMinutes,
+  })?
+  onCanceled;
 
   @override
   State<_FocusTimerPage> createState() => _FocusTimerPageState();
@@ -888,7 +902,10 @@ class _FocusTimerPageState extends State<_FocusTimerPage>
     });
     int completedMinutes = elapsedMinutes;
     if (widget.onCompleted != null) {
-      completedMinutes = await widget.onCompleted!(elapsedMinutes);
+      completedMinutes = await widget.onCompleted!(
+        elapsedMinutes: elapsedMinutes,
+        sessionDurationMinutes: _currentSessionDurationMinutes(),
+      );
     }
     if (!mounted) return;
     setState(() {
@@ -908,7 +925,10 @@ class _FocusTimerPageState extends State<_FocusTimerPage>
     });
     int accumulatedMinutes = 0;
     if (widget.onCanceled != null) {
-      accumulatedMinutes = await widget.onCanceled!(elapsedMinutes);
+      accumulatedMinutes = await widget.onCanceled!(
+        elapsedMinutes: elapsedMinutes,
+        sessionDurationMinutes: _currentSessionDurationMinutes(),
+      );
     }
     if (!mounted) return;
     Navigator.of(context).pop(
@@ -1234,6 +1254,11 @@ class _FocusTimerPageState extends State<_FocusTimerPage>
 
   int _elapsedSeconds() {
     return _durationSeconds - _remainingSeconds;
+  }
+
+  int _currentSessionDurationMinutes() {
+    if (_durationSeconds <= 0) return 0;
+    return _durationSeconds ~/ 60;
   }
 
   double _sessionProgress() {

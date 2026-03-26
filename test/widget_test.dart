@@ -464,6 +464,73 @@ void main() {
     },
   );
 
+  testWidgets(
+    'Accumulates minutes beyond original duration after adding five minutes and completing',
+    (WidgetTester tester) async {
+      final DateTime now = DateTime(2026, 3, 18, 9, 35);
+      final Goal goal = Goal(
+        id: 'goal-focus-completed-extended',
+        title: 'Meta foco completo estendido',
+        description: null,
+        createdAt: now,
+        updatedAt: now,
+        completedActions: 0,
+        totalActions: 1,
+      );
+      final ActionItem action = ActionItem(
+        id: 'action-focus-completed-extended',
+        goalId: goal.id,
+        title: 'Acao foco completa estendida',
+        isCompleted: false,
+        createdAt: now,
+        updatedAt: now,
+        order: 0,
+        completedAt: null,
+      );
+      final FakeInMemoryGoalsRepository repository =
+          FakeInMemoryGoalsRepository(
+            initialGoals: <Goal>[goal],
+            initialActions: <ActionItem>[action],
+          );
+
+      await _pumpApp(tester, repository: repository);
+      await tester.pumpAndSettle();
+
+      AppRouter.router.goNamed(
+        'goal-actions',
+        pathParameters: {'goalId': goal.id},
+      );
+      await tester.pumpAndSettle();
+
+      await _selectFocusForAction(tester, action.id);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('start-focus-button')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey<String>('focus-duration-15')));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('focus-add-five-minutes-button')));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(minutes: 16));
+
+      await tester.tap(find.text('Concluir agora'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Tempo investido: 16 min'), findsOneWidget);
+
+      await tester.tap(find.text('Fechar'));
+      await tester.pumpAndSettle();
+
+      final List<ActionItem> actions = await repository.listActions(goal.id);
+      expect(actions, hasLength(1));
+      expect(actions.first.totalFocusMinutes, 16);
+
+      final List<Goal> goals = await repository.listGoals();
+      expect(goals, hasLength(1));
+      expect(goals.first.totalFocusMinutes, 16);
+    },
+  );
+
   testWidgets('Does not overflow pixels on focus page in small screen', (
     WidgetTester tester,
   ) async {
@@ -934,6 +1001,68 @@ void main() {
         find.text('Foco cancelado: 3 min contabilizados.'),
         findsOneWidget,
       );
+    },
+  );
+
+  testWidgets(
+    'Accumulates canceled minutes beyond original duration after adding five minutes',
+    (WidgetTester tester) async {
+      final DateTime now = DateTime(2026, 3, 18, 10, 49);
+      final Goal goal = Goal(
+        id: 'goal-canceled-focus-extended',
+        title: 'Meta cancelar foco estendido',
+        description: null,
+        createdAt: now,
+        updatedAt: now,
+        completedActions: 0,
+        totalActions: 1,
+      );
+      final ActionItem action = ActionItem(
+        id: 'action-canceled-focus-extended',
+        goalId: goal.id,
+        title: 'Acao cancelar foco estendida',
+        isCompleted: false,
+        createdAt: now,
+        updatedAt: now,
+        order: 0,
+        completedAt: null,
+      );
+      final FakeInMemoryGoalsRepository repository =
+          FakeInMemoryGoalsRepository(
+            initialGoals: <Goal>[goal],
+            initialActions: <ActionItem>[action],
+          );
+
+      await _pumpApp(tester, repository: repository);
+      await tester.pumpAndSettle();
+
+      AppRouter.router.goNamed(
+        'goal-actions',
+        pathParameters: {'goalId': goal.id},
+      );
+      await tester.pumpAndSettle();
+
+      await _selectFocusForAction(tester, action.id);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('start-focus-button')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey<String>('focus-duration-15')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('focus-add-five-minutes-button')));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(minutes: 16));
+
+      await tester.tap(find.text('Cancelar'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Foco cancelado: 16 min contabilizados.'),
+        findsOneWidget,
+      );
+
+      final List<ActionItem> actions = await repository.listActions(goal.id);
+      expect(actions, hasLength(1));
+      expect(actions.first.totalFocusMinutes, 16);
     },
   );
 

@@ -357,7 +357,7 @@ Branches de feature:
 - `feature/goal-actions`
 - `feature/goal-progress`
 
-## 18. ConvenÃ§Ã£o de Commits - pode ser em portugues
+## 18. Convençãoo de Commits - pode ser em portugues
 
 - `feat: add goal creation flow`
 - `feat: implement goal actions`
@@ -622,20 +622,20 @@ Etapas pequenas de implementacao:
 - [x] Preservar comportamento de UI em rotacao/background sem overflow.
 
 4. Etapa 6.11.4 - Regra de contabilizacao com tempo estendido
-- [ ] Garantir que minutos adicionados por +5 sejam considerados no calculo final ao concluir foco.
-- [ ] Garantir que minutos adicionados sejam considerados nas regras de cancelamento (>= 1 min).
-- [ ] Validar acumulacao correta em meta/acao apos sessoes com extensao de tempo.
+- [x] Garantir que minutos adicionados por +5 sejam considerados no calculo final ao concluir foco.
+- [x] Garantir que minutos adicionados sejam considerados nas regras de cancelamento (>= 1 min).
+- [x] Validar acumulacao correta em meta/acao apos sessoes com extensao de tempo.
 
-5. Etapa 6.11.5 - Mensagens motivacionais por marcos de foco
-- [ ] Exibir mensagem acima do relogio com base em marcos de minutos focados (ex: 5, 10, 15...).
-- [ ] Definir copy inicial de mensagens motivacionais curtas e nao intrusivas.
-- [ ] Garantir atualizacao correta das mensagens quando houver extensao de tempo (+5).
+5. Etapa 6.11.5 - Mensagens motivacionais por marcos de foco (adiada)
+- [x] Escopo adiado por decisao de UX (risco de repeticao e baixo ganho percebido).
+- [x] Manter fluxo de foco sem mensagens motivacionais no Sprint 6.
+- [x] Reavaliar no pos-MVP apenas se houver proposta de dinamica nao repetitiva.
 
 6. Etapa 6.11.6 - Testes e regressao dos novos refinamentos
-- [ ] Widget tests para streak sem incremento em cancelamento < 5 min.
-- [ ] Widget tests para botao +5 min refletindo no timer e no acumulado final.
-- [ ] Widget tests para exibicao de mensagens motivacionais por marco.
-- [ ] Revalidar `flutter test -r compact` e atualizar goldens apenas se houver impacto visual esperado.
+- [x] Widget tests para streak sem incremento em cancelamento < 5 min.
+- [x] Widget tests para botao +5 min refletindo no timer e no acumulado final.
+- [x] Remover cobertura de mensagens motivacionais deste sprint (escopo adiado na 6.11.5).
+- [x] Revalidar `flutter test -r compact` e atualizar goldens apenas se houver impacto visual esperado.
 
 ### Sprint 7 - Release MVP
 - Testes finais
@@ -885,15 +885,39 @@ Etapas pequenas de implementacao:
   - incremento de +5 min com contagem real;
   - retorno de background apos incremento;
   - ausencia de overflow na tela de foco em viewport reduzida.
+
+### Atualizacao tecnica (26/03/2026 - Sprint 6.11.4)
+
+- A duracao efetiva da sessao (incluindo extensoes de +5 min) passou a ser enviada da UI de foco para o controller no momento de `Concluir agora` e `Cancelar`.
+- Normalizacao de minutos agora usa a duracao efetiva da sessao para evitar cap indevido na duracao original.
+- Resultado pratico:
+  - conclusao com tempo estendido contabiliza minutos acima da duracao inicial;
+  - cancelamento com tempo estendido tambem contabiliza minutos acima da duracao inicial, respeitando regra de `>= 1 min`.
+- Cobertura de widget tests adicionada para cenarios de extensao com acumulacao em acao/meta:
+  - concluir foco apos extensao;
+  - cancelar foco apos extensao.
+
+### Atualizacao tecnica (26/03/2026 - Sprint 6.11.5/6.11.6)
+
+- Etapa 6.11.5 oficialmente adiada por decisao de UX:
+  - mensagens motivacionais removidas do escopo do Sprint 6;
+  - motivo: alta chance de repeticao com baixo ganho de valor percebido no fluxo atual.
+- Etapa 6.11.6 ajustada para refletir o novo escopo:
+  - mantida cobertura de regressao para streak e +5 min;
+  - removido item de testes para mensagens motivacionais neste sprint.
+- Validacao final da 6.11.6 concluida:
+  - widget tests de streak (< 5 min nao incrementa) e +5 min verdes;
+  - `flutter test -r compact` executado com sucesso;
+  - baseline de golden da Home atualizado para refletir estado visual atual (`dashboard_home_sprint6.png`).
 ## 20. VisÃ£o de EvoluÃ§Ã£o (PÃ³s-MVP)
 
-PossÃ­veis evoluÃ§Ãµes:
-- SincronizaÃ§Ã£o na nuvem
-- Conta do usuÃ¡rio
+PossÃ­veis evoluções:
+- Sincronização na nuvem
+- Conta do usuário
 - Metas compartilhadas
-- GamificaÃ§Ã£o
+- Gamificação
 - IA sugerindo planos
-- AnÃ¡lise de hÃ¡bitos
+- Análise de hÃ¡bitos
 
 ## 21. Filosofia do Projeto
 
@@ -908,6 +932,6 @@ Evoluir como desenvolvedor enquanto constrÃ³i um produto real.
 
 ## 22. Regra Final do Projeto
 
-Se uma decisÃ£o aumentar muito a complexidade do projeto sem aumentar o valor para o usuÃ¡rio, ela deve ser evitada.
+Se uma decisão aumentar muito a complexidade do projeto sem aumentar o valor para o usuÃ¡rio, ela deve ser evitada.
 
 
