@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:quebrando_metas/app/onboarding_status.dart';
 import 'package:quebrando_metas/core/widgets/theme_drawer.dart';
 import 'package:quebrando_metas/features/goals/domain/action.dart';
 import 'package:quebrando_metas/features/goals/domain/goal.dart';
@@ -83,6 +84,7 @@ class _DashboardContent extends ConsumerWidget {
       (sum, goal) => sum + goal.totalFocusMinutes,
     );
     final double investedHours = totalFocusMinutes / 60;
+    final String greeting = OnboardingStatus.instance.greetingMessage();
 
     return ListView(
       key: DashboardPage.goalsListScrollKey,
@@ -94,6 +96,7 @@ class _DashboardContent extends ConsumerWidget {
       ),
       children: [
         _HeaderSection(
+          greeting: greeting,
           currentStreak: currentStreak,
           investedHours: investedHours,
           isCompact: isCompact,
@@ -128,11 +131,13 @@ class _DashboardContent extends ConsumerWidget {
 
 class _HeaderSection extends StatelessWidget {
   const _HeaderSection({
+    required this.greeting,
     required this.currentStreak,
     required this.investedHours,
     required this.isCompact,
   });
 
+  final String greeting;
   final int currentStreak;
   final double investedHours;
   final bool isCompact;
@@ -147,7 +152,7 @@ class _HeaderSection extends StatelessWidget {
           mainAxisSize: MainAxisSize.max,
           children: [
             Text(
-              'Olá!',
+              greeting,
               style: Theme.of(
                 context,
               ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),

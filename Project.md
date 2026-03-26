@@ -637,7 +637,47 @@ Etapas pequenas de implementacao:
 - [x] Remover cobertura de mensagens motivacionais deste sprint (escopo adiado na 6.11.5).
 - [x] Revalidar `flutter test -r compact` e atualizar goldens apenas se houver impacto visual esperado.
 
-### Sprint 7 - Release MVP
+### Sprint 7 - Onboarding (Refino de Experiencia Inicial)
+- Status: Em andamento
+
+Objetivo do sprint:
+- Refinar a experiencia da `OnboardingPage` sem quebrar o fluxo atual de navegacao e persistencia.
+- Tornar o onboarding mais claro, curto e orientado a acao para melhorar ativacao inicial.
+
+Etapas pequenas de implementacao:
+
+1. Etapa 7.1 - Diagnostico do fluxo atual
+- [ ] Mapear comportamento atual da `OnboardingPage` e do `redirect` no `GoRouter`.
+- [ ] Validar criterios de entrada/saida do onboarding com base em `OnboardingStatus`.
+- [ ] Registrar riscos de regressao de navegacao.
+
+2. Etapa 7.2 - Refino de conteudo e estrutura
+- [ ] Revisar copy dos passos com linguagem clara e objetiva.
+- [ ] Reduzir ruido visual e reforcar CTA principal de conclusao.
+- [ ] Garantir hierarquia visual consistente com o restante da UI do app.
+
+3. Etapa 7.3 - Interacao e acessibilidade
+- [ ] Ajustar estados de botoes (habilitado/desabilitado/loading) no fluxo.
+- [ ] Garantir responsividade em telas pequenas e em rotacao.
+- [ ] Revisar semantica basica para leitores de tela e contraste dos elementos.
+
+4. Etapa 7.4 - Persistencia e navegacao segura
+- [ ] Confirmar que concluir onboarding persiste estado e evita reabertura indevida.
+- [ ] Garantir retorno correto para Home apos conclusao.
+- [ ] Cobrir cenarios de inicializacao fria (cold start) com onboarding concluido e nao concluido.
+
+5. Etapa 7.5 - Testes e regressao
+- [ ] Widget tests do fluxo completo de onboarding (entrada, avancar, concluir).
+- [ ] Testes de navegacao para `redirect` com onboarding concluido/pendente.
+- [ ] Revalidar `flutter test -r compact` ao final.
+
+6. Etapa 7.6 - Personalizacao da saudacao inicial
+- [x] Adicionar captura de nome no onboarding.
+- [x] Persistir nome do usuario em configuracao local.
+- [x] Exibir saudacao personalizada na Home (ex: `Olá, Nome!`).
+- [x] Variar saudacao ocasionalmente (`Olá`, `Oi`, `Bem-vindo de volta`, `E aí`) sem quebrar fallback.
+
+### Sprint 8 - Release MVP
 - Testes finais
 - RevisÃ£o
 - Build release
@@ -909,6 +949,20 @@ Etapas pequenas de implementacao:
   - widget tests de streak (< 5 min nao incrementa) e +5 min verdes;
   - `flutter test -r compact` executado com sucesso;
   - baseline de golden da Home atualizado para refletir estado visual atual (`dashboard_home_sprint6.png`).
+
+### Atualizacao tecnica (26/03/2026 - Sprint 7.6)
+
+- `OnboardingPage` evoluida de placeholder para fluxo funcional de boas-vindas:
+  - campo de nome do usuario com validacao basica;
+  - CTA de conclusao (`Começar`) com estado de salvamento.
+- `OnboardingStatus` expandido para persistir:
+  - status de conclusao do onboarding;
+  - nome do usuario (`displayName`);
+  - indice e timestamp da saudacao atual.
+- Saudacao da Home passou a ser personalizada e variavel:
+  - fallback sem nome: `Olá!` / `Oi!` / `Bem-vindo de volta!` / `E aí!`;
+  - com nome: `Olá, Nome!` (e variacoes equivalentes).
+- Rotacao de saudacao definida com janela temporal para mudar "de vez em quando", mantendo estabilidade durante a sessao.
 ## 20. VisÃ£o de EvoluÃ§Ã£o (PÃ³s-MVP)
 
 PossÃ­veis evoluções:
