@@ -25,6 +25,7 @@ class OnboardingStatus extends ChangeNotifier {
   String _displayName = '';
   int _greetingIndex = 0;
   DateTime? _greetingLastChangedAt;
+  bool _inMemoryModeForTests = false;
 
   bool get hasCompletedOnboarding => _hasCompletedOnboarding;
   String get displayName => _displayName;
@@ -38,8 +39,9 @@ class OnboardingStatus extends ChangeNotifier {
   }
 
   Future<void> init() async {
-    final Box box = await Hive.openBox(_boxName);
-    _hasCompletedOnboarding = (box.get(_key) as bool?) ?? true;
+    final Box? box = await _openSettingsBoxSafely();
+    if (box == null) return;
+    _hasCompletedOnboarding = (box.get(_key) as bool?) ?? false;
     _displayName = ((box.get(_displayNameKey) as String?) ?? '').trim();
     _greetingIndex = _normalizeGreetingIndex(
       _parseInt(box.get(_greetingIndexKey)),
@@ -53,8 +55,8 @@ class OnboardingStatus extends ChangeNotifier {
     if (_hasCompletedOnboarding == value) return;
 
     _hasCompletedOnboarding = value;
-    final Box box = await Hive.openBox(_boxName);
-    await box.put(_key, value);
+    final Box? box = await _openSettingsBoxSafely();
+    await box?.put(_key, value);
     notifyListeners();
   }
 
@@ -63,13 +65,40 @@ class OnboardingStatus extends ChangeNotifier {
     if (_displayName == normalized) return;
 
     _displayName = normalized;
-    final Box box = await Hive.openBox(_boxName);
+    final Box? box = await _openSettingsBoxSafely();
     if (normalized.isEmpty) {
-      await box.delete(_displayNameKey);
+      await box?.delete(_displayNameKey);
     } else {
-      await box.put(_displayNameKey, normalized);
+      await box?.put(_displayNameKey, normalized);
     }
     notifyListeners();
+  }
+
+  @visibleForTesting
+  void debugSeed({
+    bool? hasCompletedOnboarding,
+    String? displayName,
+    int? greetingIndex,
+    DateTime? greetingLastChangedAt,
+  }) {
+    if (hasCompletedOnboarding != null) {
+      _hasCompletedOnboarding = hasCompletedOnboarding;
+    }
+    if (displayName != null) {
+      _displayName = displayName.trim();
+    }
+    if (greetingIndex != null) {
+      _greetingIndex = _normalizeGreetingIndex(greetingIndex);
+    }
+    if (greetingLastChangedAt != null) {
+      _greetingLastChangedAt = greetingLastChangedAt;
+    }
+    notifyListeners();
+  }
+
+  @visibleForTesting
+  void debugUseInMemoryMode(bool enabled) {
+    _inMemoryModeForTests = enabled;
   }
 
   Future<void> _maybeRotateGreeting(Box box, {required DateTime now}) async {
@@ -124,5 +153,14 @@ class OnboardingStatus extends ChangeNotifier {
     if (value is DateTime) return value;
     if (value is String) return DateTime.tryParse(value);
     return null;
+  }
+
+  Future<Box?> _openSettingsBoxSafely() async {
+    if (_inMemoryModeForTests) return null;
+    try {
+      return await Hive.openBox(_boxName);
+    } on Object {
+      return null;
+    }
   }
 }

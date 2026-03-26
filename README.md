@@ -159,6 +159,26 @@ Resumo do estado atual (atualizado em 20/03/2026).
 
 ---
 
+### Sprint 7 - Onboarding (Concluido em 26/03/2026)
+
+Resumo do que foi entregue no onboarding:
+
+- Fluxo inicial funcional com captura de nome.
+- Redirect seguro no router:
+  - onboarding pendente -> `/onboarding`;
+  - onboarding concluido -> `/`.
+- Cold start ajustado: sem flag salva, o app considera onboarding pendente.
+- Onboarding com UX refinada:
+  - copy curta e objetiva,
+  - botao principal com estados (`desabilitado`/`loading`),
+  - layout resiliente para rotacao e tela pequena.
+- Saudacao personalizada na Home:
+  - `Olá, Nome!` com variacao ocasional (`Olá`, `Oi`, `Bem vindo de volta`, `Eai`).
+- Testes de onboarding adicionados em:
+  - `test/features/onboarding/presentation/onboarding_flow_test.dart`
+
+---
+
 
 # Stack Tecnologica
 
@@ -229,6 +249,7 @@ Decisoes atuais de arquitetura e implementacao (alinhadas ao `Project.md`):
 
 - Navegacao de metas e acoes por `goalId` em path params, sem dependencia de `state.extra`.
 - Onboarding persistido localmente em Hive e aplicado no redirect do GoRouter (`refreshListenable`).
+- Cold start de onboarding: sem valor salvo de conclusao, onboarding inicia como pendente.
 - Persistencia local em Hive com mappers tipados (`Map<String, dynamic>`), incluindo metas, acoes, sessoes de foco e estatisticas de streak.
 - Home unificada: rota `/goals` mantida por compatibilidade, reutilizando `DashboardPage`.
 - Prioridades de metas com regra 0..3:
