@@ -254,24 +254,24 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
 
     final _FocusPageExit? focusResult = await Navigator.of(context)
         .push<_FocusPageExit>(
-      MaterialPageRoute<_FocusPageExit>(
-        builder: (context) => _FocusTimerPage(
-          actionTitle: action.title,
-          goalTitle: goal.title,
-          durationMinutes: durationMinutes,
-          sessionStartedAt: session.startedAt,
-          actionTotalFocusMinutes: action.totalFocusMinutes,
-          onCompleted: (elapsedMinutes) => controller.completeFocusSession(
-            session,
-            elapsedMinutes: elapsedMinutes,
+          MaterialPageRoute<_FocusPageExit>(
+            builder: (context) => _FocusTimerPage(
+              actionTitle: action.title,
+              goalTitle: goal.title,
+              durationMinutes: durationMinutes,
+              sessionStartedAt: session.startedAt,
+              actionTotalFocusMinutes: action.totalFocusMinutes,
+              onCompleted: (elapsedMinutes) => controller.completeFocusSession(
+                session,
+                elapsedMinutes: elapsedMinutes,
+              ),
+              onCanceled: (elapsedMinutes) => controller.cancelFocusSession(
+                session,
+                elapsedMinutes: elapsedMinutes,
+              ),
+            ),
           ),
-          onCanceled: (elapsedMinutes) => controller.cancelFocusSession(
-            session,
-            elapsedMinutes: elapsedMinutes,
-          ),
-        ),
-      ),
-    );
+        );
 
     if (!mounted || focusResult == null || !focusResult.wasCanceled) return;
 
@@ -799,6 +799,7 @@ class _FocusPageExit {
 
 class _FocusTimerPageState extends State<_FocusTimerPage>
     with WidgetsBindingObserver {
+  static const int _focusIncrementSeconds = 5 * 60;
   late int _remainingSeconds;
   late int _durationSeconds;
   late DateTime _expectedEndAt;
@@ -918,6 +919,29 @@ class _FocusTimerPageState extends State<_FocusTimerPage>
     );
   }
 
+  void _addFiveMinutes() {
+    if (_completed || _busy) return;
+    final DateTime now = DateTime.now();
+    final int updatedRemaining = _computeRemainingSeconds(now: now);
+    if (updatedRemaining <= 0) {
+      if (_remainingSeconds != 0) {
+        setState(() {
+          _remainingSeconds = 0;
+        });
+      }
+      unawaited(_handleCompleted());
+      return;
+    }
+
+    setState(() {
+      _durationSeconds += _focusIncrementSeconds;
+      _expectedEndAt = _expectedEndAt.add(
+        const Duration(seconds: _focusIncrementSeconds),
+      );
+      _remainingSeconds = updatedRemaining + _focusIncrementSeconds;
+    });
+  }
+
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
@@ -1021,7 +1045,9 @@ class _FocusTimerPageState extends State<_FocusTimerPage>
                                   const SizedBox(height: 12),
                                   Text(
                                     widget.goalTitle,
-                                    style: Theme.of(context).textTheme.bodyLarge,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodyLarge,
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -1040,68 +1066,109 @@ class _FocusTimerPageState extends State<_FocusTimerPage>
                                 if (_completed) ...[
                                   Text(
                                     'Sessão concluída',
-                                    style: Theme.of(context).textTheme.titleSmall,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.titleSmall,
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
                                     'Tempo investido: $_completedMinutes min',
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.w700,
-                                    ),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(fontWeight: FontWeight.w700),
                                   ),
                                 ] else ...[
                                   Text(
                                     'Tempo restante',
-                                    style: Theme.of(context).textTheme.titleSmall,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.titleSmall,
                                   ),
                                   const SizedBox(height: 12),
-                                  SizedBox(
-                                    width: 164,
-                                    height: 164,
-                                    child: Stack(
-                                      alignment: Alignment.center,
-                                      children: [
-                                        SizedBox.expand(
-                                          child: Transform(
-                                            alignment: Alignment.center,
-                                            transform: Matrix4.diagonal3Values(
-                                              -1,
-                                              1,
-                                              1,
-                                            ),
-                                            child: CircularProgressIndicator(
-                                              value: _sessionProgress(),
-                                              strokeWidth: 6,
-                                              backgroundColor: colorScheme
-                                                  .outlineVariant
-                                                  .withValues(alpha: 0.6),
-                                              valueColor:
-                                                  AlwaysStoppedAnimation<Color>(
-                                                    _progressColor(colorScheme),
-                                                  ),
-                                            ),
-                                          ),
-                                        ),
-                                        AnimatedScale(
-                                          scale: _pulseUp ? 1.03 : 1.0,
-                                          duration: const Duration(
-                                            milliseconds: 580,
-                                          ),
-                                          curve: Curves.easeInOut,
-                                          child: Text(
-                                            _formatDuration(_remainingSeconds),
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .displaySmall
-                                                ?.copyWith(
-                                                  fontWeight: FontWeight.w700,
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      SizedBox(
+                                        width: 164,
+                                        height: 164,
+                                        child: Stack(
+                                          alignment: Alignment.center,
+                                          children: [
+                                            SizedBox.expand(
+                                              child: Transform(
+                                                alignment: Alignment.center,
+                                                transform:
+                                                    Matrix4.diagonal3Values(
+                                                      -1,
+                                                      1,
+                                                      1,
+                                                    ),
+                                                child: CircularProgressIndicator(
+                                                  value: _sessionProgress(),
+                                                  strokeWidth: 6,
+                                                  backgroundColor: colorScheme
+                                                      .outlineVariant
+                                                      .withValues(alpha: 0.6),
+                                                  valueColor:
+                                                      AlwaysStoppedAnimation<
+                                                        Color
+                                                      >(
+                                                        _progressColor(
+                                                          colorScheme,
+                                                        ),
+                                                      ),
                                                 ),
-                                          ),
+                                              ),
+                                            ),
+                                            AnimatedScale(
+                                              scale: _pulseUp ? 1.03 : 1.0,
+                                              duration: const Duration(
+                                                milliseconds: 580,
+                                              ),
+                                              curve: Curves.easeInOut,
+                                              child: Text(
+                                                _formatDuration(
+                                                  _remainingSeconds,
+                                                ),
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .displaySmall
+                                                    ?.copyWith(
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                    ),
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                      ],
-                                    ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          IconButton.filledTonal(
+                                            key: const Key(
+                                              'focus-add-five-minutes-button',
+                                            ),
+                                            tooltip: 'Adicionar 5 minutos',
+                                            onPressed: _busy
+                                                ? null
+                                                : _addFiveMinutes,
+                                            icon: const Icon(Icons.more_time),
+                                          ),
+                                          const SizedBox(height: 6),
+                                          Text(
+                                            '+5 min',
+                                            style: Theme.of(
+                                              context,
+                                            ).textTheme.labelMedium,
+                                          ),
+                                        ],
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ],

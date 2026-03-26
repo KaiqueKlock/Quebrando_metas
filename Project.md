@@ -617,9 +617,9 @@ Etapas pequenas de implementacao:
 - [x] Revisar textos de estados vazios e erro para tom consistente.
 
 3. Etapa 6.11.3 - Botao para aumentar tempo de foco (+5 min)
-- [ ] Adicionar botao ao lado do relogio no Modo Foco para incrementar +5 minutos por toque.
-- [ ] Atualizar `remaining`, `duration` e `expectedEndAt` mantendo o timer por relogio real.
-- [ ] Preservar comportamento de UI em rotacao/background sem overflow.
+- [x] Adicionar botao ao lado do relogio no Modo Foco para incrementar +5 minutos por toque.
+- [x] Atualizar `remaining`, `duration` e `expectedEndAt` mantendo o timer por relogio real.
+- [x] Preservar comportamento de UI em rotacao/background sem overflow.
 
 4. Etapa 6.11.4 - Regra de contabilizacao com tempo estendido
 - [ ] Garantir que minutos adicionados por +5 sejam considerados no calculo final ao concluir foco.
@@ -869,6 +869,22 @@ Etapas pequenas de implementacao:
   - calculadora de streak com corte `< 5 min` e fallback legado;
   - persistencia de streak/bestStreak com foco concluido/cancelado;
   - widget test garantindo que cancelamento com `< 5 min` nao incrementa streak na UI.
+
+### Atualizacao tecnica (26/03/2026 - Sprint 6.11.3)
+
+- Modo Foco recebeu botao `+5 min` ao lado do relogio (key: `focus-add-five-minutes-button`).
+- Ao tocar no botao, o fluxo atualiza em conjunto:
+  - `duration` da sessao,
+  - `remaining` do contador,
+  - `expectedEndAt` usado no relogio real.
+- Compatibilidade com background/retorno preservada:
+  - countdown continua reduzindo por tempo real apos retomar o app.
+- Responsividade ajustada para telas pequenas:
+  - botao compactado para evitar overflow horizontal no layout do foco.
+- Cobertura de widget tests adicionada/validada para:
+  - incremento de +5 min com contagem real;
+  - retorno de background apos incremento;
+  - ausencia de overflow na tela de foco em viewport reduzida.
 ## 20. VisÃ£o de EvoluÃ§Ã£o (PÃ³s-MVP)
 
 PossÃ­veis evoluÃ§Ãµes:

@@ -1192,6 +1192,76 @@ void main() {
   });
 
   testWidgets(
+    'Adds five minutes to focus timer and keeps real-clock countdown after background resume',
+    (WidgetTester tester) async {
+      final DateTime now = DateTime(2026, 3, 18, 14, 30);
+      final Goal goal = Goal(
+        id: 'goal-focus-add-five',
+        title: 'Meta foco +5',
+        description: null,
+        createdAt: now,
+        updatedAt: now,
+        completedActions: 0,
+        totalActions: 1,
+      );
+      final ActionItem action = ActionItem(
+        id: 'action-focus-add-five',
+        goalId: goal.id,
+        title: 'Acao foco +5',
+        isCompleted: false,
+        createdAt: now,
+        updatedAt: now,
+        order: 0,
+        completedAt: null,
+      );
+
+      await _pumpApp(
+        tester,
+        repository: FakeInMemoryGoalsRepository(
+          initialGoals: <Goal>[goal],
+          initialActions: <ActionItem>[action],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      AppRouter.router.goNamed(
+        'goal-actions',
+        pathParameters: {'goalId': goal.id},
+      );
+      await tester.pumpAndSettle();
+
+      await _selectFocusForAction(tester, action.id);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('start-focus-button')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey<String>('focus-duration-15')));
+      await tester.pumpAndSettle();
+
+      final int beforeAdd = _readFocusCountdownSeconds(tester);
+
+      await tester.tap(find.byKey(const Key('focus-add-five-minutes-button')));
+      await tester.pumpAndSettle();
+
+      final int afterAdd = _readFocusCountdownSeconds(tester);
+      expect(afterAdd, greaterThan(beforeAdd + 295));
+
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      await tester.runAsync(() async {
+        await Future<void>.delayed(const Duration(seconds: 3));
+      });
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pumpAndSettle();
+
+      final int afterResume = _readFocusCountdownSeconds(tester);
+      expect(afterResume, lessThan(afterAdd));
+      expect(
+        find.byKey(const Key('focus-add-five-minutes-button')),
+        findsOneWidget,
+      );
+    },
+  );
+
+  testWidgets(
     'Shows correct summary for long-time user with many completed and active goals',
     (WidgetTester tester) async {
       final DateTime now = DateTime(2026, 3, 12);
