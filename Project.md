@@ -638,7 +638,7 @@ Etapas pequenas de implementacao:
 - [x] Revalidar `flutter test -r compact` e atualizar goldens apenas se houver impacto visual esperado.
 
 ### Sprint 7 - Onboarding (Refino de Experiencia Inicial)
-- Status: Concluido em 26/03/2026
+- Status: Em andamento (reaberto em 27/03/2026)
 
 Objetivo do sprint:
 - Refinar a experiencia da `OnboardingPage` sem quebrar o fluxo atual de navegacao e persistencia.
@@ -676,6 +676,32 @@ Etapas pequenas de implementacao:
 - [x] Persistir nome do usuario em configuracao local.
 - [x] Exibir saudacao personalizada na Home (ex: `Olá, Nome!`).
 - [x] Variar saudacao ocasionalmente (`Olá`, `Oi`, `Bem vindo de volta`, `Eai`) sem quebrar fallback.
+
+7. Etapa 7.7 - Alteracao de nome nas configuracoes (Drawer)
+- [x] Adicionar entrada `Alterar nome` no Drawer de configuracoes.
+- [x] Abrir dialog simples com campo de nome e validacao basica.
+- [x] Persistir nome com `OnboardingStatus.setDisplayName`.
+- [x] Atualizar saudacao da Home imediatamente apos salvar.
+- [x] Exibir feedback de erro amigavel em caso de falha ao salvar.
+
+8. Etapa 7.8 - Onboarding informativo apos coleta de nome
+- [x] Transformar onboarding em fluxo de 2 momentos:
+  - coletar nome,
+  - exibir bloco `Como funciona` antes de finalizar.
+- [x] Incluir explicativo curto em 4 pontos:
+  - criar meta,
+  - adicionar acoes,
+  - usar modo foco,
+  - acompanhar progresso e streak.
+- [x] Manter CTA final claro para concluir onboarding e entrar na Home.
+- [x] Garantir consistencia visual com a UI atual (tipografia, espacamento e estados).
+- [x] Garantir responsividade em tela pequena e rotacao no fluxo completo.
+- [x] Alterar linguagem da UI da aplicação, adicionando as acentuações de palavras (Ex: Configurações)
+
+9. Etapa 7.9 - Testes e regressao das novas etapas
+- [x] Widget test para alterar nome pelo Drawer e refletir na Home.
+- [x] Widget tests para fluxo onboarding em 2 momentos (nome -> explicativo -> concluir).
+- [x] Revalidar `flutter test -r compact` ao final das implementacoes.
 
 ### Sprint 8 - Release MVP
 - Testes finais
@@ -963,6 +989,12 @@ Etapas pequenas de implementacao:
   - fallback sem nome: `Olá!` / `Oi!` / `Bem vindo de volta!` / `Eai!`;
   - com nome: `Olá, Nome!` (e variacoes equivalentes).
 - Rotacao de saudacao definida com janela temporal para mudar "de vez em quando", mantendo estabilidade durante a sessao.
+
+### Atualizacao tecnica (27/03/2026 - Sprint 7.8)
+
+- Padronizacao de linguagem concluida na UI com acentuacao correta em textos de onboarding, configuracoes e mensagens de erro/ajuda.
+- Ajustes aplicados tambem nas saudacoes variaveis da Home (`Bem-vindo de volta` e `E aí`).
+- Correcoes pontuais de copy para maior naturalidade em portugues (ex: `Meta adicionada as prioridades` -> `Meta adicionada às prioridades`).
 
 ### Atualizacao tecnica (26/03/2026 - Sprint 7.1 a 7.5)
 

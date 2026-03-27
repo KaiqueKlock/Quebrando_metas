@@ -27,6 +27,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Boas-vindas'), findsOneWidget);
+    expect(find.byKey(const Key('onboarding-name-step')), findsOneWidget);
     expect(find.byKey(const Key('onboarding-name-input')), findsOneWidget);
     expect(find.byKey(const Key('create-goal-fab')), findsNothing);
   });
@@ -60,6 +61,15 @@ void main() {
     expect(submitButton.onPressed, isNotNull);
 
     await tester.tap(find.byKey(const Key('onboarding-submit-button')));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const Key('onboarding-how-it-works-step')),
+      findsOneWidget,
+    );
+    expect(find.text('1. Crie uma meta'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('onboarding-finish-button')));
     await tester.pumpAndSettle();
 
     expect(find.text('Quebrando Metas'), findsOneWidget);
@@ -130,6 +140,47 @@ void main() {
 
     expect(find.byKey(const Key('onboarding-name-input')), findsOneWidget);
     expect(find.byKey(const Key('onboarding-submit-button')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Keeps how-it-works step usable after rotation', (
+    WidgetTester tester,
+  ) async {
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    OnboardingStatus.instance.debugSeed(hasCompletedOnboarding: false);
+
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(390, 844);
+
+    await _pumpApp(tester);
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byKey(const Key('onboarding-name-input')),
+      'Kaique',
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('onboarding-submit-button')));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const Key('onboarding-how-it-works-step')),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('onboarding-finish-button')), findsOneWidget);
+
+    tester.view.physicalSize = const Size(844, 390);
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const Key('onboarding-how-it-works-step')),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('onboarding-finish-button')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

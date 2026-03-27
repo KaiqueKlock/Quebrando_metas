@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quebrando_metas/app/onboarding_status.dart';
 import 'package:quebrando_metas/app/router.dart';
 import 'package:quebrando_metas/app/theme/app_theme_settings.dart';
 import 'package:quebrando_metas/features/goals/domain/action.dart';
@@ -124,6 +125,40 @@ void main() {
       after.theme!.colorScheme.primary,
       isNot(equals(initialPrimaryColor)),
     );
+  });
+
+  testWidgets('Updates greeting after changing name in drawer', (
+    WidgetTester tester,
+  ) async {
+    OnboardingStatus.instance.debugUseInMemoryMode(true);
+    addTearDown(() {
+      OnboardingStatus.instance.debugSeed(
+        hasCompletedOnboarding: true,
+        displayName: '',
+        greetingIndex: 0,
+      );
+      OnboardingStatus.instance.debugUseInMemoryMode(false);
+    });
+
+    await _pumpApp(tester, repository: FakeInMemoryGoalsRepository());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Open navigation menu'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('edit-name-tile')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('edit-name-input')), findsOneWidget);
+
+    await tester.enterText(find.byKey(const Key('edit-name-input')), 'Kaique');
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('edit-name-save')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Nome atualizado.'), findsOneWidget);
+    expect(find.textContaining('Kaique'), findsOneWidget);
   });
 
   testWidgets('Creates a goal and shows it in Suas Metas page', (
@@ -2371,7 +2406,7 @@ void main() {
 
     await _tapPriorityForGoal(tester, 'Meta prioridade duplicada');
     await tester.pumpAndSettle();
-    expect(find.text('Meta adicionada as prioridades.'), findsOneWidget);
+    expect(find.text('Meta adicionada às prioridades.'), findsOneWidget);
 
     await _tapPriorityForGoal(tester, 'Meta prioridade duplicada');
     await tester.pumpAndSettle();
@@ -2503,7 +2538,7 @@ void main() {
       await _tapPriorityForGoal(tester, 'Nova prioridade 3');
       await tester.pumpAndSettle();
 
-      expect(find.text('Voce pode priorizar no maximo 3 metas.'), findsNothing);
+      expect(find.text('Você pode priorizar no máximo 3 metas.'), findsNothing);
       // single-home layout: already on home
 
       await tester.pumpAndSettle();

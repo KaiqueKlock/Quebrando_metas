@@ -17,8 +17,8 @@ class OnboardingStatus extends ChangeNotifier {
   static const List<String> _greetings = <String>[
     'Olá',
     'Oi',
-    'Bem vindo de volta',
-    'Eai',
+    'Bem-vindo de volta',
+    'E aí',
   ];
 
   bool _hasCompletedOnboarding = true;

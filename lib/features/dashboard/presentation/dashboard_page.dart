@@ -84,8 +84,6 @@ class _DashboardContent extends ConsumerWidget {
       (sum, goal) => sum + goal.totalFocusMinutes,
     );
     final double investedHours = totalFocusMinutes / 60;
-    final String greeting = OnboardingStatus.instance.greetingMessage();
-
     return ListView(
       key: DashboardPage.goalsListScrollKey,
       padding: EdgeInsets.fromLTRB(
@@ -95,11 +93,14 @@ class _DashboardContent extends ConsumerWidget {
         isCompact ? 92 : 100,
       ),
       children: [
-        _HeaderSection(
-          greeting: greeting,
-          currentStreak: currentStreak,
-          investedHours: investedHours,
-          isCompact: isCompact,
+        AnimatedBuilder(
+          animation: OnboardingStatus.instance,
+          builder: (context, _) => _HeaderSection(
+            greeting: OnboardingStatus.instance.greetingMessage(),
+            currentStreak: currentStreak,
+            investedHours: investedHours,
+            isCompact: isCompact,
+          ),
         ),
         SizedBox(height: isCompact ? 12 : 16),
         _ContinueSection(goals: continueGoals, isCompact: isCompact),
@@ -513,7 +514,7 @@ class _GoalListCard extends ConsumerWidget {
                       final String message;
                       switch (result) {
                         case GoalPriorityResult.prioritized:
-                          message = 'Meta adicionada as prioridades.';
+                          message = 'Meta adicionada às prioridades.';
                           break;
                         case GoalPriorityResult.unprioritized:
                           message = 'Meta removida das prioridades.';
@@ -623,8 +624,8 @@ List<Goal> _selectContinueGoals(List<Goal> prioritizedGoals) {
   return prioritizedGoals.take(3).toList(growable: false);
 }
 
-// Regra atual da "Proxima acao":
-// usa a acao pendente com menor tempo de foco acumulado.
+// Regra atual da "Próxima ação":
+// usa a ação pendente com menor tempo de foco acumulado.
 // Em empate, usa a de menor order.
 ActionItem? _nextActionForContinueCard(List<ActionItem> actions) {
   ActionItem? selected;
