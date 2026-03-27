@@ -1,3 +1,4 @@
+@Tags(['smoke'])
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quebrando_metas/features/goals/data/action_mapper.dart';
 import 'package:quebrando_metas/features/goals/data/focus_session_mapper.dart';

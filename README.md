@@ -339,3 +339,45 @@ Projeto desenvolvido por **Kaique Klock**
 
 
 
+
+## Perfis de execucao de testes (Windows)
+
+Para reduzir travamentos/intermitencias e acelerar o fluxo diario, foi adicionado um runner com preflight:
+
+- Script: `scripts/run_tests.ps1`
+- Preflight automatico:
+  - encerra processos `flutter/dart` pendurados;
+  - limpa lockfiles do SDK Flutter;
+  - limpa artefatos de teste em `build/unit_test_assets` e `build/native_assets`.
+
+Perfis disponiveis:
+
+- `smoke`: validacao rapida de dominio/mappers/contraste.
+- `regression`: `smoke` + onboarding + persistencia de streak.
+- `full`: todos os arquivos de teste (inclui golden e widget suite).
+
+Exemplos de uso:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/run_tests.ps1 -Profile smoke -Expanded
+powershell -ExecutionPolicy Bypass -File scripts/run_tests.ps1 -Profile regression -Expanded
+powershell -ExecutionPolicy Bypass -File scripts/run_tests.ps1 -Profile full -Expanded
+```
+
+### Execucao por tags (CI)
+
+Tambem e possivel executar por tags reais do `flutter test`:
+
+```powershell
+flutter test --tags smoke -r expanded --concurrency=1
+flutter test --tags regression -r expanded --concurrency=1
+flutter test --tags full -r expanded --concurrency=1
+```
+
+No runner em `scripts/run_tests.ps1`, use `-UseTags` para aplicar o mesmo fluxo:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/run_tests.ps1 -Profile smoke -UseTags -Expanded
+powershell -ExecutionPolicy Bypass -File scripts/run_tests.ps1 -Profile regression -UseTags -Expanded
+powershell -ExecutionPolicy Bypass -File scripts/run_tests.ps1 -Profile full -UseTags -Expanded
+```

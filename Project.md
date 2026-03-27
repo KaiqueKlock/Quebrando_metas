@@ -1040,3 +1040,13 @@ Evoluir como desenvolvedor enquanto constrÃ³i um produto real.
 Se uma decisão aumentar muito a complexidade do projeto sem aumentar o valor para o usuÃ¡rio, ela deve ser evitada.
 
 
+
+### Atualizacao tecnica (27/03/2026 - Perfis de testes)
+
+- Adicionado runner de testes em `scripts/run_tests.ps1` com preflight para reduzir intermitencia no Windows.
+- Preflight agora encerra processos `flutter/dart` pendurados e limpa lockfiles/artefatos de teste antes da execucao.
+- Perfis disponiveis para execucao incremental:
+  - `smoke` (rapido),
+  - `regression` (intermediario),
+  - `full` (suite completa).
+- Testes agora classificados com tags reais (`smoke`, `regression`, `full`) para execucao seletiva em CI/local (`flutter test --tags ...`).
