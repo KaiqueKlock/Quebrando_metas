@@ -1,4 +1,4 @@
-param(
+﻿param(
   [ValidateSet("smoke", "regression", "full")]
   [string]$Profile = "smoke",
   [switch]$Expanded,
@@ -36,6 +36,10 @@ function Resolve-TestFiles([string]$selectedProfile) {
 
   $fullOnly = @(
     "test/ui_golden_test.dart",
+    "test/widgets/home_and_settings_widget_test.dart",
+    "test/widgets/focus_widget_test.dart",
+    "test/widgets/dashboard_and_goal_detail_widget_test.dart",
+    "test/widgets/priorities_and_layout_widget_test.dart",
     "test/widget_test.dart"
   )
 
@@ -114,3 +118,4 @@ else {
 
 Write-Host ""
 Write-Host "Perfil '$Profile' finalizado com sucesso."
+

@@ -124,6 +124,7 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
         orElse: () => null,
       ),
       floatingActionButton: FloatingActionButton(
+        key: const Key('goal-actions-add-action-fab'),
         onPressed: _createAction,
         child: const Icon(Icons.add),
       ),
