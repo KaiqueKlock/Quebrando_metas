@@ -856,47 +856,101 @@ void main() {
     expect(find.text('1.3 horas'), findsOneWidget);
   });
 
-  testWidgets('Shows zero accumulated focus time per action', (
-    WidgetTester tester,
-  ) async {
-    final DateTime now = DateTime(2026, 3, 18, 8);
-    final Goal goal = Goal(
-      id: 'goal-action-focus-zero',
-      title: 'Meta foco zero',
-      description: null,
-      createdAt: now,
-      updatedAt: now,
-      completedActions: 0,
-      totalActions: 1,
-    );
-    final ActionItem action = ActionItem(
-      id: 'action-focus-zero',
-      goalId: goal.id,
-      title: 'Acao foco zero',
-      isCompleted: false,
-      createdAt: now,
-      updatedAt: now,
-      order: 0,
-      totalFocusMinutes: 0,
-    );
+  testWidgets(
+    'Hides focus-time line per action when checklist mode is disabled',
+    (WidgetTester tester) async {
+      await AppUsageSettings.instance.setFocusModeEnabled(false);
+      addTearDown(() async {
+        await AppUsageSettings.instance.setFocusModeEnabled(true);
+      });
 
-    await pumpApp(
-      tester,
-      repository: FakeInMemoryGoalsRepository(
-        initialGoals: <Goal>[goal],
-        initialActions: <ActionItem>[action],
-      ),
-    );
-    await tester.pumpAndSettle();
+      final DateTime now = DateTime(2026, 3, 18, 8);
+      final Goal goal = Goal(
+        id: 'goal-action-focus-zero',
+        title: 'Meta foco zero',
+        description: null,
+        createdAt: now,
+        updatedAt: now,
+        completedActions: 0,
+        totalActions: 1,
+      );
+      final ActionItem action = ActionItem(
+        id: 'action-focus-zero',
+        goalId: goal.id,
+        title: 'Acao foco zero',
+        isCompleted: false,
+        createdAt: now,
+        updatedAt: now,
+        order: 0,
+        totalFocusMinutes: 0,
+      );
 
-    AppRouter.router.goNamed(
-      'goal-actions',
-      pathParameters: {'goalId': goal.id},
-    );
-    await tester.pumpAndSettle();
+      await pumpApp(
+        tester,
+        repository: FakeInMemoryGoalsRepository(
+          initialGoals: <Goal>[goal],
+          initialActions: <ActionItem>[action],
+        ),
+      );
+      await tester.pumpAndSettle();
 
-    expect(find.text('Tempo de foco: 0min'), findsOneWidget);
-  });
+      AppRouter.router.goNamed(
+        'goal-actions',
+        pathParameters: {'goalId': goal.id},
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Tempo de foco:'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'Centers streak metric and hides total-time card in checklist mode',
+    (WidgetTester tester) async {
+      await AppUsageSettings.instance.setFocusModeEnabled(false);
+      addTearDown(() async {
+        await AppUsageSettings.instance.setFocusModeEnabled(true);
+      });
+
+      final DateTime now = DateTime.now();
+      final Goal goal = Goal(
+        id: 'goal-checklist-metrics-only-streak',
+        title: 'Meta checklist métricas',
+        description: null,
+        createdAt: now,
+        updatedAt: now,
+        completedActions: 0,
+        totalActions: 1,
+      );
+      final ActionItem action = ActionItem(
+        id: 'goal-checklist-metrics-only-streak-action',
+        goalId: goal.id,
+        title: 'Ação checklist',
+        isCompleted: false,
+        createdAt: now,
+        updatedAt: now,
+        order: 0,
+      );
+
+      await pumpApp(
+        tester,
+        repository: FakeInMemoryGoalsRepository(
+          initialGoals: <Goal>[goal],
+          initialActions: <ActionItem>[action],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      AppRouter.router.goNamed(
+        'goal-actions',
+        pathParameters: {'goalId': goal.id},
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Sequência'), findsOneWidget);
+      expect(find.text('Tempo total'), findsNothing);
+    },
+  );
 
   testWidgets('Shows goal-specific streak on goal detail metrics card', (
     WidgetTester tester,

@@ -347,14 +347,21 @@ Para reduzir travamentos/intermitencias e acelerar o fluxo diario, foi adicionad
 - Script: `scripts/run_tests.ps1`
 - Preflight automatico:
   - encerra processos `flutter/dart` pendurados;
-  - limpa lockfiles do SDK Flutter;
+  - ajusta PATH para priorizar `Git for Windows` quando disponivel;
+  - preserva lockfiles do SDK por padrao (evita conflito com analysis server do IDE);
   - limpa artefatos de teste em `build/unit_test_assets` e `build/native_assets`.
+- O runner executa `flutter test` com:
+  - `--concurrency=1`;
+  - `--suppress-analytics` (padrao, para reduzir lock/telemetry no Windows);
+  - timeout de teste do Flutter (`--timeout`, configuravel).
 
 Perfis disponiveis:
 
-- `smoke`: validacao rapida de dominio/mappers/contraste.
-- `regression`: `smoke` + onboarding + persistencia de streak.
+- `smoke`: validacao rapida de dominio (estavel).
+- `regression`: `smoke` + onboarding + compatibilidade de mappers + persistencia de streak.
 - `full`: todos os arquivos de teste (inclui golden e widget suite).
+
+Obs: por padrao, o runner em modo por arquivos nao executa apenas a quarentena de contraste/WCAG. Use `-IncludeQuarantine` para inclui-la.
 
 Exemplos de uso:
 
@@ -363,6 +370,25 @@ powershell -ExecutionPolicy Bypass -File scripts/run_tests.ps1 -Profile smoke -E
 powershell -ExecutionPolicy Bypass -File scripts/run_tests.ps1 -Profile regression -Expanded
 powershell -ExecutionPolicy Bypass -File scripts/run_tests.ps1 -Profile full -Expanded
 ```
+
+### Modo anti-trava (recomendado no Windows)
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/run_tests.ps1 -Profile smoke -Expanded -TimeoutSeconds 420 -KeepGoing
+powershell -ExecutionPolicy Bypass -File scripts/run_tests.ps1 -Profile regression -Expanded -TimeoutSeconds 420 -KeepGoing
+powershell -ExecutionPolicy Bypass -File scripts/run_tests.ps1 -Profile full -Expanded -TimeoutSeconds 420 -KeepGoing
+```
+
+Flags uteis:
+
+- `-TimeoutSeconds <n>`: define `--timeout` do `flutter test` (ex.: `420s`).
+- `-KeepGoing`: continua executando os proximos alvos e gera resumo final de falhas.
+- `-Clean`: executa `flutter clean` no preflight.
+- `-PubGet`: executa `flutter pub get` no preflight.
+- `-IncludeQuarantine`: inclui testes marcados como instaveis (podem voltar a travar no Windows).
+- `-ClearFlutterLocks`: tenta remover lockfiles do SDK Flutter no preflight (use apenas se realmente precisar).
+- `-SkipPreflight`: ignora limpeza inicial.
+- `-NoSuppressAnalytics`: desativa `--suppress-analytics` (nao recomendado no Windows).
 
 ### Execucao por tags (CI)
 

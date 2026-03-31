@@ -19,7 +19,6 @@ class GoalActionsPage extends ConsumerStatefulWidget {
 
   final String goalId;
   static const Key startFocusButtonKey = Key('start-focus-button');
-  static const String confirmDailyActionKeyPrefix = 'confirm-daily-action-';
 
   @override
   ConsumerState<GoalActionsPage> createState() => _GoalActionsPageState();
@@ -101,13 +100,6 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
                         action: action,
                         focusModeEnabled: focusModeEnabled,
                         isSelectedForFocus: action.id == _selectedActionId,
-                        isConfirmedToday: _isActionConfirmedToday(
-                          actionId: action.id,
-                          confirmations: confirmationsAsync.maybeWhen(
-                            data: (items) => items,
-                            orElse: () => const <ActionDayConfirmation>[],
-                          ),
-                        ),
                         onSwipeCompletion: (value) => _toggleActionCompletion(
                           action: action,
                           isCompleted: value,
@@ -121,9 +113,6 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
                                       : action.id;
                                 });
                               }
-                            : null,
-                        onConfirmDaily: !focusModeEnabled && !action.isCompleted
-                            ? () => _confirmActionDoneToday(action)
                             : null,
                         onEdit: () => _editAction(action),
                         onDelete: () => _deleteAction(action),
@@ -218,42 +207,6 @@ class _GoalActionsPageState extends ConsumerState<GoalActionsPage> {
         _showError(context, 'Não foi possível atualizar a ação.');
       }
     }
-  }
-
-  Future<void> _confirmActionDoneToday(ActionItem action) async {
-    try {
-      final bool hasRegistered = await ref
-          .read(goalActionsControllerProvider(widget.goalId).notifier)
-          .confirmActionDoneToday(goalId: widget.goalId, actionId: action.id);
-      if (!mounted) return;
-      if (!hasRegistered) {
-        _showMessage(context, 'Ação já confirmada hoje.');
-        return;
-      }
-      _showMessage(context, 'Ação confirmada para hoje.');
-    } catch (_) {
-      if (mounted) {
-        _showError(context, 'Não foi possível confirmar a ação hoje.');
-      }
-    }
-  }
-
-  bool _isActionConfirmedToday({
-    required String actionId,
-    required List<ActionDayConfirmation> confirmations,
-  }) {
-    final DateTime today = DateUtils.dateOnly(DateTime.now());
-    for (final ActionDayConfirmation confirmation in confirmations) {
-      if (confirmation.actionId != actionId) continue;
-      if (confirmation.goalId != widget.goalId) continue;
-      final DateTime confirmationDay = DateUtils.dateOnly(
-        confirmation.confirmedAt.toLocal(),
-      );
-      if (confirmationDay == today) {
-        return true;
-      }
-    }
-    return false;
   }
 
   Future<void> _createAction() async {
@@ -1064,28 +1017,53 @@ class _GoalMetricsSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Row(
-      children: [
-        Expanded(
-          child: _MetricCard(
-            title: 'Tempo total',
-            value: _formatMinutes(goal.totalFocusMinutes),
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: FutureBuilder<int>(
-            future: _loadGoalStreak(ref, goal.id),
-            builder: (context, snapshot) {
-              final int streak = snapshot.data ?? 0;
-              return _MetricCard(
-                title: 'Sequência',
-                value: _formatDays(streak),
-              );
-            },
-          ),
-        ),
-      ],
+    final AppUsageSettings usageSettings = AppUsageSettings.instance;
+
+    return AnimatedBuilder(
+      animation: usageSettings,
+      builder: (context, _) {
+        if (!usageSettings.isFocusModeEnabled) {
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 240),
+              child: FutureBuilder<int>(
+                future: _loadGoalStreak(ref, goal.id),
+                builder: (context, snapshot) {
+                  final int streak = snapshot.data ?? 0;
+                  return _MetricCard(
+                    title: 'Sequência',
+                    value: _formatDays(streak),
+                  );
+                },
+              ),
+            ),
+          );
+        }
+
+        return Row(
+          children: [
+            Expanded(
+              child: _MetricCard(
+                title: 'Tempo total',
+                value: _formatMinutes(goal.totalFocusMinutes),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: FutureBuilder<int>(
+                future: _loadGoalStreak(ref, goal.id),
+                builder: (context, snapshot) {
+                  final int streak = snapshot.data ?? 0;
+                  return _MetricCard(
+                    title: 'Sequência',
+                    value: _formatDays(streak),
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -1134,10 +1112,8 @@ class _ActionTile extends StatelessWidget {
     required this.action,
     required this.focusModeEnabled,
     required this.isSelectedForFocus,
-    required this.isConfirmedToday,
     required this.onSwipeCompletion,
     required this.onSelectForFocus,
-    required this.onConfirmDaily,
     required this.onEdit,
     required this.onDelete,
   });
@@ -1145,10 +1121,8 @@ class _ActionTile extends StatelessWidget {
   final ActionItem action;
   final bool focusModeEnabled;
   final bool isSelectedForFocus;
-  final bool isConfirmedToday;
   final Future<void> Function(bool isCompleted) onSwipeCompletion;
   final VoidCallback? onSelectForFocus;
-  final VoidCallback? onConfirmDaily;
   final Future<void> Function() onEdit;
   final Future<void> Function() onDelete;
 
@@ -1207,12 +1181,7 @@ class _ActionTile extends StatelessWidget {
                     color: action.isCompleted ? Colors.green.shade600 : null,
                   ),
                 )
-              : Icon(
-                  action.isCompleted
-                      ? Icons.check_circle
-                      : Icons.circle_outlined,
-                  color: action.isCompleted ? Colors.green.shade600 : null,
-                ),
+              : null,
           title: Text(
             action.title,
             style: action.isCompleted
@@ -1223,31 +1192,11 @@ class _ActionTile extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                'Tempo de foco: ${_formatMinutes(action.totalFocusMinutes)}',
-              ),
-              Text(action.isCompleted ? 'Concluída' : 'Pendente'),
-              if (!focusModeEnabled && !action.isCompleted) ...[
-                const SizedBox(height: 6),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: OutlinedButton(
-                    key: ValueKey<String>(
-                      '${GoalActionsPage.confirmDailyActionKeyPrefix}${action.id}',
-                    ),
-                    onPressed: onConfirmDaily,
-                    style: OutlinedButton.styleFrom(
-                      minimumSize: const Size(0, 32),
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      visualDensity: VisualDensity.compact,
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                    ),
-                    child: Text(
-                      isConfirmedToday ? 'Confirmada hoje' : 'Confirmar',
-                    ),
-                  ),
+              if (focusModeEnabled)
+                Text(
+                  'Tempo de foco: ${_formatMinutes(action.totalFocusMinutes)}',
                 ),
-              ],
+              Text(action.isCompleted ? 'Concluída' : 'Pendente'),
             ],
           ),
           trailing: Row(

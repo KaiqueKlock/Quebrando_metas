@@ -170,7 +170,7 @@ void main() {
   });
 
   testWidgets(
-    'Hides focus controls and shows daily confirmation button when focus mode is disabled',
+    'Hides focus controls and removes checklist-only confirm button',
     (WidgetTester tester) async {
       await AppUsageSettings.instance.setFocusModeEnabled(false);
       addTearDown(() async {
@@ -228,109 +228,84 @@ void main() {
             'confirm-daily-action-action-focus-disabled-ui',
           ),
         ),
-        findsOneWidget,
+        findsNothing,
       );
-      expect(find.text('Confirmar'), findsOneWidget);
-
-      await tester.tap(
-        find.byKey(
-          const ValueKey<String>(
-            'confirm-daily-action-action-focus-disabled-ui',
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.text('Confirmada hoje'), findsOneWidget);
+      expect(find.textContaining('Tempo de foco:'), findsNothing);
     },
   );
 
-  testWidgets(
-    'Persists daily confirmation and avoids duplicates on the same day',
-    (WidgetTester tester) async {
-      await AppUsageSettings.instance.setFocusModeEnabled(false);
-      addTearDown(() async {
-        await AppUsageSettings.instance.setFocusModeEnabled(true);
-      });
+  testWidgets('Persists daily completion through swipe in checklist mode', (
+    WidgetTester tester,
+  ) async {
+    await AppUsageSettings.instance.setFocusModeEnabled(false);
+    addTearDown(() async {
+      await AppUsageSettings.instance.setFocusModeEnabled(true);
+    });
 
-      final DateTime now = DateTime(2026, 3, 30, 11, 0);
-      final Goal goal = Goal(
-        id: 'goal-daily-confirmation-persisted',
-        title: 'Meta confirmação diária',
-        description: null,
-        createdAt: now,
-        updatedAt: now,
-        completedActions: 0,
-        totalActions: 1,
-      );
-      final ActionItem action = ActionItem(
-        id: 'action-daily-confirmation-persisted',
-        goalId: goal.id,
-        title: 'Acao confirmação diária',
-        isCompleted: false,
-        createdAt: now,
-        updatedAt: now,
-        order: 0,
-        completedAt: null,
-      );
-      final FakeInMemoryGoalsRepository repository =
-          FakeInMemoryGoalsRepository(
-            initialGoals: <Goal>[goal],
-            initialActions: <ActionItem>[action],
-          );
+    final DateTime now = DateTime(2026, 3, 30, 11, 0);
+    final Goal goal = Goal(
+      id: 'goal-daily-confirmation-persisted',
+      title: 'Meta confirmação diária',
+      description: null,
+      createdAt: now,
+      updatedAt: now,
+      completedActions: 0,
+      totalActions: 1,
+    );
+    final ActionItem action = ActionItem(
+      id: 'action-daily-confirmation-persisted',
+      goalId: goal.id,
+      title: 'Acao confirmação diária',
+      isCompleted: false,
+      createdAt: now,
+      updatedAt: now,
+      order: 0,
+      completedAt: null,
+    );
+    final FakeInMemoryGoalsRepository repository = FakeInMemoryGoalsRepository(
+      initialGoals: <Goal>[goal],
+      initialActions: <ActionItem>[action],
+    );
 
-      await pumpApp(tester, repository: repository);
-      await tester.pumpAndSettle();
-      await AppUsageSettings.instance.setFocusModeEnabled(false);
-      await tester.pumpAndSettle();
-      AppRouter.router.goNamed(
-        'goal-actions',
-        pathParameters: {'goalId': goal.id},
-      );
-      await tester.pumpAndSettle();
+    await pumpApp(tester, repository: repository);
+    await tester.pumpAndSettle();
+    await AppUsageSettings.instance.setFocusModeEnabled(false);
+    await tester.pumpAndSettle();
+    AppRouter.router.goNamed(
+      'goal-actions',
+      pathParameters: {'goalId': goal.id},
+    );
+    await tester.pumpAndSettle();
 
-      final Finder confirmButton = find.byKey(
+    expect(
+      find.byKey(
         const ValueKey<String>(
           'confirm-daily-action-action-daily-confirmation-persisted',
         ),
-      );
-      expect(confirmButton, findsOneWidget);
+      ),
+      findsNothing,
+    );
+    await swipeFirstActionToComplete(tester);
+    expect(find.text('Concluída'), findsOneWidget);
 
-      await tester.tap(confirmButton);
-      await tester.pumpAndSettle();
-      expect(find.text('Ação confirmada para hoje.'), findsOneWidget);
-      expect(find.text('Confirmada hoje'), findsOneWidget);
+    final confirmationsAfterFirstTap = await repository
+        .listActionDayConfirmations(goalId: goal.id, actionId: action.id);
+    expect(confirmationsAfterFirstTap, hasLength(1));
 
-      final confirmationsAfterFirstTap = await repository
-          .listActionDayConfirmations(goalId: goal.id, actionId: action.id);
-      expect(confirmationsAfterFirstTap, hasLength(1));
+    AppRouter.router.go(AppRoutes.dashboard);
+    await tester.pumpAndSettle();
+    AppRouter.router.goNamed(
+      'goal-actions',
+      pathParameters: {'goalId': goal.id},
+    );
+    await tester.pumpAndSettle();
 
-      AppRouter.router.go(AppRoutes.dashboard);
-      await tester.pumpAndSettle();
-      AppRouter.router.goNamed(
-        'goal-actions',
-        pathParameters: {'goalId': goal.id},
-      );
-      await tester.pumpAndSettle();
+    expect(find.text('Concluída'), findsOneWidget);
 
-      expect(find.text('Confirmada hoje'), findsOneWidget);
-      final Finder confirmButtonAfterReopen = find.byKey(
-        const ValueKey<String>(
-          'confirm-daily-action-action-daily-confirmation-persisted',
-        ),
-      );
-      expect(confirmButtonAfterReopen, findsOneWidget);
-      await tester.ensureVisible(confirmButtonAfterReopen);
-      await tester.pumpAndSettle();
-      await tester.tap(confirmButtonAfterReopen, warnIfMissed: false);
-      await tester.pumpAndSettle();
-      expect(find.text('Confirmada hoje'), findsOneWidget);
-
-      final confirmationsAfterSecondTap = await repository
-          .listActionDayConfirmations(goalId: goal.id, actionId: action.id);
-      expect(confirmationsAfterSecondTap, hasLength(1));
-    },
-  );
+    final confirmationsAfterSecondTap = await repository
+        .listActionDayConfirmations(goalId: goal.id, actionId: action.id);
+    expect(confirmationsAfterSecondTap, hasLength(1));
+  });
 
   testWidgets(
     'Allows swipe completion without focus time when focus mode is disabled',

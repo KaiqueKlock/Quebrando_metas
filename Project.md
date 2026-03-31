@@ -1,4 +1,4 @@
-# PROJECT.md - Quebrando Metas
+﻿# PROJECT.md - Quebrando Metas
 
 ## 1. Visao do Produto
 
@@ -1163,6 +1163,22 @@ Se uma decisão aumentar muito a complexidade do projeto sem aumentar o valor pa
   - `full` (suite completa).
 - Testes agora classificados com tags reais (`smoke`, `regression`, `full`) para execucao seletiva em CI/local (`flutter test --tags ...`).
 
+### Atualizacao tecnica (31/03/2026 - Runner anti-trava no Windows)
+
+- `scripts/run_tests.ps1` evoluido para reduzir travamentos de suite no ambiente Windows:
+  - timeout configuravel por alvo (`-TimeoutSeconds`);
+  - resumo consolidado de execucao;
+  - modo continuidade em falha (`-KeepGoing`);
+  - supressao de analytics por padrao (`--suppress-analytics`);
+  - preflight opcional com `flutter clean` (`-Clean`) e `flutter pub get` (`-PubGet`);
+  - lockfiles do SDK preservados por padrao (limpeza somente com `-ClearFlutterLocks`);
+  - PATH ajustado para priorizar Git for Windows.
+- Fluxo padrao recomendado para validacao local:
+  - `powershell -ExecutionPolicy Bypass -File scripts/run_tests.ps1 -Profile smoke -Expanded -TimeoutSeconds 420 -KeepGoing`
+- Ajuste de escopo dos perfis:
+  - `regression` voltou a incluir os testes criticos de `mapper_compatibility` e `focus_streak_persistence`;
+  - quarentena ficou restrita ao teste de contraste/WCAG (`theme_contrast_audit_test.dart`).
+
 ### Atualizacao tecnica (30/03/2026 - Sprint 8.3)
 
 - `GoalActionsPage` agora reage em tempo real ao toggle `focusModeEnabled`:
@@ -1303,6 +1319,20 @@ Se uma decisão aumentar muito a complexidade do projeto sem aumentar o valor pa
   - validacao de scroll interno no modo `Mês` em tela pequena.
   - validacao de estado vazio no modo `Mês` (meta sem acoes).
 - Etapa 8.7.7 mantida como adiada/cancelada neste ciclo.
+
+### Atualizacao tecnica (31/03/2026 - Refinamento final de checklist)
+
+- Modo checklist simplificado para fluxo unico por gesto:
+  - conclusao/reabertura de acao apenas por `swipe`;
+  - botao `Confirmar hoje` removido da UI.
+- Elementos exclusivos de foco ocultados quando `focusModeEnabled = false`:
+  - seletor circular de foco no card de acao;
+  - linha `Tempo de foco` no card de acao.
+- Bloco de metricas na tela da meta ajustado para checklist:
+  - `Tempo total` ocultado;
+  - card de `Sequência` centralizado.
+- Historico mensal de meses anteriores removido da tela da meta por decisao de produto;
+  - modo `Mês` permanece exibindo apenas o mes atual.
 
 
 
