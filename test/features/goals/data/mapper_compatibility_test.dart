@@ -1,8 +1,10 @@
 @Tags(['smoke'])
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quebrando_metas/features/goals/data/action_day_confirmation_mapper.dart';
 import 'package:quebrando_metas/features/goals/data/action_mapper.dart';
 import 'package:quebrando_metas/features/goals/data/focus_session_mapper.dart';
 import 'package:quebrando_metas/features/goals/data/goal_mapper.dart';
+import 'package:quebrando_metas/features/goals/domain/action_day_confirmation.dart';
 import 'package:quebrando_metas/features/goals/domain/focus_session.dart';
 
 void main() {
@@ -87,6 +89,28 @@ void main() {
       expect(session.id, 'session-1');
       expect(session.status, FocusSessionStatus.running);
       expect(session.durationMinutes, 25);
+    });
+  });
+
+  group('ActionDayConfirmationMapper compatibility', () {
+    test('fromMap should fallback date fields from legacy keys', () {
+      final DateTime legacyTimestamp = DateTime(2026, 3, 30, 14, 20);
+      final Map<String, dynamic> raw = <String, dynamic>{
+        'id': 'confirm-1',
+        'goalId': 'goal-1',
+        'actionId': 'action-1',
+        'timestamp': legacyTimestamp.toIso8601String(),
+      };
+
+      final ActionDayConfirmation confirmation =
+          ActionDayConfirmationMapper.fromMap(raw);
+
+      expect(confirmation.id, 'confirm-1');
+      expect(confirmation.goalId, 'goal-1');
+      expect(confirmation.actionId, 'action-1');
+      expect(confirmation.confirmedAt, legacyTimestamp);
+      expect(confirmation.createdAt, legacyTimestamp);
+      expect(confirmation.updatedAt, legacyTimestamp);
     });
   });
 }

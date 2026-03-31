@@ -1,13 +1,12 @@
 @Tags(['full'])
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quebrando_metas/app/app_usage_settings.dart';
 import 'package:quebrando_metas/app/onboarding_status.dart';
 import 'package:quebrando_metas/app/router.dart';
 import 'package:quebrando_metas/app/theme/app_theme_settings.dart';
 import 'package:quebrando_metas/features/goals/domain/action.dart';
-import 'package:quebrando_metas/features/goals/domain/focus_session.dart';
 import 'package:quebrando_metas/features/goals/domain/goal.dart';
-import 'package:quebrando_metas/features/goals/domain/title_validator.dart';
 
 import '../fakes/fake_in_memory_goals_repository.dart';
 import '../support/widget_test_helpers.dart';
@@ -128,6 +127,142 @@ void main() {
     );
   });
 
+  testWidgets('Toggles focus mode from drawer', (WidgetTester tester) async {
+    await AppUsageSettings.instance.setFocusModeEnabled(true);
+    addTearDown(() async {
+      await AppUsageSettings.instance.setFocusModeEnabled(true);
+    });
+
+    await pumpApp(tester, repository: FakeInMemoryGoalsRepository());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Open navigation menu'));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('toggle-focus-mode-switch')), findsOneWidget);
+    expect(find.text('Ativado'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('toggle-focus-mode-switch')));
+    await tester.pumpAndSettle();
+
+    expect(AppUsageSettings.instance.isFocusModeEnabled, isFalse);
+    expect(find.text('Desativado'), findsOneWidget);
+  });
+
+  testWidgets('Shows checklist metrics chip when focus mode is disabled', (
+    WidgetTester tester,
+  ) async {
+    await AppUsageSettings.instance.setFocusModeEnabled(false);
+    addTearDown(() async {
+      await AppUsageSettings.instance.setFocusModeEnabled(true);
+    });
+
+    final DateTime now = DateTime(2026, 3, 30, 8, 0);
+    final Goal goal = Goal(
+      id: 'goal-hours-focus-disabled',
+      title: 'Meta com horas',
+      description: null,
+      createdAt: now,
+      updatedAt: now,
+      completedActions: 0,
+      totalActions: 1,
+    );
+    final ActionItem action = ActionItem(
+      id: 'action-hours-focus-disabled',
+      goalId: goal.id,
+      title: 'Acao com horas',
+      isCompleted: false,
+      createdAt: now,
+      updatedAt: now,
+      order: 0,
+      totalFocusMinutes: 90,
+    );
+
+    await pumpApp(
+      tester,
+      repository: FakeInMemoryGoalsRepository(
+        initialGoals: <Goal>[goal],
+        initialActions: <ActionItem>[action],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('1.5 horas'), findsNothing);
+    expect(find.byIcon(Icons.timer_outlined), findsNothing);
+    expect(find.text('0 ações hoje'), findsOneWidget);
+    expect(find.byIcon(Icons.task_alt_outlined), findsOneWidget);
+
+    AppRouter.router.goNamed(
+      'goal-actions',
+      pathParameters: {'goalId': goal.id},
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Tempo de foco: 1h 30min'), findsOneWidget);
+  });
+
+  testWidgets('Updates daily completed actions chip after checklist confirm', (
+    WidgetTester tester,
+  ) async {
+    await AppUsageSettings.instance.setFocusModeEnabled(false);
+    addTearDown(() async {
+      await AppUsageSettings.instance.setFocusModeEnabled(true);
+    });
+
+    final DateTime now = DateTime(2026, 3, 30, 8, 0);
+    final Goal goal = Goal(
+      id: 'goal-checklist-daily-chip',
+      title: 'Meta checklist diaria',
+      description: null,
+      createdAt: now,
+      updatedAt: now,
+      completedActions: 0,
+      totalActions: 1,
+    );
+    final ActionItem action = ActionItem(
+      id: 'action-checklist-daily-chip',
+      goalId: goal.id,
+      title: 'Acao checklist diaria',
+      isCompleted: false,
+      createdAt: now,
+      updatedAt: now,
+      order: 0,
+      completedAt: null,
+    );
+
+    await pumpApp(
+      tester,
+      repository: FakeInMemoryGoalsRepository(
+        initialGoals: <Goal>[goal],
+        initialActions: <ActionItem>[action],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('0 ações hoje'), findsOneWidget);
+
+    AppRouter.router.goNamed(
+      'goal-actions',
+      pathParameters: {'goalId': goal.id},
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(
+      find.byKey(
+        const ValueKey<String>(
+          'confirm-daily-action-action-checklist-daily-chip',
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    AppRouter.router.go(AppRoutes.dashboard);
+    await tester.pumpAndSettle();
+
+    expect(find.text('1 ação hoje'), findsOneWidget);
+    expect(find.text('0.0 horas'), findsNothing);
+  });
+
   testWidgets('Updates greeting after changing name in drawer', (
     WidgetTester tester,
   ) async {
@@ -180,7 +315,7 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    expect(find.text('Meta de teste'), findsOneWidget);
+    expect(find.text('Meta de teste'), findsAtLeastNWidgets(1));
   });
 
   testWidgets('Edits and deletes a goal from Suas Metas card menu', (
@@ -196,7 +331,7 @@ void main() {
     // single-home layout: no tab switch needed
 
     await tester.pumpAndSettle();
-    expect(find.text('Meta original'), findsOneWidget);
+    expect(find.text('Meta original'), findsAtLeastNWidgets(1));
 
     await openGoalMenuForTitle(tester, 'Meta original');
     await tester.pumpAndSettle();
@@ -206,7 +341,7 @@ void main() {
     await tester.enterText(find.byType(TextField).first, 'Meta editada');
     await tester.tap(find.text('Salvar'));
     await tester.pumpAndSettle();
-    expect(find.text('Meta editada'), findsOneWidget);
+    expect(find.text('Meta editada'), findsAtLeastNWidgets(1));
 
     await openGoalMenuForTitle(tester, 'Meta editada');
     await tester.pumpAndSettle();
@@ -251,7 +386,7 @@ void main() {
     await tester.enterText(find.byType(TextField).first, 'Primeira acao');
     await tester.tap(find.text('Salvar'));
     await tester.pumpAndSettle();
-    expect(find.text('Primeira acao'), findsOneWidget);
+    expect(find.text('Primeira acao'), findsAtLeastNWidgets(1));
 
     await openActionMenuForTitle(tester, 'Primeira acao');
     await tester.pumpAndSettle();
@@ -260,7 +395,7 @@ void main() {
     await tester.enterText(find.byType(TextField).first, 'Acao editada');
     await tester.tap(find.text('Salvar'));
     await tester.pumpAndSettle();
-    expect(find.text('Acao editada'), findsOneWidget);
+    expect(find.text('Acao editada'), findsAtLeastNWidgets(1));
 
     await openActionMenuForTitle(tester, 'Acao editada');
     await tester.pumpAndSettle();

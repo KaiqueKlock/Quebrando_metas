@@ -1,13 +1,13 @@
-﻿@Tags(['full'])
+@Tags(['full'])
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quebrando_metas/app/app_usage_settings.dart';
 import 'package:quebrando_metas/app/onboarding_status.dart';
 import 'package:quebrando_metas/app/router.dart';
-import 'package:quebrando_metas/app/theme/app_theme_settings.dart';
 import 'package:quebrando_metas/features/goals/domain/action.dart';
+import 'package:quebrando_metas/features/goals/domain/action_day_confirmation.dart';
 import 'package:quebrando_metas/features/goals/domain/focus_session.dart';
 import 'package:quebrando_metas/features/goals/domain/goal.dart';
-import 'package:quebrando_metas/features/goals/domain/title_validator.dart';
 
 import '../fakes/fake_in_memory_goals_repository.dart';
 import '../support/widget_test_helpers.dart';
@@ -16,6 +16,11 @@ void main() {
   testWidgets(
     'Shows correct summary for long-time user with many completed and active goals',
     (WidgetTester tester) async {
+      await AppUsageSettings.instance.setFocusModeEnabled(true);
+      addTearDown(() async {
+        await AppUsageSettings.instance.setFocusModeEnabled(true);
+      });
+
       final DateTime now = DateTime(2026, 3, 12);
       final DateTime streakNow = DateTime.now();
       final List<Goal> seededGoals = <Goal>[];
@@ -125,10 +130,16 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      expect(find.text('Suas Metas'), findsOneWidget);
       expect(find.text('2 dias seguidos'), findsOneWidget);
       expect(find.text('0.0 horas'), findsOneWidget);
       expect(find.text('Meta ativa 0'), findsOneWidget);
+
+      await tester.drag(
+        find.byKey(const Key('goals-list-scroll')),
+        const Offset(0, -220),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Suas Metas'), findsOneWidget);
       await tester.drag(
         find.byKey(const Key('goals-list-scroll')),
         const Offset(0, -1800),
@@ -137,6 +148,498 @@ void main() {
       expect(find.textContaining('Meta concluida'), findsWidgets);
     },
   );
+
+  testWidgets('Shows weekly board by action on goal detail', (
+    WidgetTester tester,
+  ) async {
+    await AppUsageSettings.instance.setFocusModeEnabled(false);
+    addTearDown(() async {
+      await AppUsageSettings.instance.setFocusModeEnabled(true);
+    });
+
+    final DateTime now = DateTime(2026, 3, 30, 9, 0);
+    final Goal goal = Goal(
+      id: 'weekly-goal-detail',
+      title: 'Meta Semanal',
+      description: null,
+      createdAt: now,
+      updatedAt: now,
+      completedActions: 0,
+      totalActions: 2,
+    );
+    final List<ActionItem> actions = <ActionItem>[
+      ActionItem(
+        id: 'weekly-action-1',
+        goalId: goal.id,
+        title: 'Acao 1',
+        isCompleted: false,
+        createdAt: now,
+        updatedAt: now,
+        order: 0,
+      ),
+      ActionItem(
+        id: 'weekly-action-2',
+        goalId: goal.id,
+        title: 'Acao 2',
+        isCompleted: false,
+        createdAt: now,
+        updatedAt: now,
+        order: 1,
+      ),
+    ];
+    final List<ActionDayConfirmation> confirmations = <ActionDayConfirmation>[
+      ActionDayConfirmation.create(
+        goalId: goal.id,
+        actionId: 'weekly-action-1',
+        now: DateTime.now(),
+      ),
+    ];
+
+    await pumpApp(
+      tester,
+      repository: FakeInMemoryGoalsRepository(
+        initialGoals: <Goal>[goal],
+        initialActions: actions,
+        initialActionDayConfirmations: confirmations,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    AppRouter.router.goNamed(
+      'goal-actions',
+      pathParameters: {'goalId': goal.id},
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const Key('goal-weekly-actions-board-card')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const Key('goal-weekly-actions-board-header')),
+      findsOneWidget,
+    );
+    expect(find.text('Seg'), findsOneWidget);
+    expect(find.text('Ter'), findsOneWidget);
+    expect(find.text('Qua'), findsOneWidget);
+    expect(find.text('Qui'), findsOneWidget);
+    expect(find.text('Sex'), findsOneWidget);
+    expect(find.text('Sab'), findsOneWidget);
+    expect(find.text('Dom'), findsOneWidget);
+
+    final Finder rowActionOne = find.byKey(
+      const ValueKey<String>('weekly-action-row-weekly-action-1'),
+    );
+    final Finder rowActionTwo = find.byKey(
+      const ValueKey<String>('weekly-action-row-weekly-action-2'),
+    );
+
+    expect(rowActionOne, findsOneWidget);
+    expect(rowActionTwo, findsOneWidget);
+
+    final double yActionOne = tester.getTopLeft(rowActionOne).dy;
+    final double yActionTwo = tester.getTopLeft(rowActionTwo).dy;
+    expect(yActionOne, lessThan(yActionTwo));
+
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget.key is ValueKey<String> &&
+            (widget.key! as ValueKey<String>).value.startsWith(
+              'weekly-action-cell-weekly-action-1-',
+            ) &&
+            (widget.key! as ValueKey<String>).value.endsWith('-done'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget.key is ValueKey<String> &&
+            (widget.key! as ValueKey<String>).value.startsWith(
+              'weekly-action-cell-weekly-action-2-',
+            ) &&
+            (widget.key! as ValueKey<String>).value.endsWith('-pending'),
+      ),
+      findsWidgets,
+    );
+  });
+
+  testWidgets(
+    'Shows weekly board by action on goal detail when focus mode is enabled',
+    (WidgetTester tester) async {
+      await AppUsageSettings.instance.setFocusModeEnabled(true);
+      addTearDown(() async {
+        await AppUsageSettings.instance.setFocusModeEnabled(true);
+      });
+
+      final DateTime now = DateTime(2026, 3, 30, 9, 0);
+      final Goal goal = Goal(
+        id: 'weekly-goal-detail-focus-on',
+        title: 'Meta Semanal Foco',
+        description: null,
+        createdAt: now,
+        updatedAt: now,
+        completedActions: 0,
+        totalActions: 2,
+      );
+      final List<ActionItem> actions = <ActionItem>[
+        ActionItem(
+          id: 'weekly-focus-action-1',
+          goalId: goal.id,
+          title: 'Acao foco 1',
+          isCompleted: false,
+          createdAt: now,
+          updatedAt: now,
+          order: 0,
+        ),
+        ActionItem(
+          id: 'weekly-focus-action-2',
+          goalId: goal.id,
+          title: 'Acao foco 2',
+          isCompleted: false,
+          createdAt: now,
+          updatedAt: now,
+          order: 1,
+        ),
+      ];
+      final List<FocusSession> sessions = <FocusSession>[
+        completedSession(
+          id: 'weekly-focus-session-1',
+          goalId: goal.id,
+          actionId: 'weekly-focus-action-1',
+          startedAt: DateTime.now().subtract(const Duration(minutes: 8)),
+          durationMinutes: 8,
+        ),
+      ];
+
+      await pumpApp(
+        tester,
+        repository: FakeInMemoryGoalsRepository(
+          initialGoals: <Goal>[goal],
+          initialActions: actions,
+          initialFocusSessions: sessions,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      AppRouter.router.goNamed(
+        'goal-actions',
+        pathParameters: {'goalId': goal.id},
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const Key('goal-weekly-actions-board-card')),
+        findsOneWidget,
+      );
+      expect(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget.key is ValueKey<String> &&
+              (widget.key! as ValueKey<String>).value.startsWith(
+                'weekly-action-cell-weekly-focus-action-1-',
+              ) &&
+              (widget.key! as ValueKey<String>).value.endsWith('-done'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget.key is ValueKey<String> &&
+              (widget.key! as ValueKey<String>).value.startsWith(
+                'weekly-action-cell-weekly-focus-action-2-',
+              ) &&
+              (widget.key! as ValueKey<String>).value.endsWith('-pending'),
+        ),
+        findsWidgets,
+      );
+    },
+  );
+
+  testWidgets(
+    'Keeps weekly day status done when toggling checklist mode to focus mode',
+    (WidgetTester tester) async {
+      await AppUsageSettings.instance.setFocusModeEnabled(false);
+      addTearDown(() async {
+        await AppUsageSettings.instance.setFocusModeEnabled(true);
+      });
+
+      final DateTime now = DateTime.now();
+      final Goal goal = Goal(
+        id: 'weekly-toggle-mode-goal',
+        title: 'Meta toggle modo',
+        description: null,
+        createdAt: now,
+        updatedAt: now,
+        completedActions: 0,
+        totalActions: 1,
+      );
+      final ActionItem action = ActionItem(
+        id: 'weekly-toggle-mode-action-1',
+        goalId: goal.id,
+        title: 'Acao toggle modo',
+        isCompleted: false,
+        createdAt: now,
+        updatedAt: now,
+        order: 0,
+      );
+      final ActionDayConfirmation confirmation = ActionDayConfirmation.create(
+        goalId: goal.id,
+        actionId: action.id,
+        now: now,
+      );
+
+      await pumpApp(
+        tester,
+        repository: FakeInMemoryGoalsRepository(
+          initialGoals: <Goal>[goal],
+          initialActions: <ActionItem>[action],
+          initialActionDayConfirmations: <ActionDayConfirmation>[confirmation],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      AppRouter.router.goNamed(
+        'goal-actions',
+        pathParameters: {'goalId': goal.id},
+      );
+      await tester.pumpAndSettle();
+
+      Finder doneCellFinder() => find.byWidgetPredicate(
+        (widget) =>
+            widget.key is ValueKey<String> &&
+            (widget.key! as ValueKey<String>).value.startsWith(
+              'weekly-action-cell-${action.id}-',
+            ) &&
+            (widget.key! as ValueKey<String>).value.endsWith('-done'),
+      );
+
+      expect(doneCellFinder(), findsOneWidget);
+
+      await AppUsageSettings.instance.setFocusModeEnabled(true);
+      await tester.pumpAndSettle();
+
+      expect(doneCellFinder(), findsOneWidget);
+    },
+  );
+
+  testWidgets('Switches board to month mode with numbered grid layout', (
+    WidgetTester tester,
+  ) async {
+    await AppUsageSettings.instance.setFocusModeEnabled(false);
+    addTearDown(() async {
+      await AppUsageSettings.instance.setFocusModeEnabled(true);
+    });
+
+    final DateTime now = DateTime.now();
+    final int daysInMonth = DateTime(now.year, now.month + 1, 0).day;
+    final Goal goal = Goal(
+      id: 'monthly-goal-detail',
+      title: 'Meta Mensal',
+      description: null,
+      createdAt: now,
+      updatedAt: now,
+      completedActions: 0,
+      totalActions: 1,
+    );
+    final ActionItem action = ActionItem(
+      id: 'monthly-action-1',
+      goalId: goal.id,
+      title: 'Acao mensal',
+      isCompleted: false,
+      createdAt: now,
+      updatedAt: now,
+      order: 0,
+    );
+    final List<ActionDayConfirmation> confirmations = <ActionDayConfirmation>[
+      ActionDayConfirmation.create(
+        goalId: goal.id,
+        actionId: action.id,
+        now: now,
+      ),
+    ];
+
+    await pumpApp(
+      tester,
+      repository: FakeInMemoryGoalsRepository(
+        initialGoals: <Goal>[goal],
+        initialActions: <ActionItem>[action],
+        initialActionDayConfirmations: confirmations,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    AppRouter.router.goNamed(
+      'goal-actions',
+      pathParameters: {'goalId': goal.id},
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('goal-period-mode-month')));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const Key('goal-monthly-actions-board-header')),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('goal-monthly-habit-label')), findsOneWidget);
+
+    final Finder rowFinder = find.byKey(
+      const ValueKey<String>('monthly-action-row-monthly-action-1'),
+    );
+    expect(rowFinder, findsOneWidget);
+
+    final Finder monthCells = find.byWidgetPredicate(
+      (widget) =>
+          widget.key is ValueKey<String> &&
+          (widget.key! as ValueKey<String>).value.startsWith(
+            'monthly-action-cell-monthly-action-1-',
+          ),
+    );
+    expect(monthCells, findsNWidgets(daysInMonth));
+
+    final int todayDay = now.day;
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget.key is ValueKey<String> &&
+            (widget.key! as ValueKey<String>).value ==
+                'monthly-action-cell-monthly-action-1-$todayDay-done',
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets(
+    'Month mode uses internal scroll with many actions on small screens',
+    (WidgetTester tester) async {
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(320, 640);
+
+      await AppUsageSettings.instance.setFocusModeEnabled(false);
+      addTearDown(() async {
+        await AppUsageSettings.instance.setFocusModeEnabled(true);
+      });
+
+      final DateTime now = DateTime.now();
+      final Goal goal = Goal(
+        id: 'monthly-scroll-goal',
+        title: 'Meta Mensal Scroll',
+        description: null,
+        createdAt: now,
+        updatedAt: now,
+        completedActions: 0,
+        totalActions: 7,
+      );
+      final List<ActionItem> actions = List<ActionItem>.generate(
+        7,
+        (index) => ActionItem(
+          id: 'monthly-scroll-action-$index',
+          goalId: goal.id,
+          title: 'Ação mensal $index',
+          isCompleted: false,
+          createdAt: now,
+          updatedAt: now,
+          order: index,
+        ),
+      );
+
+      await pumpApp(
+        tester,
+        repository: FakeInMemoryGoalsRepository(
+          initialGoals: <Goal>[goal],
+          initialActions: actions,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      AppRouter.router.goNamed(
+        'goal-actions',
+        pathParameters: {'goalId': goal.id},
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('goal-period-mode-month')));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const Key('goal-monthly-actions-scroll')),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+
+      await tester.ensureVisible(
+        find.byKey(const Key('goal-monthly-actions-scroll')),
+      );
+      await tester.pumpAndSettle();
+
+      final Finder lastRow = find.byKey(
+        const ValueKey<String>('monthly-action-row-monthly-scroll-action-6'),
+      );
+      await tester.drag(
+        find.byKey(const Key('goal-monthly-actions-scroll')),
+        const Offset(0, -320),
+        warnIfMissed: false,
+      );
+      await tester.pumpAndSettle();
+      await tester.drag(
+        find.byKey(const Key('goal-monthly-actions-scroll')),
+        const Offset(0, -320),
+        warnIfMissed: false,
+      );
+      await tester.pumpAndSettle();
+
+      expect(lastRow, findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('Shows empty state in month mode when goal has no actions', (
+    WidgetTester tester,
+  ) async {
+    await AppUsageSettings.instance.setFocusModeEnabled(false);
+    addTearDown(() async {
+      await AppUsageSettings.instance.setFocusModeEnabled(true);
+    });
+
+    final DateTime now = DateTime.now();
+    final Goal goal = Goal(
+      id: 'monthly-empty-goal',
+      title: 'Meta Mensal Vazia',
+      description: null,
+      createdAt: now,
+      updatedAt: now,
+      completedActions: 0,
+      totalActions: 0,
+    );
+
+    await pumpApp(
+      tester,
+      repository: FakeInMemoryGoalsRepository(initialGoals: <Goal>[goal]),
+    );
+    await tester.pumpAndSettle();
+
+    AppRouter.router.goNamed(
+      'goal-actions',
+      pathParameters: {'goalId': goal.id},
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('goal-period-mode-month')));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const Key('goal-monthly-actions-board-header')),
+      findsOneWidget,
+    );
+    expect(find.text('Nenhuma ação cadastrada para esta meta.'), findsWidgets);
+  });
 
   testWidgets('Scrolls home header together with goals list', (
     WidgetTester tester,
@@ -168,7 +671,8 @@ void main() {
       repository: FakeInMemoryGoalsRepository(initialGoals: seededGoals),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Olá!'), findsOneWidget);
+    final String greeting = OnboardingStatus.instance.greetingMessage();
+    expect(find.text(greeting), findsOneWidget);
     final ScrollableState scrollableBefore = tester.state<ScrollableState>(
       find.byType(Scrollable).first,
     );
@@ -185,7 +689,7 @@ void main() {
     );
     final double listOffsetAfter = scrollableAfter.position.pixels;
 
-    expect(find.text('Olá!'), findsNothing);
+    expect(find.text(greeting), findsNothing);
     expect(listOffsetAfter, greaterThan(listOffsetBefore));
   });
 
@@ -206,7 +710,8 @@ void main() {
     final Finder scroll = find.byKey(const Key('goals-list-scroll'));
     final double contentCenterX =
         tester.getTopLeft(scroll).dx + (tester.getSize(scroll).width / 2);
-    final double greetingCenterX = tester.getCenter(find.text('Olá!')).dx;
+    final String greeting = OnboardingStatus.instance.greetingMessage();
+    final double greetingCenterX = tester.getCenter(find.text(greeting)).dx;
 
     final Finder streakChipText = find.text('0 dias seguidos');
     final Finder hoursChipText = find.text('0.0 horas');
@@ -218,7 +723,7 @@ void main() {
     expect((chipsGroupCenterX - contentCenterX).abs(), lessThanOrEqualTo(20));
   });
 
-  testWidgets('Shows goal description section on actions page', (
+  testWidgets('Shows goal title and description in month board header', (
     WidgetTester tester,
   ) async {
     final DateTime now = DateTime(2026, 3, 17);
@@ -243,12 +748,16 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Descrição da meta'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('goal-period-mode-month')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('goal-monthly-habit-label')), findsOneWidget);
+    expect(find.text('Meta com descricao'), findsOneWidget);
     expect(find.text('Descricao de teste'), findsOneWidget);
   });
 
   testWidgets(
-    'Goal detail keeps description above progress and uses compact action UI',
+    'Goal detail removes top description card and keeps weekly board/action UI',
     (WidgetTester tester) async {
       final DateTime now = DateTime(2026, 3, 17, 9);
       final Goal goal = Goal(
@@ -285,13 +794,9 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final double descriptionTop = tester
-          .getTopLeft(find.text('Descrição da meta'))
-          .dy;
-      final double progressTop = tester
-          .getTopLeft(find.text('Progresso da meta'))
-          .dy;
-      expect(descriptionTop, lessThan(progressTop));
+      expect(find.text('Descrição da meta'), findsNothing);
+      expect(find.text('Descricao UI'), findsNothing);
+      expect(find.text('Semana das ações'), findsOneWidget);
 
       expect(find.byType(FloatingActionButton), findsOneWidget);
       expect(find.byIcon(Icons.chevron_right_rounded), findsNothing);
@@ -500,7 +1005,4 @@ void main() {
     expect(find.text('2 dias'), findsOneWidget);
     expect(find.text('4 dias'), findsNothing);
   });
-
 }
-
-

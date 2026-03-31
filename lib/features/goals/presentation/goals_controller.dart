@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quebrando_metas/features/goals/data/local_goals_repository.dart';
 import 'package:quebrando_metas/features/goals/data/goals_repository.dart';
+import 'package:quebrando_metas/features/goals/domain/action_day_confirmation.dart';
 import 'package:quebrando_metas/features/goals/domain/focus_session.dart';
 import 'package:quebrando_metas/features/goals/domain/focus_streak_calculator.dart';
 import 'package:quebrando_metas/features/goals/domain/goal.dart';
@@ -64,6 +65,28 @@ final FutureProvider<int> bestFocusStreakProvider = FutureProvider<int>((
   return persistedBest;
 });
 
+final FutureProvider<int> dailyCompletedActionsProvider = FutureProvider<int>((
+  ref,
+) async {
+  final GoalsRepository repository = ref.watch(goalsRepositoryProvider);
+  final DateTime now = DateTime.now();
+  final DateTime today = DateTime(now.year, now.month, now.day);
+  final List<ActionDayConfirmation> confirmations = await repository
+      .listActionDayConfirmations(day: today);
+  final Set<String> uniqueActionIds = <String>{};
+  for (final ActionDayConfirmation confirmation in confirmations) {
+    final DateTime local = confirmation.confirmedAt.toLocal();
+    final DateTime confirmationDay = DateTime(
+      local.year,
+      local.month,
+      local.day,
+    );
+    if (confirmationDay != today) continue;
+    uniqueActionIds.add(confirmation.actionId);
+  }
+  return uniqueActionIds.length;
+});
+
 enum GoalPriorityResult {
   prioritized,
   unprioritized,
@@ -117,6 +140,7 @@ class GoalsController extends AsyncNotifier<List<Goal>> {
   Future<void> deleteGoal(String goalId) async {
     await _repository.deleteGoal(goalId);
     ref.invalidate(focusStreakProvider);
+    ref.invalidate(dailyCompletedActionsProvider);
     await _refreshGoals();
   }
 

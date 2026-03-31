@@ -26,7 +26,8 @@ function Resolve-TestFiles([string]$selectedProfile) {
     "test/app/theme/theme_contrast_audit_test.dart",
     "test/features/goals/data/mapper_compatibility_test.dart",
     "test/features/goals/domain/focus_streak_calculator_test.dart",
-    "test/features/goals/domain/goal_action_domain_test.dart"
+    "test/features/goals/domain/goal_action_domain_test.dart",
+    "test/features/goals/domain/goal_daily_completion_calculator_test.dart"
   )
 
   $regressionOnly = @(
@@ -35,7 +36,6 @@ function Resolve-TestFiles([string]$selectedProfile) {
   )
 
   $fullOnly = @(
-    "test/ui_golden_test.dart",
     "test/widgets/home_and_settings_widget_test.dart",
     "test/widgets/focus_widget_test.dart",
     "test/widgets/dashboard_and_goal_detail_widget_test.dart",

@@ -1,98 +1,98 @@
-﻿# PROJECT.md - Quebrando Metas
+# PROJECT.md - Quebrando Metas
 
-## 1. VisÃ£o do Produto
+## 1. Visao do Produto
 
-**Quebrando Metas** Ã© um aplicativo mobile que ajuda o usuÃ¡rio a transformar objetivos grandes em pequenas aÃ§Ãµes executÃ¡veis, permitindo visualizar progresso e manter clareza sobre o prÃ³ximo passo.
+**Quebrando Metas** E um aplicativo mobile que ajuda o usuario a transformar objetivos grandes em pequenas Acoes executaveis, permitindo visualizar progresso e manter clareza sobre o proximo passo.
 
-O objetivo central Ã© reduzir a sensaÃ§Ã£o de sobrecarga causada por metas grandes e abstratas, tornando o progresso visÃ­vel, simples e motivador.
+O objetivo central e reduzir a sensacao de sobrecarga causada por metas grandes e abstratas, tornando o progresso viavel, simples e motivador.
 
 ### Exemplo de Uso
 
 **Meta:**  
 Emagrecer
 
-**AÃ§Ãµes:**
+**Acoes:**
 - Treinar 3 vezes por semana
-- Melhorar alimentaÃ§Ã£o
+- Melhorar alimentacao
 - Dormir melhor
-- Reduzir aÃ§Ãºcar
+- Reduzir acucar
 
-O usuÃ¡rio pode acompanhar o progresso de cada meta conforme conclui suas aÃ§Ãµes.
+O usuario pode acompanhar o progresso de cada meta conforme conclui suas Acoes.
 
 ## 2. Problema que o App Resolve
 
 Muitas pessoas:
 - Definem metas grandes
-- NÃ£o sabem por onde comeÃ§ar
-- Perdem motivaÃ§Ã£o ao longo do caminho
+- Nao sabem por onde comecar
+- Perdem motivacao ao longo do caminho
 
 Isso acontece porque:
-- Metas sÃ£o abstratas
-- NÃ£o existe divisÃ£o clara em pequenas aÃ§Ãµes
-- Progresso nÃ£o Ã© visÃ­vel
+- Metas são abstratas
+- Nao existe divisao clara em pequenas Acoes
+- Progresso nao e visual
 
 O app resolve isso ao permitir:
-- Quebrar metas em aÃ§Ãµes pequenas
+- Quebrar metas em Acoes pequenas
 - Visualizar progresso
-- Manter foco na prÃ³xima aÃ§Ã£o
+- Manter foco na proxima acao
 
-## 3. PÃºblico-alvo (MVP)
+## 3. Publico-alvo (MVP)
 
-UsuÃ¡rios que:
+Usuarios que:
 - Querem organizar objetivos pessoais
-- Buscam melhorar hÃ¡bitos
+- Buscam melhorar habitos
 - Gostam de ferramentas simples de produtividade
 
 ### Exemplos
 - Quem quer emagrecer
 - Quem quer estudar algo novo
 - Quem quer organizar projetos pessoais
-- Quem quer melhorar hÃ¡bitos
+- Quem quer melhorar habitos
 
 ## 4. Escopo do MVP
 
-O MVP serÃ¡ **local-first**, sem backend.
+O MVP sera: **local-first**, sem backend.
 
 ### Funcionalidades do MVP
 
-UsuÃ¡rio pode:
+Usuário pode:
 - Criar uma meta
 - Editar uma meta
 - Excluir uma meta
-- Adicionar aÃ§Ãµes Ã  meta
-- Editar aÃ§Ãµes
-- Excluir aÃ§Ãµes
-- Marcar aÃ§Ãµes como concluÃ­das
+- Adicionar Acoes as  meta
+- Editar Acoes
+- Excluir Acoes
+- Marcar Acoes como concluídas
 - Visualizar progresso da meta
 - Ver lista de metas ativas
 
 ## 5. Fora do Escopo do MVP
 
-Estas funcionalidades nÃ£o fazem parte do MVP:
+Estas funcionalidades nao fazem parte do MVP:
 - Login
-- SincronizaÃ§Ã£o em nuvem
-- GamificaÃ§Ã£o
+- Sincronizacao em nuvem
+- Gamificação
 - Ranking
 - Compartilhamento social
-- NotificaÃ§Ãµes inteligentes
-- SugestÃ£o automÃ¡tica de aÃ§Ãµes com IA
+- Notificacoes inteligentes
+- Sugestao automatica de Acoes com IA
 
-Essas ideias ficam para versÃµes futuras.
+Essas ideias ficam para Versoes futuras.
 
-## 6. Stack TecnolÃ³gica
+## 6. Stack Tecnologica
 
 Este projeto utiliza:
 - Flutter
 - Dart
 - Riverpod (gerenciamento de estado)
-- GoRouter (navegaÃ§Ã£o)
-- Hive ou Isar (persistÃªncia local)
+- GoRouter (navegação)
+- Hive ou Isar (persistencia local)
 - `flutter_test`
 - `integration_test`
 
 ## 7. Estrutura do Projeto
 
-A estrutura segue organizaÃ§Ã£o por features.
+A estrutura segue organizacao por features.
 
 ```text
 lib/
@@ -123,7 +123,7 @@ Cada feature pode conter:
 - `domain`
 - `presentation`
 
-Mas abstraÃ§Ãµes desnecessÃ¡rias devem ser evitadas no MVP.
+Mas abstracoes desnecessarias devem ser evitadas no MVP.
 
 ## 8. Modelo de Dados (MVP)
 
@@ -139,7 +139,7 @@ Campos:
 - `totalActions`
 - `progress` (derivado)
 
-### Action (AÃ§Ã£o)
+### Action (Ação)
 
 Campos:
 - `id`
@@ -160,92 +160,92 @@ progress = acoes_concluidas / total_de_acoes
 ```
 
 Exemplo:
-- 4 aÃ§Ãµes
-- 2 concluÃ­das
+- 4 Acoes
+- 2 concluídas
 - Progresso = 50%
 
-## 9. Fluxo Principal do UsuÃ¡rio
+## 9. Fluxo Principal do Usuario
 
-Fluxo bÃ¡sico do app:
-1. UsuÃ¡rio abre o app
+Fluxo básico do app:
+1. Usuario abre o app
 2. Visualiza lista de metas
 3. Cria uma nova meta
-4. Adiciona aÃ§Ãµes
-5. Marca aÃ§Ãµes como concluÃ­das
+4. Adiciona Acoes
+5. Marca Acoes como concluídas
 6. Visualiza progresso da meta
 
-Esse Ã© o core loop do produto.
+Esse e o core loop do produto.
 
-### 9.1 EspecificaÃ§Ã£o da Home (MVP)
+### 9.1 Especificação da Home (MVP)
 
 #### Topo
-- SaudaÃ§Ã£o curta
+- Saudacao curta
 - Quantidade de metas ativas
-- Progresso mÃ©dio das metas ativas
+- Progresso medio das metas ativas
 
-FÃ³rmula de progresso mÃ©dio:
+Formula de progresso médio:
 
 ```text
 progresso_medio = soma(progress_das_metas) / quantidade_de_metas_ativas
 ```
 
 Regra para estado vazio:
-- Se nÃ£o houver metas ativas, exibir `0 metas ativas` e `Progresso mÃ©dio: 0%`
+- Se nao houver metas ativas, exibir `0 metas ativas` e `Progresso medio: 0%`
 
 #### Card de destaque: Continue de onde parou
 - Exibe meta em andamento
 - Exibe progresso da meta
-- Exibe prÃ³xima aÃ§Ã£o pendente
-- BotÃ£o `Continuar`
+- Exibe Proxima acao pendente
+- Botao `Continuar`
 
-Regra inicial de seleÃ§Ã£o da meta destacada:
+Regra inicial de selecao da meta destacada:
 - Escolher a primeira meta ativa da lista ordenada
-- OrdenaÃ§Ã£o padrÃ£o da Home:
-- Primeiro metas com aÃ§Ãµes pendentes
+- Ordenacao padrão da Home:
+- Primeiro metas com Acoes pendentes
 - Depois metas com menor progresso
 - Em empate, meta mais antiga (`createdAt`)
 
-#### SeÃ§Ã£o: Suas metas
+#### Sessao: Suas metas
 Cada card de meta deve mostrar:
 - Nome da meta
 - Barra de progresso
 - Percentual
-- `x de y aÃ§Ãµes concluÃ­das`
-- PrÃ³xima aÃ§Ã£o pendente
+- `x de y Acoes concluídas`
+- Proxima acao pendente
 
-#### AÃ§Ã£o principal da tela
-- BotÃ£o flutuante: `+ Nova Meta`
+#### Acao principal da tela
+- Botao flutuante: `+ Nova Meta`
 
-#### Estados obrigatÃ³rios da Home
+#### Estados obrigatorios da Home
 - `loading`
 - `withData`
 - `empty`
-- `error` (com aÃ§Ã£o de tentar novamente)
+- `error` (com ação de tentar novamente)
 
-#### CritÃ©rios de aceite da Home
-- UsuÃ¡rio entende em poucos segundos quantas metas ativas possui
-- UsuÃ¡rio visualiza progresso mÃ©dio e progresso por meta
-- UsuÃ¡rio identifica a prÃ³xima aÃ§Ã£o a executar
-- UsuÃ¡rio consegue iniciar criaÃ§Ã£o de meta pela aÃ§Ã£o principal
-- Interface mantÃ©m linguagem orientada a `aÃ§Ãµes`, nunca `etapas`
+#### Criterios de aceite da Home
+- Usuario entende em poucos segundos quantas metas ativas possui
+- Usuario visualiza progresso medio e progresso por meta
+- Usuario identifica a proxima acao a executar
+- Usuario consegue iniciar criacao de meta pela acao principal
+- Interface mantem linguagem orientada a `Acoes`, nunca `etapas`
 
-### 9.2 NavegaÃ§Ã£o inicial com GoRouter
+### 9.2 Navegacao inicial com GoRouter
 - O app usa `MaterialApp.router`
 - Rotas base:
 - `/` para Dashboard (Home)
 - `/onboarding` para Onboarding
 - Redirect inicial:
-- Se onboarding nÃ£o concluÃ­do, abrir `/onboarding`
-- Se onboarding concluÃ­do, abrir `/`
-- No Sprint 0, a flag de onboarding pode ser mock/local atÃ© a persistÃªncia ser implementada
+- Se onboarding não concluido, abrir `/onboarding`
+- Se onboarding concluido, abrir `/`
+- No Sprint 0, a flag de onboarding pode ser mock/local ate a persistencia ser implementada
 
-## 10. PrincÃ­pios de Arquitetura
+## 10. Princípios de Arquitetura
 
 ### 1. Simplicidade
 Evitar overengineering.
 
-### 2. SeparaÃ§Ã£o de responsabilidades
-Evitar lÃ³gica de negÃ³cio dentro de widgets.
+### 2. Separação de responsabilidades
+Evitar lógica de negócio dentro de widgets.
 
 ### 3. Widgets pequenos
 Preferir componentes como:
@@ -255,16 +255,16 @@ Preferir componentes como:
 - `GoalForm`
 
 ### 4. Feature-first
-Organizar cÃ³digo por feature, nÃ£o por camada global.
+Organizar codigo por feature, nao por camada global.
 
-## 11. Regras de CÃ³digo
+## 11. Regras de Codigo
 
-ConvenÃ§Ãµes:
-- Nomes em inglÃªs
-- VariÃ¡veis descritivas
-- MÃ©todos pequenos
+Convencoes:
+- Nomes em ingles
+- Variaveis descritivas
+- Metodos pequenos
 - Evitar widgets muito grandes
-- Evitar lÃ³gica complexa no `build()`
+- Evitar logica complexa no `build()`
 
 Exemplo correto:
 - `GoalProgressCalculator`
@@ -274,35 +274,35 @@ Exemplo correto:
 Evitar:
 - `UtilsHelperServiceManager`
 
-## 12. EstratÃ©gia de Testes
+## 12. Estrategia de Testes
 
 ### Unit Tests
-Testar regras de negÃ³cio:
-- CÃ¡lculo de progresso
-- ValidaÃ§Ã£o de meta
-- ValidaÃ§Ã£o de aÃ§Ãµes
+Testar regras de negócio:
+- Calculo de progresso
+- Validacao de meta
+- Validacao de Acoes
 
 ### Widget Tests
 Testar interface:
-- RenderizaÃ§Ã£o da lista
-- FormulÃ¡rio de criaÃ§Ã£o
+- Renderizacao da lista
+- Formulario de criacao
 - Barra de progresso
 
 ### Integration Tests
-Fluxo mÃ­nimo:
+Fluxo minimo:
 - Criar meta
-- Adicionar aÃ§Ãµes
-- Concluir aÃ§Ã£o
+- Adicionar Acoes
+- Concluir Acoes
 - Progresso atualizado
 
-## 13. CritÃ©rios de Pronto
+## 13. Criterios de Pronto
 
-Uma feature Ã© considerada pronta quando:
+Uma feature e considerada pronta quando:
 - Funciona corretamente
-- NÃ£o quebra anÃ¡lise estÃ¡tica
+- Nao quebra analise estatica
 - Possui testes adequados
-- Segue padrÃ£o do projeto
-- NÃ£o adiciona complexidade desnecessÃ¡ria
+- Segue padrao do projeto
+- Nao adiciona complexidade desnecessaria
 
 ## 14. Workflow de Desenvolvimento
 
@@ -312,33 +312,33 @@ Cada feature segue:
 3. Implementar em pequenos blocos
 4. Testar
 5. Revisar arquitetura
-6. Atualizar `PROJECT.md` se necessÃ¡rio
+6. Atualizar `PROJECT.md` se necessario
 7. Commit pequeno
 
 ## 15. Uso da IA no Projeto
 
-A IA atua como par de programaÃ§Ã£o.
+A IA atua como par de programação.
 
 Pode ajudar com:
 - Boilerplate
 - Widgets
 - Testes
 - Refactors
-- AnÃ¡lise de cÃ³digo
+- Analise de codigo
 
-NÃ£o deve decidir sozinha:
+Nao deve decidir sozinha:
 - Arquitetura grande
-- MudanÃ§as de stack
+- Mudancas de stack
 - Escopo do produto
 
-## 16. Regras para InteraÃ§Ã£o com IA
+## 16. Regras para Interação com IA
 
 Sempre pedir:
 - Plano curto
 - Arquivos a alterar
 - Modelo de dados
-- Testes necessÃ¡rios
-- Ordem de implementaÃ§Ã£o
+- Testes necessarios
+- Ordem de implementacao
 
 Evitar pedidos como:
 - "Crie o app inteiro"
@@ -346,7 +346,7 @@ Evitar pedidos como:
 Preferir:
 - "Vamos implementar a feature X em pequenos passos"
 
-## 17. EstratÃ©gia de Branches
+## 17. Estrategia de Branches
 
 Branches principais:
 - `main`
@@ -357,7 +357,7 @@ Branches de feature:
 - `feature/goal-actions`
 - `feature/goal-progress`
 
-## 18. Convençãoo de Commits - pode ser em portugues
+## 18. Convenção de Commits - pode ser em portugues
 
 - `feat: add goal creation flow`
 - `feat: implement goal actions`
@@ -367,42 +367,42 @@ Branches de feature:
 
 ## 19. Roadmap do MVP
 
-### Sprint 0 - FundaÃ§Ã£o
-- Status: ConcluÃ­do em 11/03/2026
-- Criar projeto âœ…
-- Configurar estrutura âœ…
-- Criar `PROJECT.md` âœ…
-- Configurar router âœ…
-- Criar home inicial âœ…
+### Sprint 0 - Fundação
+- Status: Concluído em 11/03/2026
+- Criar projeto
+- Configurar estrutura 
+- Criar `PROJECT.md`
+- Configurar router 
+- Criar home inicial…
 
 Entregas registradas:
 - Estrutura base `app/core/features` criada
-- NavegaÃ§Ã£o inicial com `GoRouter` configurada
+- Navegação inicial com `GoRouter` configurada
 - Home MVP inicial implementada (topo, destaque, lista e CTA principal)
 
 ### Sprint 1 - Metas
-- Status: ConcluÃ­do em 11/03/2026
-- Lista de metas âœ…
-- Criar meta âœ… (fluxo inicial)
-- Editar meta âœ…
-- Excluir meta âœ… 
-- PersistÃªncia local âœ… (metas com Hive)
+- Status: Concluído em 11/03/2026
+- Lista de metas
+- Criar meta  (fluxo inicial)
+- Editar meta 
+- Excluir meta  
+- Persistencia local  (metas com Hive)
 
-### Sprint 2 - AÃ§Ãµes
-- Status: ConcluÃ­do em 11/03/2026
-- Adicionar aÃ§Ãµes âœ…
-- Listar aÃ§Ãµes âœ…
-- Editar aÃ§Ãµes âœ…
-- Excluir aÃ§Ãµes âœ…
+### Sprint 2 - Acoes
+- Status: Concluído em 11/03/2026
+- Adicionar Acoes 
+- Listar Acoes 
+- Editar Acoes 
+- Excluir Acoes
 
 
 ### Sprint 3 - Progresso
-- Status: ConcluÃ­do em 12/03/2026
-- Concluir aÃ§Ãµes âœ…
-- Calcular progresso âœ…
-- Exibir progresso âœ…
-- Metas -> retorno da tela de meta sem estado "Tentar novamente" âœ… (teste com 10 ciclos de ida e volta)
-- AÃ§Ãµes e Metas -> input extremo tratado com `inputFormatter` + `validator` + feedback visual âœ…
+- Status: Concluído em 12/03/2026
+- Concluir Acoes 
+- Calcular progresso
+- Exibir progresso 
+- Metas -> retorno da tela de meta sem estado "Tentar novamente"(teste com 10 ciclos de ida e volta)
+- Acoes e Metas -> input extremo tratado com `inputFormatter` + `validator` + feedback visual ✅
 
 ### Sprint 4 - Polimento
 - Status: Concluido em 18/03/2026
@@ -475,7 +475,7 @@ Etapas pequenas de implementacao:
 - [x] Ao cancelar, o tempo acumulado conta somente com `>= 1 minuto` de foco; abaixo disso nao soma. 
 
 5. Etapa 5.5 - Conclusao manual da acao
-- [x] Implementar conclusao manual por gesto (ex: swipe lateral). remover bolinha de seleÃ§Ã£o e manter a seleÃ§Ã£o onde hoje Ã© a conclusÃ£o da aÃ§Ã£o. ConclusÃ£o passa a ser por swipe lateral.
+- [x] Implementar conclusao manual por gesto (ex: swipe lateral). remover bolinha de seleção e manter a seleção onde hoje é a conclusão da ação. Conclusão passa a ser por swipe lateral.
 - [x] Registrar `completedAt` na acao ao concluir.
 - [x] Recalcular progresso da meta apos conclusao.
 
@@ -703,26 +703,138 @@ Etapas pequenas de implementacao:
 - [x] Widget tests para fluxo onboarding em 2 momentos (nome -> explicativo -> concluir).
 - [x] Revalidar `flutter test -r compact` ao final das implementacoes.
 
-### Sprint 8 - Release MVP
+### Sprint 8 - Flexibilidade de Uso (Modo Checklist) + Card Semanal
+- Status: Em andamento (30/03/2026)
+
+Objetivo do sprint:
+- Permitir uso do app sem obrigatoriedade do Modo Foco (fluxo checklist).
+- Trocar o card `Progresso da meta` por um card semanal com status diario por acao.
+- Preparar base tecnica para futura feature mensal sem acoplar UI agora.
+
+Etapas pequenas de implementacao:
+
+1. Etapa 8.1 - Definicao funcional e regras de negocio
+- [x] Definir regra unica para "meta feita no dia" em dois modos:
+  - foco ativo: dia valido com >= 5 min de foco na meta;
+  - foco desativado: dia valido com confirmacao manual de acao feita.
+- [x] Definir comportamento idempotente da confirmacao diaria (nao duplicar no mesmo dia).
+- [x] Documentar regra de prioridade entre swipe e confirmacao diaria (swipe controla `isCompleted`; confirmacao diaria conta apenas para status do dia).
+
+2. Etapa 8.2 - Configuracao: Modo Foco ativado/desativado
+- [x] Adicionar flag global persistida em configuracoes locais (ex: `focusModeEnabled`).
+- [x] Exibir toggle no Drawer de configuracoes.
+- [x] Aplicar mudanca em tempo real na UI sem precisar reiniciar app.
+
+3. Etapa 8.3 - Tela de acoes com Modo Foco desativado
+- [x] Ocultar selecao de acao para foco e CTA `Iniciar foco` quando `focusModeEnabled = false`.
+- [x] Exibir botao de confirmacao diaria por acao (texto atual: `Confirmar`).
+- [x] Manter swipe para concluir/reabrir acao no fluxo checklist.
+
+4. Etapa 8.4 - Persistencia da confirmacao diaria
+- [x] Registrar confirmacao por data para cada acao (timestamp local).
+- [x] Garantir leitura por dia para alimentar card semanal da meta.
+- [x] Validar migracao/compatibilidade com dados legados (sem quebrar foco atual).
+
+5. Etapa 8.5 - Troca de card: `Progresso da meta` -> `Card semanal`
+- [x] Entrega inicial do card semanal na Home (Dashboard) concluida.
+- [x] Exibir 7 dias da semana no card semanal (layout compacto).
+- [x] Aplicar estado visual:
+  - verde para dia confirmado;
+  - vermelho para dia nao confirmado.
+- [ ] (Backlog de refinamento) Reavaliar remocao do card linear na tela de detalhe da meta.
+
+6. Etapa 8.6 - Regra de preenchimento do card semanal
+- [x] Modo foco ativo: marcar dia verde somente com foco elegivel (>= 5 min) na acao.
+- [x] Modo foco desativado: marcar dia verde com confirmacao manual de acao no dia.
+- [x] Garantir timezone local consistente no fechamento/virada de dia.
+
+7. Etapa 8.7 - Preparacao da feature mensal (sem UI final ainda)
+- [x] 8.7.1 - Decisao de UX mensal (fechar direcao do produto)
+  - Direcao recomendada: visao mensal por meta (na tela de detalhe da meta), sem aba global nova.
+  - Alternativa (mais custosa): aba mensal global com filtros por meta/acao para evitar poluicao visual.
+- [x] 8.7.2 - Contrato de dominio para historico mensal por acao
+  - Generalizar calculo diario atual (cinza/verde/vermelho) para intervalo arbitrario de dias.
+  - Manter regra unica por modo:
+    - foco ativo: concluido apenas com foco elegivel (>= 5 min);
+    - checklist: concluido por confirmacao manual/sinalizacao diaria.
+- [x] 8.7.3 - Provider/use-case mensal por meta
+  - Criar leitura mensal por `goalId` + `mes/ano`, reutilizando `focusSessions` e `actionDayConfirmations`.
+  - Garantir consistencia de timezone local no fechamento do dia.
+- [x] 8.7.4 - Estrategia de UI mensal sem quebrar o fluxo atual
+  - Inserir modo `Mes` no card semanal da tela de detalhe da meta (ex: toggle `Semana | Mes`).
+  - Exibir grade mensal por acao com legenda de estado (`pendente`, `feito`, `nao feito`).
+- [x] 8.7.5 - Limites de UX para manter legibilidade em mobile
+  - Definir limite inicial de exibicao (ex: ate 3-5 acoes visiveis com scroll interno).
+  - Definir comportamento para meses com 28-31 dias sem overflow horizontal.
+- [x] 8.7.6 - Cenarios de teste da visao mensal
+  - [x] Domain/presentation tests para meses com 28/30/31 dias, virada de mes e timezone (inclui provider mensal por `goalId + mes/ano`).
+  - [x] Widget tests para alternancia `Semana | Mes`, foco on/off e estado vazio.
+- [ ] 8.7.7 - Backlog opcional (adiado/cancelado neste ciclo)
+  - Avaliar uma aba mensal global de insights (resumo agregado), sem listar todas as acoes por padrao.
+
+8. Etapa 8.8 - Testes e regressao
+- [x] Widget test: toggle de foco no Drawer altera UI e persiste estado.
+- [x] Widget tests: fluxo checklist com swipe + confirmacao diaria.
+- [x] Widget tests: card semanal em ambos os modos (foco on/off).
+- [x] Regressao: modo foco ativo continua funcionando sem mudanca de regra.
+- [x] Revalidar `flutter test -r compact` e perfis `smoke/regression/full`.
+
+9. Etapa 8.9 - Refinamentos futuros do bloco de metricas (backlog)
+- [x] Refinar UX da Home no modo checklist para ocupar o espaco da metrica de horas com feedback contextual do modo foco desativado.
+- [x] Revisar microcopy do bloco de metricas para deixar claro quando o usuario esta no modo checklist vs modo foco.
+- [x] No modo checklist, exibir apenas chips de `streak` + `acoes concluidas hoje`.
+
+10. Etapa 8.10 - Pivot do card semanal (meta -> acoes diarias por meta)
+- [x] Reposicionar o card semanal para dentro da tela de detalhe da meta (remover dependência da Home para essa visualizacao).
+- [x] Estruturar grade semanal por acao:
+  - cabecalho fixo `Seg | Ter | Qua | Qui | Sex | Sab | Dom`;
+  - cada linha representa uma acao da meta.
+- [x] Definir estados visuais por celula (acao x dia):
+  - cinza: dia em aberto;
+  - verde: acao concluida no dia;
+  - vermelho: dia encerrado sem conclusao.
+
+11. Etapa 8.11 - Reabertura diaria automatica de acoes
+- [x] Ajustar regra de dominio para reabrir acao automaticamente no dia seguinte.
+- [x] Garantir que a reabertura diaria nao quebre historico da semana.
+- [x] Manter concluido permanente apenas para o estado final da meta (nao da acao diaria).
+
+12. Etapa 8.12 - Convivencia com modo foco e modo checklist
+- [x] Modo foco ativo: dia verde somente com foco elegivel (>= 5 min) para a acao.
+- [x] Modo foco desativado: dia verde por confirmacao manual da acao no dia.
+- [x] Garantir consistencia de virada de dia em timezone local para ambas as regras.
+
+13. Etapa 8.13 - Home simplificada apos pivot semanal
+- [x] Remover o card semanal da Home.
+- [x] Manter Home orientada a resumo (metas prioritarias + lista de metas) sem duplicacao do quadro semanal.
+- [x] Ajustar espacamentos/titulos para manter hierarquia visual limpa.
+
+14. Etapa 8.14 - Testes de regressao do fluxo semanal por acao
+- [x] Domain tests: estados cinza/verde/vermelho por dia e por acao.
+- [x] Widget tests: grade semanal na tela da meta com multiplas acoes.
+- [x] Widget tests: reabertura diaria automatica no dia seguinte.
+- [x] Regressao: fluxo atual de foco/checklist segue funcional sem efeitos colaterais.
+
+### Sprint 9 - Release MVP
 - Testes finais
-- RevisÃ£o
+- Revisão
 - Build release
 - Roadmap V2
 
-## DecisÃµes tÃ©cnicas (12/03/2026)
+## Decisões técnicas (12/03/2026)
 
-- NavegaÃ§Ã£o de ediÃ§Ã£o/aÃ§Ãµes de metas refatorada para `goalId` em path params, removendo dependÃªncia de `state.extra`.
+- Navegação de edição/ações de metas refatorada para `goalId` em path params, removendo dependência de `state.extra`.
 - Estado de onboarding movido para storage local com Hive + `ChangeNotifier` (`refreshListenable` no `GoRouter`).
-- PersistÃªncia local tipada com `Map<String, dynamic>` em mappers e repositÃ³rio.
-- Home ajustada para considerar apenas metas ativas no topo e no progresso mÃ©dio.
-- Fluxo de aÃ§Ãµes estabilizado com atualizaÃ§Ã£o explÃ­cita da Home apÃ³s mutaÃ§Ãµes.
-- ValidaÃ§Ã£o centralizada por `TitleValidator` com limite de caracteres tambÃ©m no input (`LengthLimitingTextInputFormatter`).
-- Tratamento de erro de UI padronizado com `SnackBar` em criaÃ§Ã£o/ediÃ§Ã£o de metas e aÃ§Ãµes.
+- Persistência local tipada com `Map<String, dynamic>` em mappers e repositório.
+- Home ajustada para considerar apenas metas ativas no topo e no progresso médio.
+- Fluxo de acoes estabilizado com atualizacao explicita da Home apos mutações.
+- Validação centralizada por `TitleValidator` com limite de caracteres também no input (`LengthLimitingTextInputFormatter`).
+- Tratamento de erro de UI padronizado com `SnackBar` em criacao/edicao de metas e acoes.
 - Cobertura de testes ampliada para:
-- usuÃ¡rio com histÃ³rico longo (10 metas concluÃ­das + 5 ativas)
-- CRUD de aÃ§Ãµes,
-- input extremo (tÃ­tulo e descriÃ§Ã£o longos),
-- estabilidade no retorno da tela de aÃ§Ãµes (10 ciclos sem estado de retry).
+- usuário com historico longo (10 metas concluidas + 5 ativas)
+- CRUD de acoes,
+- input extremo (titulo e descricao longos),
+- estabilidade no retorno da tela de acoes (10 ciclos sem estado de retry).
 
 ### Atualizacao tecnica (13/03/2026)
 
@@ -781,7 +893,7 @@ Etapas pequenas de implementacao:
 - Etapa 5.5 concluida:
   - conclusao manual da acao migrou para gesto de `swipe` lateral;
   - controle de selecao para foco foi reposicionado para a area da antiga conclusao;
-  - `completedAt` e recÃ¡lculo de progresso seguem pelo fluxo de atualizacao da acao;
+  - `completedAt` e recalculo de progresso seguem pelo fluxo de atualizacao da acao;
   - testes de widget atualizados para validar conclusao por `swipe`.
 - Etapa 5.6 concluida:
   - streak passa a ser calculada por dias com inicio de foco (`startedAt`);
@@ -1014,30 +1126,30 @@ Etapas pequenas de implementacao:
   - validacao de nome vazio;
   - conclusao de onboarding com navegacao para Home e saudacao personalizada;
   - comportamento em rotacao de tela.
-## 20. VisÃ£o de EvoluÃ§Ã£o (PÃ³s-MVP)
+## 20. Visão de Evolucao (Pos-MVP)
 
-PossÃ­veis evoluções:
+Possíveis evoluções:
 - Sincronização na nuvem
 - Conta do usuário
 - Metas compartilhadas
 - Gamificação
 - IA sugerindo planos
-- Análise de hÃ¡bitos
+- Análise de hábitos
 
 ## 21. Filosofia do Projeto
 
-### 1. Entregar valor rÃ¡pido
+### 1. Entregar valor rapido
 Pequenas releases funcionais.
 
 ### 2. Simplicidade acima de complexidade
 O MVP deve ser simples.
 
-### 3. Aprendizado atravÃ©s da construÃ§Ã£o
-Evoluir como desenvolvedor enquanto constrÃ³i um produto real.
+### 3. Aprendizado através da construção
+Evoluir como desenvolvedor enquanto constroi um produto real.
 
 ## 22. Regra Final do Projeto
 
-Se uma decisão aumentar muito a complexidade do projeto sem aumentar o valor para o usuÃ¡rio, ela deve ser evitada.
+Se uma decisão aumentar muito a complexidade do projeto sem aumentar o valor para o usuario, ela deve ser evitada.
 
 
 
@@ -1050,3 +1162,147 @@ Se uma decisão aumentar muito a complexidade do projeto sem aumentar o valor pa
   - `regression` (intermediario),
   - `full` (suite completa).
 - Testes agora classificados com tags reais (`smoke`, `regression`, `full`) para execucao seletiva em CI/local (`flutter test --tags ...`).
+
+### Atualizacao tecnica (30/03/2026 - Sprint 8.3)
+
+- `GoalActionsPage` agora reage em tempo real ao toggle `focusModeEnabled`:
+  - com foco ativo: fluxo atual permanece (selecao de acao + CTA `Iniciar foco`);
+  - com foco desativado: selecao/CTA de foco ficam ocultos.
+- Fluxo checklist na tela de acoes:
+  - swipe de concluir/reabrir mantido;
+  - bloqueio `Sem tempo gasto na ação.` passa a valer apenas quando foco estiver ativo.
+- Adicionado botao de confirmacao diaria por acao (`Confirmar`) no modo checklist.
+- Confirmacao diaria com idempotencia por dia/acao e persistencia local.
+- Cobertura de testes adicionada/validada:
+  - ocultacao dos controles de foco quando desativado;
+  - confirmacao diaria visivel no modo checklist;
+  - conclusao por swipe sem tempo de foco quando modo foco estiver desativado.
+- Validacoes executadas:
+  - `flutter test test/widgets/focus_widget_test.dart -r compact --concurrency=1`
+  - `flutter test test/widgets/home_and_settings_widget_test.dart -r compact --concurrency=1`
+  - `powershell -ExecutionPolicy Bypass -File scripts/run_tests.ps1 -Profile smoke -Expanded`
+
+### Atualizacao tecnica (30/03/2026 - Sprint 8.4)
+
+- Persistencia de confirmacao diaria implementada no contrato de repositorio (`GoalsRepository`), com:
+  - listagem por `goalId`, `actionId` e `day`;
+  - salvar e excluir confirmacoes.
+- `LocalGoalsRepository` atualizado com box dedicada (`action_day_confirmations_box`) e limpeza de confirmacoes ao excluir meta/acao.
+- `FakeInMemoryGoalsRepository` atualizado para suportar confirmacao diaria persistida nos testes.
+- `GoalActionsController` passou a registrar confirmacao diaria com idempotencia por dia/acao.
+- `GoalActionsPage` passou a ler confirmacoes persistidas e refletir estado `Confirmada hoje` mesmo apos reabrir a tela.
+- Compatibilidade de dados legados coberta com novo teste em `mapper_compatibility_test.dart`.
+
+### Atualizacao tecnica (30/03/2026 - Sprint 8.6)
+
+- Regra semanal consolidada inicialmente no dashboard com a semana corrente (`Seg` -> `Dom`) em vez de janela rolante de 7 dias.
+- Preenchimento do card semanal confirmado por modo de uso:
+  - foco ativo: verde apenas com foco elegivel (>= 5 min) na meta;
+  - foco desativado: verde apenas com confirmacao manual no dia.
+- Consistencia de virada de dia reforcada por normalizacao em dia local (`toLocal` + `dateOnly`) no calculo diario.
+- Testes adicionados/validados:
+  - `goal_daily_completion_calculator_test.dart` ganhou cenarios com timestamps persistidos em UTC para validacao por dia local;
+  - `dashboard_and_goal_detail_widget_test.dart` revalidado com os ajustes de layout/scroll da Home.
+
+### Atualizacao tecnica (30/03/2026 - Sprint 8.10 a 8.13)
+
+- Card semanal pivotado da Home para a tela de detalhe da meta (`GoalActionsPage`), mantendo a Home focada em resumo.
+- Quadro semanal agora e por acao (linhas de acoes da meta) com estados:
+  - `pending` (cinza) para dia atual/futuro sem conclusao;
+  - `done` (verde) para acao concluida no dia;
+  - `missed` (vermelho) para dia passado sem conclusao.
+- Reabertura diaria automatica implementada:
+  - ao abrir/recarregar a tela da meta, acoes concluidas em dia anterior voltam para pendentes;
+  - objetivo: manter o ciclo diario da acao sem apagar o historico semanal.
+- Modo checklist refinado:
+  - ao concluir por swipe com modo foco desativado, a confirmacao diaria e registrada automaticamente (idempotente no dia), garantindo celula verde no quadro semanal.
+- Limpeza tecnica da Home:
+  - removido bloco semanal legado nao utilizado de `dashboard_page.dart`.
+- Cobertura e validacao:
+  - novo teste de widget para reabertura diaria automatica no dia seguinte;
+  - teste de widget do fluxo checklist atualizado para validar persistencia de confirmacao diaria apos swipe;
+  - suites revalidadas: 
+    - `test/widgets/focus_widget_test.dart`
+    - `test/widgets/dashboard_and_goal_detail_widget_test.dart`
+    - `test/widgets/home_and_settings_widget_test.dart`
+    - `test/widgets/priorities_and_layout_widget_test.dart`
+  - `dart analyze lib test` executado sem warnings novos de compilacao (apenas infos/deprecations ja conhecidas).
+
+### Atualizacao tecnica (30/03/2026 - Sprint 8.14)
+
+- Regra semanal por acao extraida para dominio em `ActionWeeklyStatusCalculator`:
+  - fonte unica para estados `pending` (cinza), `done` (verde) e `missed` (vermelho).
+- Tela da meta passou a reutilizar o calculator de dominio no quadro semanal, reduzindo duplicacao de regra na UI.
+- Cobertura de dominio adicionada em `goal_daily_completion_calculator_test.dart` para:
+  - dia concluido via foco elegivel (`>= 5 min`);
+  - dia atual pendente;
+  - dia passado sem conclusao (missed);
+  - checklist com confirmacao manual;
+  - checklist com conclusao da acao no proprio dia;
+  - geracao semanal completa de segunda a domingo.
+- Regressao validada:
+  - `test/features/goals/domain/goal_daily_completion_calculator_test.dart`
+  - `test/widgets/dashboard_and_goal_detail_widget_test.dart`
+  - `test/widgets/focus_widget_test.dart`
+  - `dart analyze lib test`
+
+### Atualizacao tecnica (30/03/2026 - Sprint 8.9)
+
+- Bloco de metricas da Home ajustado para respeitar o modo de uso:
+  - modo foco ativo: `streak` + horas investidas;
+  - modo checklist: `streak` + total de acoes confirmadas/concluidas no dia.
+- Nova leitura diaria adicionada via provider dedicado (`dailyCompletedActionsProvider`) com contagem unica por `actionId` no dia local.
+- Invalidacoes adicionadas apos mutacoes relevantes (confirmar acao, excluir acao e excluir meta) para atualizar o chip em tempo real.
+- Cobertura de widget test reforcada para:
+  - ocultar chip de horas no modo checklist;
+  - exibir `0 acoes hoje` no estado inicial;
+  - atualizar para `1 acao hoje` apos confirmacao diaria.
+- Validacoes executadas:
+  - `flutter test test/widgets/home_and_settings_widget_test.dart -r compact --concurrency=1`
+  - `flutter test test/widgets/dashboard_and_goal_detail_widget_test.dart -r compact --concurrency=1`
+  - `flutter test test/widgets/focus_widget_test.dart -r compact --concurrency=1`
+
+### Atualizacao tecnica (30/03/2026 - Sprint 8.8)
+
+- Cobertura do card semanal consolidada com widget test em ambos os modos:
+  - checklist (`focusModeEnabled = false`) por confirmacao diaria;
+  - foco ativo (`focusModeEnabled = true`) por sessao elegivel (`>= 5 min`).
+- Revalidacao dos perfis automatizados concluida com sucesso:
+  - `powershell -ExecutionPolicy Bypass -File scripts/run_tests.ps1 -Profile smoke -Expanded`
+  - `powershell -ExecutionPolicy Bypass -File scripts/run_tests.ps1 -Profile regression -Expanded`
+  - `powershell -ExecutionPolicy Bypass -File scripts/run_tests.ps1 -Profile full -Expanded`
+- Durante a revalidacao do perfil `full`, houve divergencia de golden na tela de detalhe da meta; baseline atualizado para refletir a UI atual:
+  - `flutter test test/ui_golden_test.dart --update-goldens -r compact --concurrency=1`
+
+### Atualizacao tecnica (30/03/2026 - Sprint 8.7)
+
+- Base tecnica mensal implementada sem alterar o fluxo principal atual:
+  - `ActionWeeklyStatusCalculator` agora suporta intervalo arbitrario de dias e mes completo (`monthDays`, `buildMonthStatuses`, `buildStatusesForDays`).
+  - novo contrato de dominio para leitura mensal por meta:
+    - `GoalMonthlyHistory`
+    - `GoalMonthlyHistoryRow`
+    - `GoalMonthlyHistoryArgs`
+  - novo provider/use-case:
+    - `goalMonthlyHistoryProvider` em `goal_actions_controller.dart` (leitura por `goalId + mes/ano`).
+- UI mensal 8.7.4 concluida na tela de detalhe da meta:
+  - card semanal com toggle `Semana | Mês`;
+  - modo `Mês` com grade mensal por ação;
+  - legenda de estado (`Pendente`, `Feito`, `Não feito`) no rodape do card.
+- Cobertura adicionada:
+  - testes de dominio para calendario mensal em `goal_daily_completion_calculator_test.dart`;
+  - widget test de alternancia e grade mensal em `dashboard_and_goal_detail_widget_test.dart`;
+  - cenarios mensais (checklist/foco) em `focus_streak_persistence_test.dart`.
+
+### Atualizacao tecnica (31/03/2026 - Sprint 8.7.5)
+
+- Limites de UX da visao mensal aplicados no card da meta:
+  - exibicao mensal com limite de 3-5 linhas de acoes visiveis (adaptado por altura de tela);
+  - scroll interno vertical quando houver mais acoes que o limite visivel;
+  - grade mensal mantida sem overflow horizontal para meses de 28/30/31 dias.
+- Cobertura de widget test adicionada:
+  - validacao de scroll interno no modo `Mês` em tela pequena.
+  - validacao de estado vazio no modo `Mês` (meta sem acoes).
+- Etapa 8.7.7 mantida como adiada/cancelada neste ciclo.
+
+
+

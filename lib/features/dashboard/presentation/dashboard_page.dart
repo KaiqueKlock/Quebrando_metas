@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:quebrando_metas/app/app_usage_settings.dart';
 import 'package:quebrando_metas/app/onboarding_status.dart';
 import 'package:quebrando_metas/core/widgets/theme_drawer.dart';
 import 'package:quebrando_metas/features/goals/domain/action.dart';
@@ -58,6 +59,13 @@ class _DashboardContent extends ConsumerWidget {
       data: (value) => value,
       orElse: () => 0,
     );
+    final AsyncValue<int> dailyCompletedActionsAsync = ref.watch(
+      dailyCompletedActionsProvider,
+    );
+    final int dailyCompletedActions = dailyCompletedActionsAsync.maybeWhen(
+      data: (value) => value,
+      orElse: () => 0,
+    );
 
     final List<Goal> activeGoals = goals
         .where((goal) => goal.progress < 1)
@@ -84,6 +92,7 @@ class _DashboardContent extends ConsumerWidget {
       (sum, goal) => sum + goal.totalFocusMinutes,
     );
     final double investedHours = totalFocusMinutes / 60;
+    final AppUsageSettings usageSettings = AppUsageSettings.instance;
     return ListView(
       key: DashboardPage.goalsListScrollKey,
       padding: EdgeInsets.fromLTRB(
@@ -94,11 +103,16 @@ class _DashboardContent extends ConsumerWidget {
       ),
       children: [
         AnimatedBuilder(
-          animation: OnboardingStatus.instance,
+          animation: Listenable.merge(<Listenable>[
+            OnboardingStatus.instance,
+            usageSettings,
+          ]),
           builder: (context, _) => _HeaderSection(
             greeting: OnboardingStatus.instance.greetingMessage(),
             currentStreak: currentStreak,
             investedHours: investedHours,
+            focusModeEnabled: usageSettings.isFocusModeEnabled,
+            dailyCompletedActions: dailyCompletedActions,
             isCompact: isCompact,
           ),
         ),
@@ -135,12 +149,16 @@ class _HeaderSection extends StatelessWidget {
     required this.greeting,
     required this.currentStreak,
     required this.investedHours,
+    required this.focusModeEnabled,
+    required this.dailyCompletedActions,
     required this.isCompact,
   });
 
   final String greeting;
   final int currentStreak;
   final double investedHours;
+  final bool focusModeEnabled;
+  final int dailyCompletedActions;
   final bool isCompact;
 
   @override
@@ -177,10 +195,16 @@ class _HeaderSection extends StatelessWidget {
               icon: Icons.local_fire_department_outlined,
               label: _formatDays(currentStreak),
             ),
-            _SummaryChip(
-              icon: Icons.timer_outlined,
-              label: '${investedHours.toStringAsFixed(1)} horas',
-            ),
+            if (focusModeEnabled)
+              _SummaryChip(
+                icon: Icons.timer_outlined,
+                label: '${investedHours.toStringAsFixed(1)} horas',
+              )
+            else
+              _SummaryChip(
+                icon: Icons.task_alt_outlined,
+                label: _formatDailyCompletedActions(dailyCompletedActions),
+              ),
           ],
         ),
       ],
@@ -609,6 +633,11 @@ class _GoalListCard extends ConsumerWidget {
 String _formatDays(int days) {
   if (days == 1) return '1 dia seguido';
   return '$days dias seguidos';
+}
+
+String _formatDailyCompletedActions(int count) {
+  if (count == 1) return '1 ação hoje';
+  return '$count ações hoje';
 }
 
 bool _isCompactLayout(BuildContext context) {

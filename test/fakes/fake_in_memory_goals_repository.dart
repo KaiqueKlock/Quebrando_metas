@@ -1,6 +1,7 @@
 import 'package:quebrando_metas/core/errors/app_exception.dart';
 import 'package:quebrando_metas/features/goals/data/goals_repository.dart';
 import 'package:quebrando_metas/features/goals/domain/action.dart';
+import 'package:quebrando_metas/features/goals/domain/action_day_confirmation.dart';
 import 'package:quebrando_metas/features/goals/domain/focus_session.dart';
 import 'package:quebrando_metas/features/goals/domain/goal.dart';
 
@@ -9,10 +10,15 @@ class FakeInMemoryGoalsRepository implements GoalsRepository {
     List<Goal> initialGoals = const <Goal>[],
     List<ActionItem> initialActions = const <ActionItem>[],
     List<FocusSession> initialFocusSessions = const <FocusSession>[],
+    List<ActionDayConfirmation> initialActionDayConfirmations =
+        const <ActionDayConfirmation>[],
     int initialBestFocusStreak = 0,
   }) : _goals = List<Goal>.from(initialGoals),
        _actions = List<ActionItem>.from(initialActions),
        _focusSessions = List<FocusSession>.from(initialFocusSessions),
+       _actionDayConfirmations = List<ActionDayConfirmation>.from(
+         initialActionDayConfirmations,
+       ),
        _bestFocusStreak = initialBestFocusStreak < 0
            ? 0
            : initialBestFocusStreak {
@@ -22,6 +28,7 @@ class FakeInMemoryGoalsRepository implements GoalsRepository {
   final List<Goal> _goals;
   final List<ActionItem> _actions;
   final List<FocusSession> _focusSessions;
+  final List<ActionDayConfirmation> _actionDayConfirmations;
   int _bestFocusStreak;
 
   @override
@@ -60,6 +67,11 @@ class FakeInMemoryGoalsRepository implements GoalsRepository {
       (session) =>
           session.goalId == goalId ||
           deletedActionIds.contains(session.actionId),
+    );
+    _actionDayConfirmations.removeWhere(
+      (confirmation) =>
+          confirmation.goalId == goalId ||
+          deletedActionIds.contains(confirmation.actionId),
     );
   }
 
@@ -106,6 +118,9 @@ class FakeInMemoryGoalsRepository implements GoalsRepository {
   }) async {
     _actions.removeWhere((action) => action.id == actionId);
     _focusSessions.removeWhere((session) => session.actionId == actionId);
+    _actionDayConfirmations.removeWhere(
+      (confirmation) => confirmation.actionId == actionId,
+    );
     await _normalizeActionOrder(goalId);
     await _recalculateGoal(goalId);
   }
@@ -143,6 +158,52 @@ class FakeInMemoryGoalsRepository implements GoalsRepository {
   @override
   Future<void> deleteFocusSession(String sessionId) async {
     _focusSessions.removeWhere((session) => session.id == sessionId);
+  }
+
+  @override
+  Future<List<ActionDayConfirmation>> listActionDayConfirmations({
+    String? goalId,
+    String? actionId,
+    DateTime? day,
+  }) async {
+    final DateTime? normalizedDay = day == null ? null : _dateOnlyLocal(day);
+    final List<ActionDayConfirmation> confirmations = _actionDayConfirmations
+        .where((confirmation) {
+          if (goalId != null && confirmation.goalId != goalId) return false;
+          if (actionId != null && confirmation.actionId != actionId) {
+            return false;
+          }
+          if (normalizedDay != null &&
+              _dateOnlyLocal(confirmation.confirmedAt) != normalizedDay) {
+            return false;
+          }
+          return true;
+        })
+        .toList(growable: false);
+    confirmations.sort((a, b) => a.confirmedAt.compareTo(b.confirmedAt));
+    return confirmations;
+  }
+
+  @override
+  Future<ActionDayConfirmation> saveActionDayConfirmation(
+    ActionDayConfirmation confirmation,
+  ) async {
+    final int index = _actionDayConfirmations.indexWhere(
+      (item) => item.id == confirmation.id,
+    );
+    if (index == -1) {
+      _actionDayConfirmations.add(confirmation);
+      return confirmation;
+    }
+    _actionDayConfirmations[index] = confirmation;
+    return confirmation;
+  }
+
+  @override
+  Future<void> deleteActionDayConfirmation(String confirmationId) async {
+    _actionDayConfirmations.removeWhere(
+      (confirmation) => confirmation.id == confirmationId,
+    );
   }
 
   @override
@@ -209,5 +270,10 @@ class FakeInMemoryGoalsRepository implements GoalsRepository {
         totalFocusMinutes: totalFocusMinutes,
       );
     }
+  }
+
+  DateTime _dateOnlyLocal(DateTime value) {
+    final DateTime local = value.toLocal();
+    return DateTime(local.year, local.month, local.day);
   }
 }

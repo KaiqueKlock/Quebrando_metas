@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quebrando_metas/app/app_usage_settings.dart';
 import 'package:quebrando_metas/app/router.dart';
 import 'package:quebrando_metas/features/goals/domain/focus_session.dart';
 import 'package:quebrando_metas/features/goals/presentation/goals_controller.dart';
@@ -165,7 +166,7 @@ Future<void> openActionMenuForTitle(
   String actionTitle,
 ) async {
   await scrollToActionListIfNeeded(tester);
-  final Finder titleFinder = find.text(actionTitle).first;
+  final Finder titleFinder = find.text(actionTitle).last;
   await tester.ensureVisible(titleFinder);
   await tester.pumpAndSettle();
 
@@ -181,7 +182,7 @@ Future<void> openActionMenuForTitle(
 }
 
 Future<void> openGoalMenuForTitle(WidgetTester tester, String goalTitle) async {
-  final Finder goalTitleFinder = find.text(goalTitle).first;
+  final Finder goalTitleFinder = find.text(goalTitle).last;
   await tester.ensureVisible(goalTitleFinder);
   await tester.pumpAndSettle();
   final Finder goalCard = find.ancestor(
@@ -196,7 +197,10 @@ Future<void> openGoalMenuForTitle(WidgetTester tester, String goalTitle) async {
 }
 
 Future<void> selectFocusForAction(WidgetTester tester, String actionId) async {
+  await AppUsageSettings.instance.setFocusModeEnabled(true);
+  await tester.pumpAndSettle();
   await scrollToActionListIfNeeded(tester);
+
   String buildKey(String id) {
     final String normalized = id.startsWith('action-')
         ? id.substring('action-'.length)
@@ -204,29 +208,75 @@ Future<void> selectFocusForAction(WidgetTester tester, String actionId) async {
     return 'select-focus-action-$normalized';
   }
 
-  final Finder selectorByKey = find.byKey(ValueKey<String>(buildKey(actionId)));
+  final Finder actionCard = find.byKey(
+    ValueKey<String>('action-card-$actionId'),
+  );
+  if (actionCard.evaluate().isNotEmpty) {
+    await tester.ensureVisible(actionCard.first);
+    await tester.pumpAndSettle();
+
+    final Finder selectorInActionCard = find
+        .descendant(
+          of: actionCard.first,
+          matching: find.byWidgetPredicate(
+            (widget) =>
+                widget is IconButton &&
+                widget.onPressed != null &&
+                widget.key is ValueKey<String> &&
+                (widget.key! as ValueKey<String>).value == buildKey(actionId),
+          ),
+        )
+        .hitTestable();
+    if (selectorInActionCard.evaluate().isNotEmpty) {
+      await tester.tap(selectorInActionCard.first);
+      await tester.pumpAndSettle();
+      return;
+    }
+  }
+
+  final Finder selectorByKey = find
+      .byWidgetPredicate(
+        (widget) =>
+            widget is IconButton &&
+            widget.onPressed != null &&
+            widget.key is ValueKey<String> &&
+            (widget.key! as ValueKey<String>).value == buildKey(actionId),
+      )
+      .hitTestable();
   if (selectorByKey.evaluate().isNotEmpty) {
     await tester.ensureVisible(selectorByKey.first);
     await tester.tap(selectorByKey.first);
+    await tester.pumpAndSettle();
     return;
   }
 
-  final Finder selectorByTooltip = find.byTooltip('Selecionar para foco');
+  final Finder selectorByTooltip = find
+      .byWidgetPredicate(
+        (widget) =>
+            widget is IconButton &&
+            widget.onPressed != null &&
+            widget.tooltip == 'Selecionar para foco',
+      )
+      .hitTestable();
   if (selectorByTooltip.evaluate().isNotEmpty) {
     await tester.ensureVisible(selectorByTooltip.first);
     await tester.tap(selectorByTooltip.first);
+    await tester.pumpAndSettle();
     return;
   }
 
-  final Finder selectorByAnyFocusTooltip = find.byWidgetPredicate(
-    (widget) =>
-        widget is IconButton &&
-        widget.onPressed != null &&
-        (widget.tooltip?.contains('foco') ?? false),
-  );
+  final Finder selectorByAnyFocusTooltip = find
+      .byWidgetPredicate(
+        (widget) =>
+            widget is IconButton &&
+            widget.onPressed != null &&
+            (widget.tooltip?.contains('foco') ?? false),
+      )
+      .hitTestable();
   if (selectorByAnyFocusTooltip.evaluate().isNotEmpty) {
     await tester.ensureVisible(selectorByAnyFocusTooltip.first);
     await tester.tap(selectorByAnyFocusTooltip.first);
+    await tester.pumpAndSettle();
     return;
   }
 

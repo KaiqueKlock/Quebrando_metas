@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:quebrando_metas/app/app_usage_settings.dart';
 import 'package:quebrando_metas/app/onboarding_status.dart';
 import 'package:quebrando_metas/app/theme/app_theme_settings.dart';
 
@@ -7,15 +8,17 @@ class ThemeDrawer extends StatelessWidget {
 
   static const Key toggleThemeKey = Key('toggle-theme-icon');
   static const Key editNameTileKey = Key('edit-name-tile');
+  static const Key toggleFocusModeKey = Key('toggle-focus-mode-switch');
   static const Key editNameInputKey = Key('edit-name-input');
   static const Key editNameSaveKey = Key('edit-name-save');
 
   @override
   Widget build(BuildContext context) {
     final AppThemeSettings settings = AppThemeSettings.instance;
+    final AppUsageSettings usageSettings = AppUsageSettings.instance;
     return Drawer(
       child: AnimatedBuilder(
-        animation: settings,
+        animation: Listenable.merge(<Listenable>[settings, usageSettings]),
         builder: (context, _) {
           final List<ThemeColorOption> colorOptions =
               AppThemeSettings.colorOptions;
@@ -50,6 +53,18 @@ class ThemeDrawer extends StatelessWidget {
                       );
                       Navigator.of(context).pop();
                     },
+                  ),
+                  SwitchListTile(
+                    key: toggleFocusModeKey,
+                    secondary: const Icon(Icons.timer_outlined),
+                    title: const Text('Modo foco'),
+                    subtitle: Text(
+                      usageSettings.isFocusModeEnabled
+                          ? 'Ativado'
+                          : 'Desativado',
+                    ),
+                    value: usageSettings.isFocusModeEnabled,
+                    onChanged: usageSettings.setFocusModeEnabled,
                   ),
                   Row(
                     children: [

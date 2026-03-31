@@ -1,10 +1,12 @@
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:quebrando_metas/features/goals/data/action_day_confirmation_mapper.dart';
 import 'package:quebrando_metas/core/errors/app_exception.dart';
 import 'package:quebrando_metas/features/goals/data/action_mapper.dart';
 import 'package:quebrando_metas/features/goals/data/focus_session_mapper.dart';
 import 'package:quebrando_metas/features/goals/data/goal_mapper.dart';
 import 'package:quebrando_metas/features/goals/data/goals_repository.dart';
 import 'package:quebrando_metas/features/goals/domain/action.dart';
+import 'package:quebrando_metas/features/goals/domain/action_day_confirmation.dart';
 import 'package:quebrando_metas/features/goals/domain/focus_session.dart';
 import 'package:quebrando_metas/features/goals/domain/goal.dart';
 
@@ -14,6 +16,8 @@ class LocalGoalsRepository implements GoalsRepository {
   static const String _goalsBoxName = 'goals_box';
   static const String _actionsBoxName = 'actions_box';
   static const String _focusSessionsBoxName = 'focus_sessions_box';
+  static const String _actionDayConfirmationsBoxName =
+      'action_day_confirmations_box';
   static const String _focusStatsBoxName = 'focus_stats_box';
   static const String _bestFocusStreakKey = 'best_focus_streak';
 
@@ -21,6 +25,9 @@ class LocalGoalsRepository implements GoalsRepository {
   late final Future<Box<dynamic>> _actionsBoxFuture = _openBox(_actionsBoxName);
   late final Future<Box<dynamic>> _focusSessionsBoxFuture = _openBox(
     _focusSessionsBoxName,
+  );
+  late final Future<Box<dynamic>> _actionDayConfirmationsBoxFuture = _openBox(
+    _actionDayConfirmationsBoxName,
   );
   late final Future<Box<dynamic>> _focusStatsBoxFuture = _openBox(
     _focusStatsBoxName,
@@ -81,6 +88,8 @@ class LocalGoalsRepository implements GoalsRepository {
     final Box<dynamic> goalsBox = await _goalsBoxFuture;
     final Box<dynamic> actionsBox = await _actionsBoxFuture;
     final Box<dynamic> focusSessionsBox = await _focusSessionsBoxFuture;
+    final Box<dynamic> actionDayConfirmationsBox =
+        await _actionDayConfirmationsBoxFuture;
     final List<String> actionIds = <String>[];
     for (final dynamic rawAction in actionsBox.values) {
       final Map<String, dynamic>? actionMap = _coerceMap(rawAction);
@@ -113,6 +122,29 @@ class LocalGoalsRepository implements GoalsRepository {
 
     for (final String sessionId in focusSessionIds) {
       await focusSessionsBox.delete(sessionId);
+    }
+
+    final List<String> confirmationIds = <String>[];
+    for (final dynamic rawConfirmation in actionDayConfirmationsBox.values) {
+      final Map<String, dynamic>? confirmationMap = _coerceMap(rawConfirmation);
+      if (confirmationMap == null) continue;
+
+      final String confirmationGoalId = (confirmationMap['goalId'] ?? '')
+          .toString();
+      final String confirmationActionId = (confirmationMap['actionId'] ?? '')
+          .toString();
+      if (confirmationGoalId != goalId &&
+          !actionIds.contains(confirmationActionId)) {
+        continue;
+      }
+      final String confirmationId = (confirmationMap['id'] ?? '').toString();
+      if (confirmationId.isNotEmpty) {
+        confirmationIds.add(confirmationId);
+      }
+    }
+
+    for (final String confirmationId in confirmationIds) {
+      await actionDayConfirmationsBox.delete(confirmationId);
     }
 
     await goalsBox.delete(goalId);
@@ -177,6 +209,8 @@ class LocalGoalsRepository implements GoalsRepository {
   }) async {
     final Box<dynamic> actionsBox = await _actionsBoxFuture;
     final Box<dynamic> focusSessionsBox = await _focusSessionsBoxFuture;
+    final Box<dynamic> actionDayConfirmationsBox =
+        await _actionDayConfirmationsBoxFuture;
     await actionsBox.delete(actionId);
 
     final List<String> focusSessionIds = <String>[];
@@ -195,6 +229,22 @@ class LocalGoalsRepository implements GoalsRepository {
 
     for (final String sessionId in focusSessionIds) {
       await focusSessionsBox.delete(sessionId);
+    }
+
+    final List<String> confirmationIds = <String>[];
+    for (final dynamic rawConfirmation in actionDayConfirmationsBox.values) {
+      final Map<String, dynamic>? confirmationMap = _coerceMap(rawConfirmation);
+      if (confirmationMap == null) continue;
+      final String confirmationActionId = (confirmationMap['actionId'] ?? '')
+          .toString();
+      if (confirmationActionId != actionId) continue;
+      final String confirmationId = (confirmationMap['id'] ?? '').toString();
+      if (confirmationId.isNotEmpty) {
+        confirmationIds.add(confirmationId);
+      }
+    }
+    for (final String confirmationId in confirmationIds) {
+      await actionDayConfirmationsBox.delete(confirmationId);
     }
 
     await _normalizeOrder(goalId);
@@ -239,6 +289,61 @@ class LocalGoalsRepository implements GoalsRepository {
   Future<void> deleteFocusSession(String sessionId) async {
     final Box<dynamic> sessionsBox = await _focusSessionsBoxFuture;
     await sessionsBox.delete(sessionId);
+  }
+
+  @override
+  Future<List<ActionDayConfirmation>> listActionDayConfirmations({
+    String? goalId,
+    String? actionId,
+    DateTime? day,
+  }) async {
+    final Box<dynamic> confirmationsBox =
+        await _actionDayConfirmationsBoxFuture;
+    final DateTime? normalizedDay = day == null ? null : _dateOnlyLocal(day);
+    final List<ActionDayConfirmation> confirmations = <ActionDayConfirmation>[];
+
+    for (final dynamic rawConfirmation in confirmationsBox.values) {
+      final Map<String, dynamic>? confirmationMap = _coerceMap(rawConfirmation);
+      if (confirmationMap == null) continue;
+
+      try {
+        final ActionDayConfirmation confirmation =
+            ActionDayConfirmationMapper.fromMap(confirmationMap);
+        if (confirmation.id.isEmpty) continue;
+        if (goalId != null && confirmation.goalId != goalId) continue;
+        if (actionId != null && confirmation.actionId != actionId) continue;
+        if (normalizedDay != null &&
+            _dateOnlyLocal(confirmation.confirmedAt) != normalizedDay) {
+          continue;
+        }
+        confirmations.add(confirmation);
+      } catch (_) {
+        continue;
+      }
+    }
+
+    confirmations.sort((a, b) => a.confirmedAt.compareTo(b.confirmedAt));
+    return List<ActionDayConfirmation>.unmodifiable(confirmations);
+  }
+
+  @override
+  Future<ActionDayConfirmation> saveActionDayConfirmation(
+    ActionDayConfirmation confirmation,
+  ) async {
+    final Box<dynamic> confirmationsBox =
+        await _actionDayConfirmationsBoxFuture;
+    await confirmationsBox.put(
+      confirmation.id,
+      ActionDayConfirmationMapper.toMap(confirmation),
+    );
+    return confirmation;
+  }
+
+  @override
+  Future<void> deleteActionDayConfirmation(String confirmationId) async {
+    final Box<dynamic> confirmationsBox =
+        await _actionDayConfirmationsBoxFuture;
+    await confirmationsBox.delete(confirmationId);
   }
 
   @override
@@ -310,5 +415,10 @@ class LocalGoalsRepository implements GoalsRepository {
     if (value is num) return value.toInt();
     if (value is String) return int.tryParse(value);
     return null;
+  }
+
+  DateTime _dateOnlyLocal(DateTime value) {
+    final DateTime local = value.toLocal();
+    return DateTime(local.year, local.month, local.day);
   }
 }
