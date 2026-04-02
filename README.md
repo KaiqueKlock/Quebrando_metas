@@ -1,4 +1,9 @@
 # Quebrando Metas
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/95b4505f-316e-4c12-9fda-b63700fab90a" width="30%" />
+  <img src="https://github.com/user-attachments/assets/94cb79ef-9762-422a-804f-c286c654c487" width="30%" />
+  <img src="https://github.com/user-attachments/assets/148c20fd-800f-4f74-b671-93051640d1bd" width="30%" />
+</p>
 
 Aplicativo Flutter para transformar metas grandes em acoes menores, com acompanhamento diario de progresso, consistencia e foco.
 
@@ -110,5 +115,6 @@ flutter run
 ```
 
 ## Autor
-
 Kaique Klock
+
+Projeto criado como parte do processo de aprendizado em desenvolvimento mobile com Flutter.
