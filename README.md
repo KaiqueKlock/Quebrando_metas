@@ -48,6 +48,19 @@ lib/
     goals/
     onboarding/
 ```
+## 🚀 Abordagem de Desenvolvimento
+
+Este projeto foi desenvolvido seguindo uma abordagem prática e iterativa, focada em ciclos curtos de construção e validação.
+
+Ao invés de um planejamento rígido inicial, o desenvolvimento evoluiu de forma incremental, com foco em:
+
+- implementação rápida de funcionalidades
+- validação contínua da experiência do usuário
+- ajustes baseados no uso real do aplicativo
+
+Essa abordagem permitiu maior agilidade na evolução do produto e melhor alinhamento com o comportamento esperado do usuário.
+
+O projeto também serviu como laboratório para consolidação de boas práticas de arquitetura, organização de código e testes automatizados.
 
 ## Decisoes Tecnicas e Testes
 
@@ -117,4 +130,4 @@ flutter run
 ## Autor
 Kaique Klock
 
-Projeto criado como parte do processo de aprendizado em desenvolvimento mobile com Flutter.
+Projeto criado como parte do processo de aprendizado em desenvolvimento mobile Flutter.
